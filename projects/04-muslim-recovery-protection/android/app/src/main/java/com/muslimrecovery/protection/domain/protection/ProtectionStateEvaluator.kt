@@ -11,9 +11,8 @@ package com.muslimrecovery.protection.domain.protection
  * 4. Only when the service is actually RUNNING are tunnel/filtering health checked to decide
  *    between [ProtectionState.Protected] and [ProtectionState.Degraded].
  *
- * [ProtectionSignals.userIntentEnabled] is read only to distinguish [ProtectionState.NotConfigured]
- * from [ProtectionState.Stopped] — it never influences whether [ProtectionState.Protected] is
- * returned.
+ * This evaluator reads [ProtectionSignals] only — it has no knowledge of saved user/config
+ * intent, so configuration/preferences can never influence the result.
  */
 object ProtectionStateEvaluator {
 
@@ -25,8 +24,7 @@ object ProtectionStateEvaluator {
         }
 
         return when (signals.serviceLifecycleState) {
-            ServiceLifecycleState.STOPPED ->
-                if (signals.userIntentEnabled) ProtectionState.Stopped else ProtectionState.NotConfigured
+            ServiceLifecycleState.STOPPED -> ProtectionState.Stopped
 
             ServiceLifecycleState.STARTING -> ProtectionState.Starting
 

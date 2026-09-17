@@ -18,9 +18,9 @@ data class FatalError(val reason: String)
 
 /**
  * The complete set of runtime facts the evaluator needs to determine the actual protection
- * state. This is deliberately NOT a persisted/config object: [userIntentEnabled] captures
- * saved user/config intent only so the evaluator can distinguish "never configured" from
- * "configured but not currently running" — it must never, by itself, produce
+ * state. This is deliberately NOT a persisted/config object — it contains only verifiable
+ * runtime facts. Saved user/config intent (e.g. "the user turned protection on") is a
+ * separate concept and must never be added here or allowed to influence
  * [ProtectionState.Protected].
  */
 data class ProtectionSignals(
@@ -28,6 +28,5 @@ data class ProtectionSignals(
     val serviceLifecycleState: ServiceLifecycleState,
     val tunnelEstablished: Boolean,
     val filteringOperational: Boolean,
-    val userIntentEnabled: Boolean,
     val fatalError: FatalError? = null,
 )

@@ -11,14 +11,12 @@ class ProtectionStateEvaluatorTest {
         serviceLifecycleState: ServiceLifecycleState = ServiceLifecycleState.RUNNING,
         tunnelEstablished: Boolean = true,
         filteringOperational: Boolean = true,
-        userIntentEnabled: Boolean = true,
         fatalError: FatalError? = null,
     ) = ProtectionSignals(
         vpnPermissionGranted = vpnPermissionGranted,
         serviceLifecycleState = serviceLifecycleState,
         tunnelEstablished = tunnelEstablished,
         filteringOperational = filteringOperational,
-        userIntentEnabled = userIntentEnabled,
         fatalError = fatalError,
     )
 
@@ -31,10 +29,7 @@ class ProtectionStateEvaluatorTest {
 
     @Test
     fun `permission granted but service stopped returns Stopped`() {
-        val signals = healthySignals(
-            serviceLifecycleState = ServiceLifecycleState.STOPPED,
-            userIntentEnabled = true,
-        )
+        val signals = healthySignals(serviceLifecycleState = ServiceLifecycleState.STOPPED)
 
         assertEquals(ProtectionState.Stopped, ProtectionStateEvaluator.evaluate(signals))
     }
@@ -101,28 +96,19 @@ class ProtectionStateEvaluatorTest {
     }
 
     @Test
-    fun `user intent enabled with unhealthy runtime never returns Protected`() {
-        val signals = healthySignals(
-            serviceLifecycleState = ServiceLifecycleState.STOPPED,
-            userIntentEnabled = true,
-            tunnelEstablished = false,
-            filteringOperational = false,
-        )
+    fun `ProtectionSignals contains no configuration or user intent fields`() {
+        val forbiddenKeywords = listOf("intent", "config", "preference", "enabled")
+        val fieldNames = ProtectionSignals::class.java.declaredFields.map { it.name.lowercase() }
 
-        val result = ProtectionStateEvaluator.evaluate(signals)
-
-        assertTrue(result !is ProtectionState.Protected)
-        assertEquals(ProtectionState.Stopped, result)
-    }
-
-    @Test
-    fun `service stopped and never configured returns NotConfigured`() {
-        val signals = healthySignals(
-            serviceLifecycleState = ServiceLifecycleState.STOPPED,
-            userIntentEnabled = false,
-        )
-
-        assertEquals(ProtectionState.NotConfigured, ProtectionStateEvaluator.evaluate(signals))
+        fieldNames.forEach { name ->
+            forbiddenKeywords.forEach { keyword ->
+                assertTrue(
+                    "ProtectionSignals field '$name' looks like saved configuration/user intent, " +
+                        "not a verifiable runtime fact",
+                    !name.contains(keyword),
+                )
+            }
+        }
     }
 
     @Test

@@ -80,11 +80,11 @@ This is the toolchain selected for this project; it is not claimed to be the ear
 
 **Status:** Accepted (M1-02)
 
-**Decision:** `ProtectionState.Protected` is only ever produced by `ProtectionStateEvaluator.evaluate()` from runtime `ProtectionSignals` (permission, service lifecycle, tunnel, filtering, fatal error). Saved user/config intent (`userIntentEnabled`) is an input used only to distinguish `NotConfigured` from `Stopped`; it is never itself sufficient to produce `Protected`. There is no code path that sets a "protected" flag directly from a preference or toggle.
+**Decision:** `ProtectionState.Protected` is only ever produced by `ProtectionStateEvaluator.evaluate()` from runtime `ProtectionSignals` (permission, service lifecycle, tunnel, filtering, fatal error). `ProtectionSignals` contains no user/config intent field at all — the evaluator has no way to read saved intent, let alone use it to produce `Protected`. `ProtectionState` represents actual runtime protection state only; user intent/configuration is intentionally outside this model. There is no code path that sets a "protected" flag directly from a preference or toggle.
 
-**Why:** A UI or service that reports "Protected" based on user intent rather than verified runtime health would misrepresent actual protection to someone relying on it — the core failure mode this milestone exists to prevent.
+**Why:** A UI or service that reports "Protected" based on user intent rather than verified runtime health would misrepresent actual protection to someone relying on it — the core failure mode this milestone exists to prevent. Mixing saved intent into the runtime-facts type also risks the evaluator (now or in a future edit) silently depending on it.
 
-**Consequences:** Any future caller (UI, service, notification) must go through the evaluator with real signals. Fatal runtime error takes precedence over every other signal, including missing permission, because a fatal error means the runtime state can no longer be trusted; this ordering is an evaluator implementation detail, not a separate architectural decision, and can be revisited without a new review if a future milestone finds a better ordering.
+**Consequences:** Any future caller (UI, service, notification) must go through the evaluator with real signals. Fatal runtime error takes precedence over every other signal, including missing permission, because a fatal error means the runtime state can no longer be trusted; this ordering is an evaluator implementation detail, not a separate architectural decision, and can be revisited without a new review if a future milestone finds a better ordering. Future setup/onboarding state (e.g. "has the user ever configured protection") may be introduced separately if a later milestone needs it, backed by its own historical signal (e.g. `hasEverRun`) — it must not be merged into `ProtectionState` or `ProtectionSignals`.
 
 ## AI contribution
 
