@@ -155,4 +155,27 @@ class RuleSetTest {
 
         assertEquals(RuleDecision.Allowed, ruleSet.evaluate("safe.example"))
     }
+
+    @Test
+    fun `mutating the caller's list after construction does not change evaluation`() {
+        val mutableRules = mutableListOf(rule("blocked.example"))
+        val ruleSet = RuleSet(mutableRules)
+
+        mutableRules.clear()
+        mutableRules.add(rule("another.example"))
+
+        assertEquals(RuleDecision.Blocked(rule("blocked.example")), ruleSet.evaluate("blocked.example"))
+        assertEquals(RuleDecision.Allowed, ruleSet.evaluate("another.example"))
+    }
+
+    @Test
+    fun `InvalidInput diagnostics never echo the submitted hostname`() {
+        val ruleSet = ruleSetOf("blocked.example")
+        val sensitiveHostname = "http://secret-site.example/path"
+
+        val decision = ruleSet.evaluate(sensitiveHostname) as RuleDecision.InvalidInput
+
+        assertEquals(InvalidReason.MALFORMED_HOSTNAME, decision.reason)
+        assertTrue(!decision.toString().contains(sensitiveHostname))
+    }
 }
