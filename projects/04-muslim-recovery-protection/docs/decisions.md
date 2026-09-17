@@ -20,13 +20,13 @@ Decisions recorded here follow the Lab's [Decision Record Template](../../../tem
 
 **History (kept for honesty, not current state):** During initial local scaffolding, `compileSdk`/`targetSdk` were temporarily set to 35 because Android SDK platform 36 was not yet installed in the local environment and no `sdkmanager`/`cmdline-tools` was available to install it without additional setup. Human review rejected API 35 as an accepted project target. The correction installed Android SDK Platform 36 (`platform-36_r02.zip`, matching the published checksum from Google's SDK repository manifest) directly into the local SDK, and upgraded the build toolchain to a version that officially supports it:
 
-- Android Gradle Plugin: `8.7.3` → `8.11.2` (first stable AGP line to support compileSdk 36, per [AGP 8.11.0 release notes](https://developer.android.com/build/releases/past-releases/agp-8-11-0-release-notes))
-- Gradle: `8.11.1` → `8.13` (AGP 8.11's minimum/default required Gradle version)
+- Android Gradle Plugin: `8.7.3` → `8.11.2`, which supports API 36 and is compatible with Gradle 8.13, per [AGP 8.11.0 release notes](https://developer.android.com/build/releases/past-releases/agp-8-11-0-release-notes)
+- Gradle: `8.11.1` → `8.13` (AGP 8.11.2's minimum/default required Gradle version)
 - Kotlin: `1.9.24` → `2.1.20` (the Kotlin version AGP 8.11 is built/tested against)
 - Added the `org.jetbrains.kotlin.plugin.compose` Gradle plugin (Kotlin 2.0+ requires the Compose compiler as a separate plugin; the old `composeOptions.kotlinCompilerExtensionVersion` setting was removed)
 - Compose BOM: `2024.10.01` → `2025.06.01`
 
-AGP was upgraded only as far as the minimum stable line needed to support compileSdk 36 (8.11.x), not to the newest available stable AGP release (9.4.0 at time of writing, which requires Gradle 9.6 and is a much larger jump than this milestone needs).
+This is the toolchain selected for this project; it is not claimed to be the earliest AGP release to add API 36 support, only a stable, verified-compatible combination.
 
 **Why:** The Tech Lead's approved project requirement is Android 16 / API 36+; API 35 must not be recorded as an accepted target under any circumstance.
 
