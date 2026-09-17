@@ -76,6 +76,16 @@ This is the toolchain selected for this project; it is not claimed to be the ear
 
 **Consequences:** No CI is added in M1-01. Root workflows are not modified during M1-01 unless explicitly authorized.
 
+## D8 — Protection state is computed, never stored as a boolean flag
+
+**Status:** Accepted (M1-02)
+
+**Decision:** `ProtectionState.Protected` is only ever produced by `ProtectionStateEvaluator.evaluate()` from runtime `ProtectionSignals` (permission, service lifecycle, tunnel, filtering, fatal error). `ProtectionSignals` contains no user/config intent field at all — the evaluator has no way to read saved intent, let alone use it to produce `Protected`. `ProtectionState` represents actual runtime protection state only; user intent/configuration is intentionally outside this model. There is no code path that sets a "protected" flag directly from a preference or toggle.
+
+**Why:** A UI or service that reports "Protected" based on user intent rather than verified runtime health would misrepresent actual protection to someone relying on it — the core failure mode this milestone exists to prevent. Mixing saved intent into the runtime-facts type also risks the evaluator (now or in a future edit) silently depending on it.
+
+**Consequences:** Any future caller (UI, service, notification) must go through the evaluator with real signals. Fatal runtime error takes precedence over every other signal, including missing permission, because a fatal error means the runtime state can no longer be trusted; this ordering is an evaluator implementation detail, not a separate architectural decision, and can be revisited without a new review if a future milestone finds a better ordering. Future setup/onboarding state (e.g. "has the user ever configured protection") may be introduced separately if a later milestone needs it, backed by its own historical signal (e.g. `hasEverRun`) — it must not be merged into `ProtectionState` or `ProtectionSignals`.
+
 ## AI contribution
 
 This document, the surrounding scaffolding, and the initial project structure were AI-implemented under explicit Tech Lead constraints (see the M1-01 authorization). The Tech Lead owns the decisions themselves; AI recorded them as directed and did not originate the architecture direction.
