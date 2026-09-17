@@ -76,6 +76,16 @@ This is the toolchain selected for this project; it is not claimed to be the ear
 
 **Consequences:** No CI is added in M1-01. Root workflows are not modified during M1-01 unless explicitly authorized.
 
+## D8 — Protection state is computed, never stored as a boolean flag
+
+**Status:** Accepted (M1-02)
+
+**Decision:** `ProtectionState.Protected` is only ever produced by `ProtectionStateEvaluator.evaluate()` from runtime `ProtectionSignals` (permission, service lifecycle, tunnel, filtering, fatal error). Saved user/config intent (`userIntentEnabled`) is an input used only to distinguish `NotConfigured` from `Stopped`; it is never itself sufficient to produce `Protected`. There is no code path that sets a "protected" flag directly from a preference or toggle.
+
+**Why:** A UI or service that reports "Protected" based on user intent rather than verified runtime health would misrepresent actual protection to someone relying on it — the core failure mode this milestone exists to prevent.
+
+**Consequences:** Any future caller (UI, service, notification) must go through the evaluator with real signals. Fatal runtime error takes precedence over every other signal, including missing permission, because a fatal error means the runtime state can no longer be trusted; this ordering is an evaluator implementation detail, not a separate architectural decision, and can be revisited without a new review if a future milestone finds a better ordering.
+
 ## AI contribution
 
 This document, the surrounding scaffolding, and the initial project structure were AI-implemented under explicit Tech Lead constraints (see the M1-01 authorization). The Tech Lead owns the decisions themselves; AI recorded them as directed and did not originate the architecture direction.
