@@ -4,7 +4,7 @@
 
 This is a placeholder for M1-01. No protection architecture is implemented yet. It records the current shape of the project and the constraints the next milestones must respect.
 
-## Current state (M1-03)
+## Current state (M1-02)
 
 - A single Android module (`android/app`) containing an empty Jetpack Compose app.
 - No services, no networking, no persistence, no backend.
@@ -24,26 +24,6 @@ This is a placeholder for M1-01. No protection architecture is implemented yet. 
   - User intent/configuration (e.g. "the user turned protection on", onboarding/setup
     progress) is intentionally outside this model. If a separate setup/onboarding state is
     needed later, it must be modeled as its own type, not merged into `ProtectionState`.
-- A pure-Kotlin, block-rules-only domain matching engine under
-  `android/app/src/main/java/com/muslimrecovery/protection/domain/rules/`:
-  - `NormalizedHostname` — deterministic hostname normalization/validation (lowercase, single
-    trailing root-dot stripped, DNS label rules enforced). Malformed input is rejected, not
-    silently accepted.
-  - `DomainRule` — one block rule; matches the exact domain and any subdomain beneath it on
-    DNS label boundaries (never substring matching).
-  - `RuleDecision` — `Allowed`, `Blocked(matchedRule)`, `InvalidInput(reason)`.
-  - `RuleSet` — an immutable list of `DomainRule`s with a pure `evaluate(hostname): RuleDecision`.
-  - This engine operates on bare hostnames only, never full URLs, and has no Android framework
-    dependency, no knowledge of `VpnService`, DNS packets, or networking. The intended
-    integration shape for a future milestone is:
-
-    ```
-    DNS/VPN runtime (future)
-            ↓ hostname
-        Rules Engine
-            ↓ decision
-    Protection runtime integration (future)
-    ```
 
 ## Planned technical direction for M1 (not yet implemented)
 
