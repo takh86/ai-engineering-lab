@@ -15,9 +15,10 @@ package com.muslimrecovery.protection.domain.rules
  * - only `a`-`z`, `0`-`9`, `-`
  * - must not start or end with `-`
  *
- * Anything that fails validation (empty input, empty labels from consecutive/leading/trailing
- * dots, disallowed characters such as `/`, `:`, spaces, or a bare `.`) is rejected by [of]
- * rather than silently accepted.
+ * Anything that fails validation (empty input, leading/trailing/interior whitespace, empty
+ * labels from consecutive/leading/trailing dots, disallowed characters such as `/`, `:`, or a
+ * bare `.`) is rejected by [of] rather than silently accepted. Input is never trimmed —
+ * malformed whitespace is a validation failure, not something to normalize away.
  */
 class NormalizedHostname private constructor(val labels: List<String>) {
 
@@ -33,10 +34,9 @@ class NormalizedHostname private constructor(val labels: List<String>) {
         private val labelRegex = Regex("^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$")
 
         fun of(raw: String): NormalizedHostname? {
-            val trimmed = raw.trim()
-            if (trimmed.isEmpty()) return null
+            if (raw.isEmpty()) return null
 
-            val withoutRootDot = trimmed.removeSuffix(".")
+            val withoutRootDot = raw.removeSuffix(".")
             if (withoutRootDot.isEmpty()) return null
 
             val labels = withoutRootDot.lowercase().split(".")

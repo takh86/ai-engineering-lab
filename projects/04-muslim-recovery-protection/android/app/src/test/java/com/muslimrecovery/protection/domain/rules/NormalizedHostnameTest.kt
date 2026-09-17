@@ -55,4 +55,18 @@ class NormalizedHostnameTest {
     fun `empty input is invalid`() {
         assertNull(NormalizedHostname.of(""))
     }
+
+    @Test
+    fun `leading or trailing whitespace is never trimmed into validity`() {
+        assertNotNull(NormalizedHostname.of("blocked.example"))
+        assertNull(NormalizedHostname.of(" blocked.example"))
+        assertNull(NormalizedHostname.of("blocked.example "))
+        assertNull(NormalizedHostname.of(" blocked.example "))
+    }
+
+    @Test
+    fun `interior whitespace is invalid`() {
+        assertNull(NormalizedHostname.of("blocked .example"))
+        assertNull(NormalizedHostname.of("blocked. example"))
+    }
 }

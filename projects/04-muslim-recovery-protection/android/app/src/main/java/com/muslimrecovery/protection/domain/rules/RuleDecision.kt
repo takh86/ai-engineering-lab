@@ -14,5 +14,13 @@ sealed interface RuleDecision {
     data class Blocked(val matchedRule: DomainRule) : RuleDecision
 
     /** The input was not a valid hostname, so it could not be evaluated. [reason] is diagnostic only. */
-    data class InvalidInput(val reason: String) : RuleDecision
+    data class InvalidInput(val reason: InvalidReason) : RuleDecision
+}
+
+/**
+ * Why a hostname candidate was rejected. Deliberately does not carry the raw submitted input —
+ * diagnostics must not echo unvalidated user-supplied strings.
+ */
+enum class InvalidReason {
+    MALFORMED_HOSTNAME
 }
