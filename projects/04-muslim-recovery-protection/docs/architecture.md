@@ -27,12 +27,15 @@ This is a placeholder for M1-01. No protection architecture is implemented yet. 
 - A pure-Kotlin, block-rules-only domain matching engine under
   `android/app/src/main/java/com/muslimrecovery/protection/domain/rules/`:
   - `NormalizedHostname` — deterministic hostname normalization/validation (lowercase, single
-    trailing root-dot stripped, DNS label rules enforced). Malformed input is rejected, not
-    silently accepted.
+    trailing root-dot stripped, DNS label rules enforced). Malformed input — including any
+    leading/trailing whitespace — is rejected outright, never trimmed into validity.
   - `DomainRule` — one block rule; matches the exact domain and any subdomain beneath it on
     DNS label boundaries (never substring matching).
-  - `RuleDecision` — `Allowed`, `Blocked(matchedRule)`, `InvalidInput(reason)`.
-  - `RuleSet` — an immutable list of `DomainRule`s with a pure `evaluate(hostname): RuleDecision`.
+  - `RuleDecision` — `Allowed`, `Blocked(matchedRule)`, `InvalidInput(reason: InvalidReason)`.
+    `InvalidReason` is a typed enum and never carries the raw submitted hostname.
+  - `RuleSet` — a defensively-copied, immutable list of `DomainRule`s with a pure
+    `evaluate(hostname): RuleDecision`. Mutating a `MutableList` passed to its constructor after
+    construction has no effect.
   - This engine operates on bare hostnames only, never full URLs, and has no Android framework
     dependency, no knowledge of `VpnService`, DNS packets, or networking. The intended
     integration shape for a future milestone is:
