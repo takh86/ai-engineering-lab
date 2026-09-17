@@ -86,6 +86,16 @@ This is the toolchain selected for this project; it is not claimed to be the ear
 
 **Consequences:** Any future caller (UI, service, notification) must go through the evaluator with real signals. Fatal runtime error takes precedence over every other signal, including missing permission, because a fatal error means the runtime state can no longer be trusted; this ordering is an evaluator implementation detail, not a separate architectural decision, and can be revisited without a new review if a future milestone finds a better ordering. Future setup/onboarding state (e.g. "has the user ever configured protection") may be introduced separately if a later milestone needs it, backed by its own historical signal (e.g. `hasEverRun`) — it must not be merged into `ProtectionState` or `ProtectionSignals`.
 
+## D9 — Rules engine matches by DNS label suffix, block-rules only
+
+**Status:** Accepted (M1-03)
+
+**Decision:** `DomainRule.matches()` compares normalized hostnames by DNS label suffix (the candidate's trailing labels must equal the rule's labels exactly), never by substring or prefix comparison. A rule for `blocked.example` blocks that domain and any subdomain beneath it, and nothing else — `blocked.example.other` and `fakeblocked.example` are not matches. M1-03 supports block rules only; there is no allow-rule type, regex, or wildcard syntax. Malformed hostname input produces `RuleDecision.InvalidInput` rather than being treated as `Allowed`.
+
+**Why:** Substring or prefix matching would create both false blocks (e.g. `fakeblocked.example`) and false allows (e.g. treating `blocked.example.other` as unrelated when a naive suffix-string check might still trip on it) — label-boundary comparison is the only way to satisfy the approved matching policy exactly. Treating invalid input as `Allowed` would silently fail open on malformed data, which is unacceptable for a blocking engine.
+
+**Consequences:** Any future milestone that adds allowlists, wildcards, or regex rules needs its own review and explicit approval — none of that is introduced here. The engine has no knowledge of `VpnService`, DNS packets, or networking; runtime integration (feeding it real resolved hostnames and acting on `RuleDecision`) is deferred to a future milestone.
+
 ## AI contribution
 
 This document, the surrounding scaffolding, and the initial project structure were AI-implemented under explicit Tech Lead constraints (see the M1-01 authorization). The Tech Lead owns the decisions themselves; AI recorded them as directed and did not originate the architecture direction.
