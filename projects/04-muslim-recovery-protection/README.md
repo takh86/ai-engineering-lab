@@ -12,8 +12,8 @@ See [`docs/problem.md`](docs/problem.md).
 
 ## Tech stack (current)
 
-- Android: Kotlin, Jetpack Compose
-- minSdk 24, compileSdk/targetSdk 35 (see [`docs/decisions.md`](docs/decisions.md) for the API-level rationale)
+- Android: Kotlin 2.1.20, Jetpack Compose, AGP 8.11.2, Gradle 8.13
+- minSdk 24, compileSdk/targetSdk 36 (Android 16) — the approved project requirement (see [`docs/decisions.md`](docs/decisions.md) D2; API 35 was used briefly during initial local scaffolding and was corrected before merge, not an accepted target)
 - No backend for M1 (local-first)
 
 ## Repository layout

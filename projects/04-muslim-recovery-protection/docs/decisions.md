@@ -12,15 +12,25 @@ Decisions recorded here follow the Lab's [Decision Record Template](../../../tem
 
 **Consequences:** If mainstream browsers trivially bypass it, that result must be documented and escalated to an architecture review rather than hidden or worked around. Packet-level filtering, TLS interception, MITM, AccessibilityService, Device Owner, or root are out of scope without a new review and explicit human approval.
 
-## D2 — minSdk 24, target API deferred to highest locally available
+## D2 — minSdk 24, compileSdk/targetSdk 36 (Android 16)
 
-**Status:** Accepted (M1)
+**Status:** Accepted (M1). Corrected during human review of M1-01.
 
-**Decision:** `minSdk = 24`. `compileSdk`/`targetSdk` set to the highest Android platform available in the local SDK at scaffolding time (35), rather than the project's eventual target of API 36+.
+**Decision:** `minSdk = 24`. `compileSdk`/`targetSdk = 36` (Android 16), matching the approved project requirement.
 
-**Why:** The local Android SDK does not yet have platform 36 installed, and no `sdkmanager`/`cmdline-tools` is available in this environment to install it without additional setup. Blocking scaffolding on that install contradicts the instruction not to spend significant effort on tooling during scaffolding.
+**History (kept for honesty, not current state):** During initial local scaffolding, `compileSdk`/`targetSdk` were temporarily set to 35 because Android SDK platform 36 was not yet installed in the local environment and no `sdkmanager`/`cmdline-tools` was available to install it without additional setup. Human review rejected API 35 as an accepted project target. The correction installed Android SDK Platform 36 (`platform-36_r02.zip`, matching the published checksum from Google's SDK repository manifest) directly into the local SDK, and upgraded the build toolchain to a version that officially supports it:
 
-**Consequences:** Target SDK must be bumped to 36+ in a later milestone once the platform is installed. This is a tracked assumption, not a silent gap (see `docs/requirements.md`).
+- Android Gradle Plugin: `8.7.3` → `8.11.2` (first stable AGP line to support compileSdk 36, per [AGP 8.11.0 release notes](https://developer.android.com/build/releases/past-releases/agp-8-11-0-release-notes))
+- Gradle: `8.11.1` → `8.13` (AGP 8.11's minimum/default required Gradle version)
+- Kotlin: `1.9.24` → `2.1.20` (the Kotlin version AGP 8.11 is built/tested against)
+- Added the `org.jetbrains.kotlin.plugin.compose` Gradle plugin (Kotlin 2.0+ requires the Compose compiler as a separate plugin; the old `composeOptions.kotlinCompilerExtensionVersion` setting was removed)
+- Compose BOM: `2024.10.01` → `2025.06.01`
+
+AGP was upgraded only as far as the minimum stable line needed to support compileSdk 36 (8.11.x), not to the newest available stable AGP release (9.4.0 at time of writing, which requires Gradle 9.6 and is a much larger jump than this milestone needs).
+
+**Why:** The Tech Lead's approved project requirement is Android 16 / API 36+; API 35 must not be recorded as an accepted target under any circumstance.
+
+**Consequences:** Verified with a clean build (`./gradlew clean assembleDebug testDebugUnitTest`) after the upgrade — see PR for exact output. No further SDK-level work is needed for M1-01.
 
 ## D3 — Controlled test domains only
 
