@@ -1,6 +1,13 @@
-# AI Engineering Lab
+<p align="center">
+  <img src="assets/ai-engineering-lab-logo.png" alt="AI Engineering Lab logo" width="500">
+</p>
 
-**Human-led. AI-assisted. Test-verified.**
+<h1 align="center">AI Engineering Lab</h1>
+
+<p align="center">
+  <strong>Ideas, Code, and Control — Human in the Loop.</strong><br>
+  Human-led. AI-assisted. Test-verified.
+</p>
 
 AI Engineering Lab is a public portfolio of small, independent software projects built to demonstrate two complementary capabilities:
 
