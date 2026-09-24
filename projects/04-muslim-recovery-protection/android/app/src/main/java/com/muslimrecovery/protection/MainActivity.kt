@@ -4,12 +4,14 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.VpnService
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -89,11 +91,15 @@ private fun ProtectionLifecycleHarness(
         // the state stays Stopped/PermissionRequired — never Protected.
     }
 
+    // Sequenced deliberately: launching two system permission/activity flows concurrently
+    // (notification permission + VPN consent) is unreliable. This callback always continues
+    // to the VPN consent step regardless of grant/deny — POST_NOTIFICATIONS denial must never
+    // block VPN startup, since the service is still permitted to run without it (only the
+    // visible notification would be suppressed).
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) {
-        // No-op either way: the foreground service is still permitted to run without
-        // POST_NOTIFICATIONS: only the visible notification would be suppressed.
+        proceedToVpnConsent(context, consentLauncher, onPermissionRefreshed)
     }
 
     val runtimeFacts by VpnRuntimeStatus.facts
@@ -118,15 +124,14 @@ private fun ProtectionLifecycleHarness(
         Text(text = "State: ${describe(protectionState)}")
 
         Button(onClick = {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Sequenced: request the notification permission first (only if not already
+            // granted, and never re-request once granted), then continue into VPN
+            // prepare/consent only after that flow's callback fires — never both system
+            // flows at once.
+            if (needsNotificationPermissionRequest(context)) {
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-            val prepareIntent = VpnService.prepare(context)
-            if (prepareIntent != null) {
-                consentLauncher.launch(prepareIntent)
             } else {
-                onPermissionRefreshed(true)
-                startVpnService(context)
+                proceedToVpnConsent(context, consentLauncher, onPermissionRefreshed)
             }
         }) {
             Text("Start")
@@ -139,6 +144,26 @@ private fun ProtectionLifecycleHarness(
 }
 
 private fun isVpnPrepared(context: Context): Boolean = VpnService.prepare(context) == null
+
+private fun needsNotificationPermissionRequest(context: Context): Boolean {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return false
+    return ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+        PackageManager.PERMISSION_GRANTED
+}
+
+private fun proceedToVpnConsent(
+    context: Context,
+    consentLauncher: ActivityResultLauncher<Intent>,
+    onPermissionRefreshed: (Boolean) -> Unit,
+) {
+    val prepareIntent = VpnService.prepare(context)
+    if (prepareIntent != null) {
+        consentLauncher.launch(prepareIntent)
+    } else {
+        onPermissionRefreshed(true)
+        startVpnService(context)
+    }
+}
 
 private fun startVpnService(context: Context) {
     val intent = Intent(context, LocalProtectionVpnService::class.java)
