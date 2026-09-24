@@ -32,6 +32,7 @@ import androidx.core.content.ContextCompat
 import com.muslimrecovery.protection.domain.protection.ProtectionSignals
 import com.muslimrecovery.protection.domain.protection.ProtectionState
 import com.muslimrecovery.protection.domain.protection.ProtectionStateEvaluator
+import com.muslimrecovery.protection.ui.lock.AppLockGate
 import com.muslimrecovery.protection.vpn.LocalProtectionVpnService
 import com.muslimrecovery.protection.vpn.VpnRuntimeStatus
 
@@ -51,10 +52,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    ProtectionLifecycleHarness(
-                        vpnPermissionGranted = vpnPermissionGranted.value,
-                        onPermissionRefreshed = { granted -> vpnPermissionGranted.value = granted },
-                    )
+                    AppLockGate {
+                        ProtectionLifecycleHarness(
+                            vpnPermissionGranted = vpnPermissionGranted.value,
+                            onPermissionRefreshed = { granted -> vpnPermissionGranted.value = granted },
+                        )
+                    }
                 }
             }
         }

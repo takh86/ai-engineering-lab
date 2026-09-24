@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Recovery Protection</string>
+
+    <string name="app_lock_title">Recovery Protection is locked</string>
+    <string name="app_lock_description">Unlock with your device PIN, pattern, password, or biometric to continue.</string>
+    <string name="app_lock_unlock_button">Unlock</string>
+    <string name="app_lock_failed">Authentication failed. Please try again.</string>
+    <string name="app_lock_prompt_title">Unlock Recovery Protection</string>
+    <string name="app_lock_prompt_description">Confirm your device credential to continue.</string>
 </resources>
