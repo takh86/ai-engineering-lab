@@ -63,11 +63,18 @@ without claiming filtering is operational (filtering does not exist yet). New co
 - `LocalProtectionVpnService` — extends `android.net.VpnService`. Delegates every lifecycle
   decision to `VpnLifecycleController` and only performs the Android-framework side effects: a
   low-importance foreground notification (`systemExempted` foreground-service type — VPN apps
-  configured via `Settings > Network & Internet > VPN` are a documented exemption for this type),
-  `Builder().addAddress(...).establish()`, and closing the returned `ParcelFileDescriptor` on
-  stop/revoke/destroy. It configures **no route and no DNS server** — `addRoute()` and
-  `addDnsServer()` are never called — so the established TUN interface carries none of the
-  device's real traffic. There is no packet read/write loop of any kind.
+  configured via `Settings > Network & Internet > VPN` are a documented exemption for this type;
+  eligibility must still be verified on device), `Builder().addAddress(...).establish()`, and
+  closing the returned `ParcelFileDescriptor` on stop/revoke/destroy. `onDestroy()` also
+  truthfully transitions the controller to stopped and republishes state, so an unexpected
+  teardown (no preceding explicit stop or revoke) can never leave the UI reading a stale
+  RUNNING/tunnelEstablished=true. If `startForeground()` itself throws, the service never calls
+  `establish()` — it reports a truthful startup failure and stops instead. It declares
+  `android.net.VpnService.SUPPORTS_ALWAYS_ON = false` service metadata, opting out of Android's
+  Always-on VPN feature: M1-04 does not implement or verify that lifecycle (see D10). It
+  configures **no route and no DNS server** — `addRoute()` and `addDnsServer()` are never called —
+  so the established TUN interface carries none of the device's real traffic. There is no packet
+  read/write loop of any kind.
 - `VpnRuntimeStatus` — an in-process (single-process, no AIDL/Messenger) bridge publishing the
   service's real lifecycle/tunnel/fatal-error facts as Compose `State` for the UI to read.
   Deliberately excludes VPN permission and `filteringOperational` — permission is a UI-observable
