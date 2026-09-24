@@ -1,5 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- VPN apps configured via Settings > Network & Internet > VPN are an explicitly
+         documented exemption for the systemExempted foreground-service type; this is not a
+         general-purpose "run anything in the background" permission. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
+    <!-- Required on API 33+ for the foreground-service notification to actually be shown;
+         the service itself is still permitted to run without it. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:allowBackup="false"
         android:icon="@android:drawable/sym_def_app_icon"
@@ -16,6 +25,27 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- android:exported="true" and this exact intent-filter are required by the
+             VpnService contract so the system can locate/bind this service; the
+             android:permission below restricts binding to the system itself. -->
+        <service
+            android:name=".vpn.LocalProtectionVpnService"
+            android:permission="android.permission.BIND_VPN_SERVICE"
+            android:exported="true"
+            android:foregroundServiceType="systemExempted">
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+            <!-- M1-04 is lifecycle-only and does not implement or verify Always-on/boot-start
+                 behavior. VpnService supports Always-on by default unless a service explicitly
+                 opts out via this metadata; opt out now so Android never attempts an Always-on
+                 or boot-triggered start of this service until a future, human-approved milestone
+                 implements and verifies that lifecycle. See docs/decisions.md D10. -->
+            <meta-data
+                android:name="android.net.VpnService.SUPPORTS_ALWAYS_ON"
+                android:value="false" />
+        </service>
     </application>
 
 </manifest>

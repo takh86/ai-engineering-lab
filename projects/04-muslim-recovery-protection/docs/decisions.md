@@ -96,6 +96,41 @@ This is the toolchain selected for this project; it is not claimed to be the ear
 
 **Consequences:** Any future milestone that adds allowlists, wildcards, or regex rules needs its own review and explicit approval — none of that is introduced here. The engine has no knowledge of `VpnService`, DNS packets, or networking; runtime integration (feeding it real resolved hostnames and acting on `RuleDecision`) is deferred to a future milestone.
 
+## D10 — M1-04 VPN lifecycle foundation: no route, no DNS server, systemExempted FGS type
+
+**Status:** Accepted (M1-04). Implementation consequence of the M1-04 Task Contract the Tech
+Lead authorized, not a new architecture decision made unilaterally by AI.
+
+**Decision:** `LocalProtectionVpnService` (`android/app/src/main/java/com/muslimrecovery/protection/vpn/`)
+establishes a minimal TUN interface (`Builder().addAddress(...).establish()`) with no
+`addRoute()` and no `addDnsServer()` call, so the tunnel carries none of the device's real
+traffic — there is no packet read/write loop. It declares `android:foregroundServiceType="systemExempted"`
+with the `FOREGROUND_SERVICE_SYSTEM_EXEMPTED` permission — the documented type selected for this
+VPN implementation; its eligibility must still be independently verified on device, and this
+record does not claim it is the only foreground-service type a VPN app could ever use. The
+service also declares `android.net.VpnService.SUPPORTS_ALWAYS_ON` = `false` service metadata:
+`VpnService` supports Android's Always-on VPN feature by default unless a service explicitly
+opts out, and M1-04 does not implement or verify Always-on/system-start/reboot lifecycle
+behavior — that opt-out is deliberate until a future, human-approved milestone implements and
+verifies it. Lifecycle decisions (idempotent start/stop, foreground-start-failure and
+establish-failure handling, revoke, and truthful cleanup on unexpected teardown) are delegated to
+`VpnLifecycleController`, a pure Kotlin class extracted specifically so this policy is
+unit-testable without Android instrumentation — `filteringOperational` is hardcoded false in
+every signal it produces.
+
+**Why:** M1-04's purpose is to prove the VPN consent/lifecycle plumbing works safely before any
+filtering exists; routing real traffic into a tunnel with no packet processing would silently
+break the device's normal connectivity. Always-on is a distinct lifecycle (system-initiated start,
+no user-driven consent flow in the moment) that this milestone has not implemented or tested, so
+leaving it enabled by default would let Android exercise a code path this contract never verified.
+
+**Consequences:** A future milestone that feeds the rules engine real resolved hostnames and adds
+a packet-processing loop is a separate, reviewed change — none of that exists yet. Until then,
+`ProtectionState.Protected` is unreachable at runtime in this app, by construction: the evaluator
+(D8) requires `filteringOperational == true` to report `Protected`, and this milestone never sets
+it. A future milestone that implements and verifies Always-on lifecycle must revisit the
+`SUPPORTS_ALWAYS_ON` metadata explicitly; it must not be flipped to `true` incidentally.
+
 ## AI contribution
 
 This document, the surrounding scaffolding, and the initial project structure were AI-implemented under explicit Tech Lead constraints (see the M1-01 authorization). The Tech Lead owns the decisions themselves; AI recorded them as directed and did not originate the architecture direction.
