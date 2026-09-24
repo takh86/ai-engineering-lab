@@ -5,14 +5,16 @@ import com.muslimrecovery.protection.domain.protection.ProtectionSignals
 import com.muslimrecovery.protection.domain.protection.ServiceLifecycleState
 
 /**
- * Pure lifecycle policy for the local protection VPN tunnel (M1-04: lifecycle only, no
- * filtering). Owns no Android framework resources itself — [LocalProtectionVpnService] holds
- * the real [android.os.ParcelFileDescriptor] and calls into this controller only to decide
- * what to do next, so the decision logic can be unit tested off-device.
+ * Pure lifecycle policy for the local protection VPN tunnel (M1-04 lifecycle; M1-05 adds the
+ * startup-refusal and runtime-failure transitions of the DNS experiment). Owns no Android framework
+ * resources itself — [LocalProtectionVpnService] holds the real [android.os.ParcelFileDescriptor]
+ * and calls into this controller only to decide what to do next, so the decision logic can be unit
+ * tested off-device.
  *
- * [filteringOperational] is hardcoded false in [signals] regardless of tunnel state, because
- * M1-04 implements no filtering — this is what keeps a fully-established tunnel from ever
- * evaluating to [com.muslimrecovery.protection.domain.protection.ProtectionState.Protected].
+ * [filteringOperational] is hardcoded false in [signals] regardless of tunnel state. M1-04 had no
+ * filtering at all; M1-05's standard-DNS experiment is explicitly NOT verified protection (see
+ * D11) — this is what keeps a fully-established tunnel from ever evaluating to
+ * [com.muslimrecovery.protection.domain.protection.ProtectionState.Protected].
  *
  * Methods are synchronized because Android may call [android.net.VpnService.onRevoke] on a
  * thread other than the one driving onStartCommand.
@@ -59,6 +61,34 @@ class VpnLifecycleController {
      */
     @Synchronized
     fun onForegroundStartFailed(reason: String) = failStartup(reason)
+
+    /**
+     * M1-05: a start precondition checked before [android.net.VpnService.Builder.establish] refused
+     * startup (e.g. Private DNS active on the underlying network, or no usable underlying DNS
+     * server). Only applies while STARTING: if a stop/revoke already raced in, the truthful state is
+     * the plain stop, so this is ignored and returns false.
+     */
+    @Synchronized
+    fun onStartupRefused(reason: String): Boolean {
+        if (lifecycleState != ServiceLifecycleState.STARTING) return false
+        failStartup(reason)
+        return true
+    }
+
+    /**
+     * M1-05: the running DNS proxy runtime stopped itself (Private DNS became active, the upstream
+     * network disappeared, or TUN I/O failed). Stop-shaped, plus a truthful [FatalError]. The DNS
+     * runtime only exists while RUNNING, so a report in any other state is late (an explicit
+     * stop/revoke already won) and is ignored ([StopDecision.NoOp], no error) — a normal stop can
+     * never be misreported as a failure.
+     */
+    @Synchronized
+    fun onRuntimeFailed(reason: String): StopDecision {
+        if (lifecycleState != ServiceLifecycleState.RUNNING) return StopDecision.NoOp
+        val decision = onStopRequested()
+        fatalError = FatalError(reason)
+        return decision
+    }
 
     private fun failStartup(reason: String) {
         lifecycleState = ServiceLifecycleState.STOPPED
