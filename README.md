@@ -1,4 +1,10 @@
+<p align="center">
+  <img src="assets/branding/ai-engineering-lab-logo.svg" alt="AI Engineering Lab logo" width="420">
+</p>
+
 # AI Engineering Lab
+
+**Ideas, Code, and Control — Human in the Loop.**
 
 **Human-led. AI-assisted. Test-verified.**
 
