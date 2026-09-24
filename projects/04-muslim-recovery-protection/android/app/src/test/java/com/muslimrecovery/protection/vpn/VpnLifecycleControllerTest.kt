@@ -319,4 +319,86 @@ class VpnLifecycleControllerTest {
         assertEquals(ServiceLifecycleState.STOPPED, signals.serviceLifecycleState)
         assertEquals("Foreground service start failed", signals.fatalError?.reason)
     }
+
+    // --- M1-05: DNS experiment startup refusal and runtime failure ---
+
+    @Test
+    fun `startup refused while Starting moves to Stopped with a truthful error`() {
+        val controller = VpnLifecycleController()
+        controller.onStartRequested()
+
+        val applied = controller.onStartupRefused("DNS experiment refused: Private DNS is active")
+
+        assertTrue(applied)
+        val signals = controller.signals(vpnPermissionGranted = true)
+        assertEquals(ServiceLifecycleState.STOPPED, signals.serviceLifecycleState)
+        assertFalse(signals.tunnelEstablished)
+        assertFalse(signals.filteringOperational)
+        assertEquals("DNS experiment refused: Private DNS is active", signals.fatalError?.reason)
+        assertTrue(ProtectionStateEvaluator.evaluate(signals) is ProtectionState.Error)
+    }
+
+    @Test
+    fun `startup refusal after a stop already raced in is ignored`() {
+        val controller = VpnLifecycleController()
+        controller.onStartRequested()
+        controller.onStopRequested()
+
+        val applied = controller.onStartupRefused("DNS experiment refused: no usable underlying DNS server")
+
+        assertFalse(applied)
+        assertNull(controller.signals(vpnPermissionGranted = true).fatalError)
+    }
+
+    @Test
+    fun `runtime failure while Running closes the tunnel and records a fatal error`() {
+        val controller = VpnLifecycleController()
+        controller.onStartRequested()
+        controller.onTunnelEstablished()
+
+        val decision = controller.onRuntimeFailed("DNS experiment stopped: Private DNS became active")
+
+        assertEquals(VpnLifecycleController.StopDecision.CloseTunnel, decision)
+        val signals = controller.signals(vpnPermissionGranted = true)
+        assertEquals(ServiceLifecycleState.STOPPED, signals.serviceLifecycleState)
+        assertFalse(signals.tunnelEstablished)
+        assertEquals("DNS experiment stopped: Private DNS became active", signals.fatalError?.reason)
+    }
+
+    @Test
+    fun `a late runtime failure after an explicit stop is ignored and not reported as an error`() {
+        val controller = VpnLifecycleController()
+        controller.onStartRequested()
+        controller.onTunnelEstablished()
+        controller.onStopRequested()
+
+        val decision = controller.onRuntimeFailed("DNS experiment stopped: TUN I/O failed")
+
+        assertEquals(VpnLifecycleController.StopDecision.NoOp, decision)
+        assertNull(controller.signals(vpnPermissionGranted = true).fatalError)
+    }
+
+    @Test
+    fun `a runtime failure report while a new session is Starting does not stop it`() {
+        val controller = VpnLifecycleController()
+        controller.onStartRequested()
+
+        val decision = controller.onRuntimeFailed("DNS experiment stopped: TUN I/O failed")
+
+        assertEquals(VpnLifecycleController.StopDecision.NoOp, decision)
+        assertEquals(ServiceLifecycleState.STARTING, controller.signals(true).serviceLifecycleState)
+        assertNull(controller.signals(true).fatalError)
+    }
+
+    @Test
+    fun `restarting after a runtime failure clears the fatal error`() {
+        val controller = VpnLifecycleController()
+        controller.onStartRequested()
+        controller.onTunnelEstablished()
+        controller.onRuntimeFailed("DNS experiment stopped: underlying network DNS unavailable")
+
+        controller.onStartRequested()
+
+        assertNull(controller.signals(vpnPermissionGranted = true).fatalError)
+    }
 }
