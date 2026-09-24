@@ -113,11 +113,20 @@ internal class ProtectedUpstreamDnsExchange(
         inFlight.set(socket)
         try {
             if (cancelled) return failed(UpstreamFailure.CANCELLED)
-            if (!vpnService.protect(socket)) return failed(UpstreamFailure.SOCKET_SETUP_FAILED)
-            try {
-                network.bindSocket(socket)
+            val setUp = try {
+                vpnService.protect(socket) && run {
+                    network.bindSocket(socket)
+                    true
+                }
             } catch (e: IOException) {
-                return failed(UpstreamFailure.SOCKET_SETUP_FAILED)
+                false
+            } catch (e: RuntimeException) {
+                // A concurrent cancel() may close the socket between the check above and here;
+                // the framework then throws rather than returning false.
+                false
+            }
+            if (!setUp) {
+                return failed(if (cancelled) UpstreamFailure.CANCELLED else UpstreamFailure.SOCKET_SETUP_FAILED)
             }
 
             socket.connect(InetSocketAddress(server, DNS_PORT))

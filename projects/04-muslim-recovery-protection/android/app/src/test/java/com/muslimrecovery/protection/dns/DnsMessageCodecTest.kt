@@ -172,6 +172,14 @@ class DnsMessageCodecTest {
     }
 
     @Test
+    fun `name of exactly 256 octets is rejected - one past the limit`() {
+        // 63+63+63+62: wire length = 3*64 + 63 + 1 (root) = 256.
+        val name = listOf("a".repeat(63), "b".repeat(63), "c".repeat(63), "d".repeat(62)).joinToString(".")
+
+        assertEquals(DnsMalformedReason.NAME_TOO_LONG, malformedReason(query(name)))
+    }
+
+    @Test
     fun `label bytes that could change the dotted name are rejected`() {
         fun withLabelBytes(vararg bytes: Int): ByteArray =
             header() + byteArrayOf(bytes.size.toByte()) + ByteArray(bytes.size) { bytes[it].toByte() } +
@@ -330,6 +338,30 @@ class DnsMessageCodecTest {
         assertFalse(DnsMessageCodec.isResponseTo(parsed, truncated, truncated.size))
         assertFalse(DnsMessageCodec.isResponseTo(parsed, ByteArray(0), 0))
         assertFalse(DnsMessageCodec.isResponseTo(parsed, wrongId, wrongId.size + 1))
+    }
+
+    @Test
+    fun `upstream responses with a different opcode, question count or class are rejected`() {
+        val message = query("allowed.example")
+        val parsed = supported(message)
+        val valid = response(message)
+
+        fun withFlags(flags: Int) = valid.copyOf().also {
+            it[2] = (flags ushr 8).toByte()
+            it[3] = flags.toByte()
+        }
+        fun withQdCount(count: Int) = valid.copyOf().also {
+            it[4] = 0
+            it[5] = count.toByte()
+        }
+        val otherOpcode = withFlags(0x8180 or (2 shl 11)) // opcode STATUS
+        val otherClass = response(header() + question("allowed.example", qclass = DnsTestPackets.CLASS_CH))
+
+        assertTrue(DnsMessageCodec.isResponseTo(parsed, valid, valid.size))
+        assertFalse(DnsMessageCodec.isResponseTo(parsed, otherOpcode, otherOpcode.size))
+        assertFalse(DnsMessageCodec.isResponseTo(parsed, withQdCount(0), valid.size))
+        assertFalse(DnsMessageCodec.isResponseTo(parsed, withQdCount(2), valid.size))
+        assertFalse(DnsMessageCodec.isResponseTo(parsed, otherClass, otherClass.size))
     }
 
     @Test

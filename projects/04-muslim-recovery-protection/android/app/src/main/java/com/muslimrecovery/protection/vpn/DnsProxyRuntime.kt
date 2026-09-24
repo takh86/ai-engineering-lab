@@ -45,7 +45,7 @@ internal class DnsProxyRuntime private constructor(
 ) {
 
     interface Listener {
-        fun onCountersChanged(counters: ExperimentalDnsCounters)
+        fun onCountersChanged(runtime: DnsProxyRuntime, counters: ExperimentalDnsCounters)
         fun onRuntimeStopped(runtime: DnsProxyRuntime, reason: DnsRuntimeStopReason)
     }
 
@@ -145,7 +145,7 @@ internal class DnsProxyRuntime private constructor(
                     Log.w(TAG, "DNS response write rejected; response dropped")
                 }
             }
-            listener.onCountersChanged(processor.counters)
+            listener.onCountersChanged(this, processor.counters)
             result.stopReason?.let { return it }
         }
         return null

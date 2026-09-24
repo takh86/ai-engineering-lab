@@ -66,8 +66,11 @@ class LocalProtectionVpnService : VpnService() {
     private var dnsProxyStatus: DnsProxyStatus = DnsProxyStatus.NOT_RUNNING
 
     private val runtimeListener = object : DnsProxyRuntime.Listener {
-        override fun onCountersChanged(counters: ExperimentalDnsCounters) {
-            VpnRuntimeStatus.updateDnsCounters(counters)
+        override fun onCountersChanged(runtime: DnsProxyRuntime, counters: ExperimentalDnsCounters) {
+            // A worker from an earlier session must not overwrite the current session's counters.
+            synchronized(lifecycle) {
+                if (runtime === dnsRuntime) VpnRuntimeStatus.updateDnsCounters(counters)
+            }
         }
 
         override fun onRuntimeStopped(runtime: DnsProxyRuntime, reason: DnsRuntimeStopReason) {

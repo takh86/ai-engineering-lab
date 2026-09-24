@@ -237,6 +237,21 @@ class Ipv4UdpDnsPacketAdapterTest {
     }
 
     @Test
+    fun `a computed UDP checksum of zero is transmitted as 0xFFFF`() {
+        val request = datagram(ipv4Udp(query("allowed.example"), sourcePort = 52_000))
+        // With a zero payload word the checksum is C. Replacing that word with C makes the
+        // one's-complement sum 0xFFFF, so the computed checksum becomes 0 (RFC 768: send 0xFFFF).
+        val base = adapter.buildResponse(request, byteArrayOf(0, 0))!!
+        val c = readU16(base, 26)
+        val packet = adapter.buildResponse(request, byteArrayOf((c ushr 8).toByte(), c.toByte()))!!
+
+        val udpLength = packet.size - 20
+        val pseudoHeader = packet.copyOfRange(12, 20) + byteArrayOf(0, 17) + DnsTestPackets.u16(udpLength)
+        assertEquals(0xFFFF, readU16(packet, 26))
+        assertEquals(0, referenceChecksum(pseudoHeader + packet.copyOfRange(20, packet.size)))
+    }
+
+    @Test
     fun `a response packet round-trips through the parser of the opposite direction`() {
         val request = datagram(ipv4Udp(query("allowed.example"), sourcePort = 45_000))
         val packet = adapter.buildResponse(request, query("allowed.example"))!!

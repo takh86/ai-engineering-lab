@@ -139,9 +139,10 @@ class Ipv4UdpDnsPacketAdapter(private val virtualDnsAddress: Ipv4Address) {
      * and port. Returns null if the payload cannot fit in one IPv4 packet.
      */
     fun buildResponse(query: PacketParseResult.DnsDatagram, dnsPayload: ByteArray): ByteArray? {
+        // Checked before any arithmetic, so no payload size can overflow the lengths below.
+        if (dnsPayload.size > MAX_DNS_PAYLOAD_LENGTH) return null
         val udpLength = UDP_HEADER_LENGTH + dnsPayload.size
         val totalLength = IPV4_MIN_HEADER_LENGTH + udpLength
-        if (totalLength > MAX_IPV4_TOTAL_LENGTH) return null
 
         val packet = ByteArray(totalLength)
         packet[0] = 0x45.toByte() // version 4, IHL 5 (no options)
