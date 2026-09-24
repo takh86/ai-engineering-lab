@@ -48,9 +48,40 @@ This is a placeholder for M1-01. No protection architecture is implemented yet. 
     Protection runtime integration (future)
     ```
 
+## Current state (M1-04) — VPN lifecycle foundation, no filtering
+
+M1-04 adds the Android `VpnService` lifecycle itself, and nothing else. It exists to prove the
+consent → start → establish → stop/revoke flow works safely under Android's real contracts,
+without claiming filtering is operational (filtering does not exist yet). New code lives under
+`android/app/src/main/java/com/muslimrecovery/protection/vpn/`:
+
+- `VpnLifecycleController` — a pure Kotlin state machine (no Android dependency) that decides
+  start/stop/establish-success/establish-failure/revoke transitions. It is unit tested off-device
+  and hardcodes `filteringOperational = false` in every `ProtectionSignals` it emits — this is
+  what keeps a fully-established tunnel from ever evaluating to `ProtectionState.Protected`
+  through `ProtectionStateEvaluator` (D8, unchanged by this milestone).
+- `LocalProtectionVpnService` — extends `android.net.VpnService`. Delegates every lifecycle
+  decision to `VpnLifecycleController` and only performs the Android-framework side effects: a
+  low-importance foreground notification (`systemExempted` foreground-service type — VPN apps
+  configured via `Settings > Network & Internet > VPN` are a documented exemption for this type),
+  `Builder().addAddress(...).establish()`, and closing the returned `ParcelFileDescriptor` on
+  stop/revoke/destroy. It configures **no route and no DNS server** — `addRoute()` and
+  `addDnsServer()` are never called — so the established TUN interface carries none of the
+  device's real traffic. There is no packet read/write loop of any kind.
+- `VpnRuntimeStatus` — an in-process (single-process, no AIDL/Messenger) bridge publishing the
+  service's real lifecycle/tunnel/fatal-error facts as Compose `State` for the UI to read.
+  Deliberately excludes VPN permission and `filteringOperational` — permission is a UI-observable
+  fact via `VpnService.prepare()`, not something the service tracks, and filtering has no runtime
+  fact to report yet.
+- `MainActivity` gained a minimal M1-04 dev/test harness (Start/Stop buttons, the real
+  `VpnService.prepare()` consent flow, and a status line driven by `ProtectionStateEvaluator`).
+  This is explicitly not product UI/onboarding/design system — see D10.
+
 ## Planned technical direction for M1 (not yet implemented)
 
-- A local Android `VpnService` that runs a DNS-only filter against a configurable list of controlled test domains.
+- Feeding the rules engine (`domain/rules/`) real resolved hostnames from the established tunnel
+  and acting on its `RuleDecision` — this is what would first make `filteringOperational` capable
+  of being true, and is out of scope until a future milestone.
 - No packet-level inspection, no TLS interception, no MITM, no elevated OS privileges (Device Owner / root / AccessibilityService).
 - Entirely local-first: no backend calls required for the DNS filtering hypothesis itself.
 

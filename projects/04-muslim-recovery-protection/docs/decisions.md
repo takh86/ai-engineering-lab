@@ -96,6 +96,33 @@ This is the toolchain selected for this project; it is not claimed to be the ear
 
 **Consequences:** Any future milestone that adds allowlists, wildcards, or regex rules needs its own review and explicit approval — none of that is introduced here. The engine has no knowledge of `VpnService`, DNS packets, or networking; runtime integration (feeding it real resolved hostnames and acting on `RuleDecision`) is deferred to a future milestone.
 
+## D10 — M1-04 VPN lifecycle foundation: no route, no DNS server, systemExempted FGS type
+
+**Status:** Accepted (M1-04). Implementation consequence of the M1-04 Task Contract the Tech
+Lead authorized, not a new architecture decision made unilaterally by AI.
+
+**Decision:** `LocalProtectionVpnService` (`android/app/src/main/java/com/muslimrecovery/protection/vpn/`)
+establishes a minimal TUN interface (`Builder().addAddress(...).establish()`) with no
+`addRoute()` and no `addDnsServer()` call, so the tunnel carries none of the device's real
+traffic — there is no packet read/write loop. It declares `android:foregroundServiceType="systemExempted"`
+with the `FOREGROUND_SERVICE_SYSTEM_EXEMPTED` permission, which Android's official documentation
+lists VPN apps configured via `Settings > Network & Internet > VPN` as an explicit exemption
+category for. Lifecycle decisions (idempotent start/stop, establish-failure handling, revoke) are
+delegated to `VpnLifecycleController`, a pure Kotlin class extracted specifically so this policy
+is unit-testable without Android instrumentation — `filteringOperational` is hardcoded false in
+every signal it produces.
+
+**Why:** M1-04's purpose is to prove the VPN consent/lifecycle plumbing works safely before any
+filtering exists; routing real traffic into a tunnel with no packet processing would silently
+break the device's normal connectivity, and `systemExempted` is the only officially supported
+foreground-service type for a VPN app on API 34+ targeting.
+
+**Consequences:** A future milestone that feeds the rules engine real resolved hostnames and adds
+a packet-processing loop is a separate, reviewed change — none of that exists yet. Until then,
+`ProtectionState.Protected` is unreachable at runtime in this app, by construction: the evaluator
+(D8) requires `filteringOperational == true` to report `Protected`, and this milestone never sets
+it.
+
 ## AI contribution
 
 This document, the surrounding scaffolding, and the initial project structure were AI-implemented under explicit Tech Lead constraints (see the M1-01 authorization). The Tech Lead owns the decisions themselves; AI recorded them as directed and did not originate the architecture direction.
