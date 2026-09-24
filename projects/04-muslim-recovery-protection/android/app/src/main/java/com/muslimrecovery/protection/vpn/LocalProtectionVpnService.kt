@@ -61,10 +61,28 @@ class LocalProtectionVpnService : VpnService() {
 
             VpnLifecycleController.StartDecision.ProceedToEstablish -> {
                 // Must call startForeground() promptly after the service is started, before any
-                // further work, per Android's foreground-service contract.
-                startForeground(NOTIFICATION_ID, buildNotification())
-                publishState()
-                establishTunnel()
+                // further work, per Android's foreground-service contract. startForeground()
+                // can itself throw (foreground-service restrictions, FGS type eligibility, or
+                // permissions) — never call establish() if the service isn't legitimately
+                // foregrounded, and never leave that failure unmanaged.
+                val foregrounded = try {
+                    startForeground(NOTIFICATION_ID, buildNotification())
+                    true
+                } catch (e: Exception) {
+                    Log.e(TAG, "startForeground() failed", e)
+                    false
+                }
+
+                if (foregrounded) {
+                    publishState()
+                    establishTunnel()
+                } else {
+                    synchronized(lifecycle) {
+                        lifecycle.onForegroundStartFailed("Foreground service start failed")
+                        publishState()
+                    }
+                    stopSelf()
+                }
             }
         }
     }
@@ -134,9 +152,14 @@ class LocalProtectionVpnService : VpnService() {
     }
 
     override fun onDestroy() {
-        // Safety net: guarantees the descriptor is released even on unexpected teardown paths.
+        // Safety net for unexpected teardown paths (the system killing the service without a
+        // preceding explicit stop or revoke): must not leave VpnRuntimeStatus truthfully
+        // reporting RUNNING/tunnelEstablished=true after the process is gone. Reuses the same
+        // stop-shaped transition as an explicit stop, so this is idempotent with any stop/revoke
+        // that already ran.
         synchronized(lifecycle) {
-            closeTunnel()
+            applyStopDecision(lifecycle.onStopRequested())
+            publishState()
         }
         super.onDestroy()
     }

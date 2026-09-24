@@ -37,6 +37,14 @@
             <intent-filter>
                 <action android:name="android.net.VpnService" />
             </intent-filter>
+            <!-- M1-04 is lifecycle-only and does not implement or verify Always-on/boot-start
+                 behavior. VpnService supports Always-on by default unless a service explicitly
+                 opts out via this metadata; opt out now so Android never attempts an Always-on
+                 or boot-triggered start of this service until a future, human-approved milestone
+                 implements and verifies that lifecycle. See docs/decisions.md D10. -->
+            <meta-data
+                android:name="android.net.VpnService.SUPPORTS_ALWAYS_ON"
+                android:value="false" />
         </service>
     </application>
 

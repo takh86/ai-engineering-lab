@@ -237,4 +237,86 @@ class VpnLifecycleControllerTest {
 
         assertTrue(state is ProtectionState.Error)
     }
+
+    @Test
+    fun `foreground start failure returns to Stopped and records a fatal error`() {
+        val controller = VpnLifecycleController()
+        controller.onStartRequested()
+
+        controller.onForegroundStartFailed("Foreground service start failed")
+
+        val signals = controller.signals(vpnPermissionGranted = true)
+        assertEquals(ServiceLifecycleState.STOPPED, signals.serviceLifecycleState)
+        assertFalse(signals.tunnelEstablished)
+        assertEquals("Foreground service start failed", signals.fatalError?.reason)
+    }
+
+    @Test
+    fun `foreground start failure never evaluates to Protected`() {
+        val controller = VpnLifecycleController()
+        controller.onStartRequested()
+
+        controller.onForegroundStartFailed("Foreground service start failed")
+
+        val state = ProtectionStateEvaluator.evaluate(controller.signals(vpnPermissionGranted = true))
+
+        assertTrue(state is ProtectionState.Error)
+    }
+
+    @Test
+    fun `starting again after a foreground start failure clears the previous fatal error`() {
+        val controller = VpnLifecycleController()
+        controller.onStartRequested()
+        controller.onForegroundStartFailed("Foreground service start failed")
+
+        controller.onStartRequested()
+
+        assertNull(controller.signals(vpnPermissionGranted = true).fatalError)
+    }
+
+    @Test
+    fun `an unexpected teardown from Running reports CloseTunnel and truthfully returns to Stopped`() {
+        // Models LocalProtectionVpnService#onDestroy as a safety net: the system tears the
+        // service down without a preceding explicit stop or revoke. Must not leave the
+        // runtime facts claiming RUNNING/tunnelEstablished=true afterward.
+        val controller = VpnLifecycleController()
+        controller.onStartRequested()
+        controller.onTunnelEstablished()
+
+        val decision = controller.onStopRequested()
+
+        assertEquals(VpnLifecycleController.StopDecision.CloseTunnel, decision)
+        val signals = controller.signals(vpnPermissionGranted = true)
+        assertEquals(ServiceLifecycleState.STOPPED, signals.serviceLifecycleState)
+        assertFalse(signals.tunnelEstablished)
+    }
+
+    @Test
+    fun `an unexpected teardown after an explicit stop already ran is a no-op`() {
+        val controller = VpnLifecycleController()
+        controller.onStartRequested()
+        controller.onTunnelEstablished()
+        controller.onStopRequested()
+
+        val decision = controller.onStopRequested()
+
+        assertEquals(VpnLifecycleController.StopDecision.NoOp, decision)
+        assertEquals(ServiceLifecycleState.STOPPED, controller.signals(true).serviceLifecycleState)
+    }
+
+    @Test
+    fun `a fatal error survives an unexpected teardown that follows a startup failure`() {
+        // Models LocalProtectionVpnService#onDestroy firing (as a safety net) after
+        // onForegroundStartFailed already recorded a fatal error: onStopRequested() must not
+        // silently downgrade that to a plain, error-free Stopped state.
+        val controller = VpnLifecycleController()
+        controller.onStartRequested()
+        controller.onForegroundStartFailed("Foreground service start failed")
+
+        controller.onStopRequested()
+
+        val signals = controller.signals(vpnPermissionGranted = true)
+        assertEquals(ServiceLifecycleState.STOPPED, signals.serviceLifecycleState)
+        assertEquals("Foreground service start failed", signals.fatalError?.reason)
+    }
 }

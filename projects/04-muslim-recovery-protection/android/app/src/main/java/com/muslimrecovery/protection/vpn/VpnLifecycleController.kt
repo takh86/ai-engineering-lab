@@ -47,7 +47,20 @@ class VpnLifecycleController {
     }
 
     @Synchronized
-    fun onEstablishFailed(reason: String) {
+    fun onEstablishFailed(reason: String) = failStartup(reason)
+
+    /**
+     * Distinct from [onEstablishFailed]: covers the earlier failure point where
+     * [android.app.Service.startForeground] itself throws (foreground-service restrictions,
+     * FGS type eligibility, or permissions) before [android.net.VpnService.Builder.establish]
+     * is ever called. Kept as its own method, rather than reusing [onEstablishFailed], so the
+     * state machine names each failure point truthfully; both currently resolve to the same
+     * STOPPED+fatalError transition.
+     */
+    @Synchronized
+    fun onForegroundStartFailed(reason: String) = failStartup(reason)
+
+    private fun failStartup(reason: String) {
         lifecycleState = ServiceLifecycleState.STOPPED
         tunnelEstablished = false
         fatalError = FatalError(reason)
