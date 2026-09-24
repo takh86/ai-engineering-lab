@@ -43,7 +43,7 @@ class UpstreamDnsSelectorTest {
             DnsProxyStatus.REFUSED_PRIVATE_DNS_ACTIVE,
             DnsProxyStatus.fromRefusal(UpstreamRefusalReason.PRIVATE_DNS_ACTIVE),
         )
-        assertEquals(false, DnsProxyStatus.REFUSED_PRIVATE_DNS_ACTIVE.isOperational)
+        assertEquals(false, DnsProxyStatus.REFUSED_PRIVATE_DNS_ACTIVE.isInterceptingStandardDns)
     }
 
     @Test
@@ -122,10 +122,10 @@ class UpstreamDnsSelectorTest {
     @Test
     fun `refusal reasons map to non-operational experimental statuses`() {
         for (reason in UpstreamRefusalReason.values()) {
-            assertEquals(false, DnsProxyStatus.fromRefusal(reason).isOperational)
+            assertEquals(false, DnsProxyStatus.fromRefusal(reason).isInterceptingStandardDns)
         }
         for (reason in DnsRuntimeStopReason.values()) {
-            assertEquals(false, DnsProxyStatus.fromStopReason(reason).isOperational)
+            assertEquals(false, DnsProxyStatus.fromStopReason(reason).isInterceptingStandardDns)
         }
     }
 }

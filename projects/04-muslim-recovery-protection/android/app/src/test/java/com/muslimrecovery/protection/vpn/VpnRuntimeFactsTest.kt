@@ -51,8 +51,8 @@ class VpnRuntimeFactsTest {
     }
 
     @Test
-    fun `only the RUNNING experimental status counts as operational, and only internally`() {
-        assertEquals(listOf(DnsProxyStatus.RUNNING), DnsProxyStatus.values().filter { it.isOperational })
+    fun `only the RUNNING experimental status counts as intercepting, and only internally`() {
+        assertEquals(listOf(DnsProxyStatus.RUNNING), DnsProxyStatus.values().filter { it.isInterceptingStandardDns })
     }
 
     @Test
@@ -69,7 +69,7 @@ class VpnRuntimeFactsTest {
 
         val state = ProtectionStateEvaluator.evaluate(facts.toProtectionSignals(vpnPermissionGranted = true))
 
-        assertFalse(facts.dnsProxyStatus.isOperational)
+        assertFalse(facts.dnsProxyStatus.isInterceptingStandardDns)
         assertEquals(ProtectionState.Error("DNS experiment refused: Private DNS is active"), state)
     }
 }

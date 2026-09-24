@@ -16,8 +16,12 @@ enum class DnsProxyStatus {
     FAILED,
     ;
 
-    /** True only while standard DNS queries are actually being intercepted and answered. */
-    val isOperational: Boolean get() = this == RUNNING
+    /**
+     * True only while standard DNS queries are being intercepted and answered. Deliberately NOT
+     * named after `filteringOperational`: it is an internal experiment fact and must never be wired
+     * into `ProtectionSignals`.
+     */
+    val isInterceptingStandardDns: Boolean get() = this == RUNNING
 
     companion object {
         fun fromRefusal(reason: UpstreamRefusalReason): DnsProxyStatus = when (reason) {

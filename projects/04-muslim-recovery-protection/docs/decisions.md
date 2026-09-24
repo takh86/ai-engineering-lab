@@ -213,8 +213,16 @@ enter the TUN, so everything else is untouched by construction.
 - Deferred (each needs its own review/approval): TCP DNS (truncated responses and clients' TCP
   retries are dropped), IPv6 DNS transport on the TUN, DNS-over-TLS/Private DNS compatibility,
   DNS-over-HTTPS and browser Secure DNS, EDNS processing, DNSSEC, caching, concurrency beyond one
-  worker, underlying-network handover (a network change currently stops the experiment), and
-  production rule distribution.
+  worker, answer-section/CNAME filtering, underlying-network handover (a network change currently
+  stops the experiment), and production rule distribution.
+- Known limitation of the single worker: allowed queries are forwarded one at a time, so one slow or
+  unanswered upstream query delays every other query on the device by up to the 2 s timeout. Any
+  local app could deliberately keep that worker busy (e.g. querying names whose authoritative
+  servers never answer), degrading DNS for all apps for as long as it does so. It cannot crash the
+  app or stop the VPN. Bounded concurrency is deferred.
+- Only the question name is filtered: an allowed name whose upstream answer is a CNAME into a
+  blocked domain still resolves, because upstream answers are relayed unchanged. The experiment's
+  evidence covers direct lookups of blocked names only.
 - The DoH/Private DNS bypass question from D1 is untouched and remains the next architecture gate.
 
 ## AI contribution

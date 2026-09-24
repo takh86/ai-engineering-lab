@@ -149,9 +149,11 @@ Components:
   the fixed test domains through the system resolver off the main thread. Still not product UI.
 
 Known limitations of M1-05A (deliberately deferred, see D11): standard plaintext DNS only, IPv4
-UDP only, one query at a time (a slow upstream delays others by up to 2 s), no TCP DNS (truncated
-responses fail), no IPv6 DNS transport on the TUN, DoH/DoT/Private DNS/browser Secure DNS not handled,
-and an underlying-network change stops the experiment instead of handing over.
+UDP only, one query at a time (a slow upstream delays others by up to 2 s, which a local app could
+exploit to degrade DNS for all apps), only the question name is filtered (a CNAME into a blocked
+domain is not caught), no TCP DNS (truncated responses fail), no IPv6 DNS transport on the TUN,
+DoH/DoT/Private DNS/browser Secure DNS not handled, and an underlying-network change stops the
+experiment instead of handing over.
 
 ## Planned technical direction for M1 (not yet implemented)
 
