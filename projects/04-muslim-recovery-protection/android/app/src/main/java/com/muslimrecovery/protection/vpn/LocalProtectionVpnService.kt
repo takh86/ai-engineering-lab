@@ -11,6 +11,7 @@ import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.muslimrecovery.protection.MainActivity
+import com.muslimrecovery.protection.domain.protection.ServiceLifecycleState
 import java.io.IOException
 
 /**
@@ -26,6 +27,14 @@ import java.io.IOException
  * unit tested off-device. This class only does the Android-framework side effects the
  * controller's decisions call for: building the TUN, running as a foreground service, and
  * publishing the resulting facts to [VpnRuntimeStatus] for the UI to read.
+ *
+ * [tunnel] is a resource jointly owned with [lifecycle]'s state: every read or write of it is
+ * done inside `synchronized(lifecycle)`, the same monitor [lifecycle]'s own `@Synchronized`
+ * methods use. This closes a real race Android's contract allows: [onRevoke] "might not happen
+ * on the main thread" per the platform docs, so a revoke can arrive while [establishTunnel] is
+ * still in flight on another thread. Without this lock, a tunnel could finish establishing
+ * after a concurrent revoke already moved the controller back to STOPPED, get assigned to
+ * [tunnel] anyway, and never be closed by anything — a leaked native file descriptor.
  */
 class LocalProtectionVpnService : VpnService() {
 
@@ -36,7 +45,10 @@ class LocalProtectionVpnService : VpnService() {
         when (intent?.action) {
             ACTION_START -> startTunnel()
             ACTION_STOP -> stopTunnel()
-            else -> Log.w(TAG, "onStartCommand with unexpected action=${intent?.action}")
+            else -> {
+                Log.w(TAG, "onStartCommand with unexpected action=${intent?.action}")
+                stopSelf()
+            }
         }
         return START_NOT_STICKY
     }
@@ -74,36 +86,58 @@ class LocalProtectionVpnService : VpnService() {
             null
         }
 
-        if (established == null) {
-            lifecycle.onEstablishFailed("TUN establishment failed")
-            publishState()
-            shutDownForeground()
-            return
-        }
+        synchronized(lifecycle) {
+            if (established == null) {
+                lifecycle.onEstablishFailed("TUN establishment failed")
+                publishState()
+                shutDownForeground()
+                return
+            }
 
-        tunnel = established
-        lifecycle.onTunnelEstablished()
-        publishState()
+            lifecycle.onTunnelEstablished()
+            val accepted = lifecycle.signals(vpnPermissionGranted = true).serviceLifecycleState ==
+                ServiceLifecycleState.RUNNING
+
+            if (accepted) {
+                tunnel = established
+                publishState()
+            } else {
+                // A stop/revoke raced in while establish() was in flight (see class doc): the
+                // controller already moved to STOPPED and rejected onTunnelEstablished(), so
+                // this descriptor must never be assigned to `tunnel` — close it right here.
+                publishState()
+                try {
+                    established.close()
+                } catch (e: IOException) {
+                    Log.w(TAG, "Error closing raced TUN descriptor", e)
+                }
+                shutDownForeground()
+            }
+        }
     }
 
     private fun stopTunnel() {
-        val decision = lifecycle.onStopRequested()
-        applyStopDecision(decision)
-        publishState()
+        synchronized(lifecycle) {
+            applyStopDecision(lifecycle.onStopRequested())
+            publishState()
+        }
         shutDownForeground()
     }
 
     override fun onRevoke() {
-        val decision = lifecycle.onRevoked()
-        applyStopDecision(decision)
-        publishState()
+        synchronized(lifecycle) {
+            applyStopDecision(lifecycle.onRevoked())
+            publishState()
+        }
         shutDownForeground()
         super.onRevoke()
     }
 
     override fun onDestroy() {
         // Safety net: guarantees the descriptor is released even on unexpected teardown paths.
-        closeTunnel()
+        synchronized(lifecycle) {
+            closeTunnel()
+        }
         super.onDestroy()
     }
 

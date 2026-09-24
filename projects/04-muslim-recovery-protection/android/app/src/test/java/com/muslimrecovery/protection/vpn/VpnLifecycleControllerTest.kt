@@ -152,6 +152,44 @@ class VpnLifecycleControllerTest {
     }
 
     @Test
+    fun `stop request while still starting reports CloseTunnel and returns to Stopped`() {
+        val controller = VpnLifecycleController()
+        controller.onStartRequested()
+
+        val decision = controller.onStopRequested()
+
+        assertEquals(VpnLifecycleController.StopDecision.CloseTunnel, decision)
+        assertEquals(ServiceLifecycleState.STOPPED, controller.signals(true).serviceLifecycleState)
+    }
+
+    @Test
+    fun `revoke while still starting behaves like stop`() {
+        val controller = VpnLifecycleController()
+        controller.onStartRequested()
+
+        val decision = controller.onRevoked()
+
+        assertEquals(VpnLifecycleController.StopDecision.CloseTunnel, decision)
+        assertEquals(ServiceLifecycleState.STOPPED, controller.signals(true).serviceLifecycleState)
+    }
+
+    @Test
+    fun `a tunnel established callback that arrives after a revoke raced in while starting is rejected`() {
+        // Models LocalProtectionVpnService's real race: establish() is in flight on one thread
+        // while onRevoke() arrives on another (Android does not guarantee onRevoke runs on the
+        // main thread) and completes first.
+        val controller = VpnLifecycleController()
+        controller.onStartRequested()
+        controller.onRevoked()
+
+        controller.onTunnelEstablished()
+
+        val signals = controller.signals(vpnPermissionGranted = true)
+        assertEquals(ServiceLifecycleState.STOPPED, signals.serviceLifecycleState)
+        assertFalse(signals.tunnelEstablished)
+    }
+
+    @Test
     fun `full restart cycle works after a clean stop`() {
         val controller = VpnLifecycleController()
         controller.onStartRequested()
