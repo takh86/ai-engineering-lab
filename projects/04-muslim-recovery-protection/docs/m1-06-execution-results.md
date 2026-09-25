@@ -18,6 +18,22 @@ It is intentionally conservative:
 
 The authoritative runbook remains `m1-06-coverage-gate.md`.
 
+## 2. Build under test
+
+**Tech Lead confirmation (2026-09-25):** the APK currently installed on the physical Samsung device is the GitHub Actions artifact built from:
+
+`1492c108d81d529f8f9b2a617fcef01a8f8f3e89`
+
+Artifact: `muslim-recovery-protection-m1-05-debug-apk`
+
+The corresponding GitHub Actions run completed successfully with:
+
+- `assembleDebug`
+- `testDebugUnitTest`
+- `lintDebug`
+
+This commit is now the exact build under test for the remaining M1-06 execution rows.
+
 ## 2. Evidence classes
 
 - **HUMAN-OBSERVED** — the user supplied screenshots or reported the observed device/browser behavior during execution.
