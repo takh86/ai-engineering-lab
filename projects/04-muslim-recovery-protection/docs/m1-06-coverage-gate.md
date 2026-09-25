@@ -263,8 +263,9 @@ browser history or caches for the gating rows. Repeat R1 after completing each r
 - **C1, VPN on:** Start the experiment and wait 5 s. The harness must show state
   `Degraded (FILTERING_NOT_OPERATIONAL)` and proxy `running (standard DNS only, experimental)`.
   Run **HSC-ON**; it must pass.
-  - If C1 fails after C0 passed, repeat C0 + C1 once.
-  - If C1 fails again, the result is **M1-05 DEFECT** (S3).
+  - If C1 fails after C0 passed, repeat C0 + C1 once, immediately.
+  - If C1 fails again, the result is **M1-05 DEFECT** (S3). A single transient C1 failure is not
+    a defect (approved procedural rule PR-1).
   - If C0 fails, the environment is the problem and the session is INCONCLUSIVE, not a defect.
 
 ### Harness checks
@@ -283,8 +284,14 @@ first, because of the in-process lookup cache.
 state shows `Stopped`.
 
 If the blocked names still fail more than 5 s after a Stop, the Stop left a **DNS black hole**.
-This counts only while the allowed name resolves; if it does not, the environment is failing and
-the result is INCONCLUSIVE. A black hole is an **M1-05 DEFECT** (S3).
+A black hole is an **M1-05 DEFECT** (S3) only when all of the following hold:
+
+- the experiment is stopped;
+- the allowed control name resolves normally;
+- the blocked names still fail after the 5 s wait.
+
+If the allowed control also fails, this is not a black-hole defect; it is an environment or network
+ambiguity and is INCONCLUSIVE under the existing rules (approved procedural rule PR-2).
 
 **Counters (A12).** ΔB is valid only within one running session. Always take the **before** record
 after the last Start.
@@ -408,7 +415,7 @@ Otherwise the attempt is INCONCLUSIVE.
 | **BYPASS** | The experiment showed `running` before and after, **and** the blocked outcome was LOADED or POST-RESOLUTION ERROR, or an AMBIGUOUS ERROR with independent evidence of resolution (or a harness lookup resolved). The path is recorded, not used to excuse the result. A path outside the experiment (DoH, Private DNS, stale config, cache, IPv6) while the experiment reports `running` is **always BYPASS, never UNSUPPORTED.** |
 | **UNSUPPORTED** | The experiment truthfully reported that it was **not** running, in both records, for a documented reason: refused because Private DNS is active, stopped on a network change, or not started after Stop, force-stop or reboot. `ProtectionState` was `Stopped` or `Error`. The blocked domain resolving in this state is expected and is not a bypass. In G rows, this is valid only in G5, G6, G10 and G11, with `refused: Private DNS is active` confirmed by the dumpsys lines. |
 | **BLOCKING FALSE CLAIM** | S0 applies: the harness `State:` line shows `Protected` at any time, or any harness or notification text states that the device or user is protected or that filtering is operational. The app name "Recovery Protection" and the VPN session name do not count. `Protected` is unreachable in M1-05 by design (D8/D11), so any sighting is a blocking defect, whether or not a bypass was seen. |
-| **M1-05 DEFECT** | Added. M1-05 itself violated a precondition this gate relies on (**S3**). Mechanical triggers:<br>(a) C1 fails after C0 passed, on the original run and on one immediate repeat;<br>(b) a DNS black hole after Stop while the allowed name resolves;<br>(c) the underlying network's Private DNS is active (dumpsys) while the proxy shows `running`, or inactive while it shows `refused`;<br>(d) the runtime state contradicts itself: the proxy shows `running` while `ProtectionState` is `Stopped`/`Error` or the VPN key icon is absent, or the proxy shows not running while the VPN key icon and the experiment notification are present. |
+| **M1-05 DEFECT** | Added. M1-05 itself violated a precondition this gate relies on (**S3**). Mechanical triggers:<br>(a) C1 fails after C0 passed, on the original run and on one immediate repeat (PR-1);<br>(b) a DNS black hole after Stop while the allowed name resolves (PR-2);<br>(c) the underlying network's Private DNS is active (dumpsys) while the proxy shows `running`, or inactive while it shows `refused`;<br>(d) the runtime state contradicts itself: the proxy shows `running` while `ProtectionState` is `Stopped`/`Error` or the VPN key icon is absent, or the proxy shows not running while the VPN key icon and the experiment notification are present. |
 | **INCONCLUSIVE** | Added. Evidence is missing or not attributable while M1-05 behaves correctly. For example: NAME ERROR with ΔB = 0 (the failure was not caused by the experiment); an AMBIGUOUS ERROR without independent evidence; a failed allowed or general control; NO NETWORK; a failed C0; a state change during the attempt; a non-running state in a G row other than the S2 case; missing evidence. Retry once; a second INCONCLUSIVE stands and is reported. |
 
 **Decision rule** (apply in this order; the first match wins):
@@ -515,6 +522,25 @@ The Tech Lead also decided the following on 2026-09-25:
 
 - the browser-error classification (see Result classification);
 - M1-05 defects during M1-06 map to STOP — DEFECT (S3).
+
+### Procedural rules for S3 — APPROVED (Tech Lead, 2026-09-25)
+
+- **PR-1, C1 failure confirmation.** A baseline C1 failure becomes STOP — DEFECT only when all four
+  hold:
+  1. C0 passed first;
+  2. C1 fails;
+  3. one immediate repeat of C0 + C1 is performed;
+  4. C1 fails again.
+
+  A single transient C1 failure is not enough.
+- **PR-2, post-Stop DNS black-hole confirmation.** This is an M1-05 defect only when all three
+  hold:
+  1. the experiment has been stopped;
+  2. the allowed control domain resolves normally;
+  3. the blocked test domain(s) still fail to resolve after the defined 5 s wait.
+
+  If the allowed control also fails, it is an environment or network ambiguity (INCONCLUSIVE), not
+  this defect.
 
 ### H1 — Test domains — APPROVED (as proposed)
 
