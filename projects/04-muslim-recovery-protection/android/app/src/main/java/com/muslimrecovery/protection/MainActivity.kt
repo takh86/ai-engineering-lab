@@ -24,22 +24,32 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import com.muslimrecovery.protection.domain.protection.ProtectionSignals
+import com.muslimrecovery.protection.dns.DnsProxyStatus
+import com.muslimrecovery.protection.dns.ExperimentalDnsCounters
+import com.muslimrecovery.protection.dns.ExperimentalDnsTestRules
 import com.muslimrecovery.protection.domain.protection.ProtectionState
 import com.muslimrecovery.protection.domain.protection.ProtectionStateEvaluator
 import com.muslimrecovery.protection.vpn.LocalProtectionVpnService
 import com.muslimrecovery.protection.vpn.VpnRuntimeStatus
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.InetAddress
 
 /**
- * M1-04 development/test harness only — NOT the product UI (see docs/decisions.md). It exists
- * so a human can exercise the real VPN consent + lifecycle flow on-device. It intentionally
- * shows the domain-truthful [ProtectionState] and never claims "Protected", because M1-04
- * implements no filtering.
+ * M1-04/M1-05 development/test harness only — NOT the product UI (see docs/decisions.md). It exists
+ * so a human can exercise the real VPN consent + lifecycle flow and the M1-05 standard-DNS
+ * experiment on-device, producing reproducible engineering evidence. It intentionally shows the
+ * domain-truthful [ProtectionState] and never claims "Protected": the DNS experiment is not
+ * verified protection (D11), so `filteringOperational` stays false.
  */
 class MainActivity : ComponentActivity() {
 
@@ -103,15 +113,20 @@ private fun ProtectionLifecycleHarness(
     }
 
     val runtimeFacts by VpnRuntimeStatus.facts
+    val dnsCounters by VpnRuntimeStatus.dnsCounters
     val protectionState = ProtectionStateEvaluator.evaluate(
-        ProtectionSignals(
-            vpnPermissionGranted = vpnPermissionGranted,
-            serviceLifecycleState = runtimeFacts.serviceLifecycleState,
-            tunnelEstablished = runtimeFacts.tunnelEstablished,
-            filteringOperational = false,
-            fatalError = runtimeFacts.fatalError,
-        ),
+        runtimeFacts.toProtectionSignals(vpnPermissionGranted),
     )
+
+    val scope = rememberCoroutineScope()
+    var lookupResult by remember { mutableStateOf("No test lookup yet") }
+    val resolveTestDomain: (String) -> Unit = { domain ->
+        lookupResult = "$domain: resolving..."
+        scope.launch {
+            // Off the main thread, through the normal system resolver (the same path other apps use).
+            lookupResult = withContext(Dispatchers.IO) { resolveWithSystemResolver(domain) }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -120,8 +135,11 @@ private fun ProtectionLifecycleHarness(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(text = "Recovery Protection — M1-04 lifecycle harness")
+        Text(text = "Recovery Protection — M1-05 DNS experiment harness")
         Text(text = "State: ${describe(protectionState)}")
+        Text(text = "Experimental DNS proxy: ${describe(runtimeFacts.dnsProxyStatus)}")
+        Text(text = describe(dnsCounters))
+        Text(text = "Standard DNS experiment only. Full protection is NOT verified.")
 
         Button(onClick = {
             // Sequenced: request the notification permission first (only if not already
@@ -140,7 +158,34 @@ private fun ProtectionLifecycleHarness(
         Button(onClick = { stopVpnService(context) }) {
             Text("Stop")
         }
+
+        Button(onClick = { resolveTestDomain(ExperimentalDnsTestRules.BLOCKED_TEST_DOMAIN) }) {
+            Text("Resolve blocked test domain")
+        }
+
+        Button(onClick = { resolveTestDomain(ExperimentalDnsTestRules.BLOCKED_TEST_SUBDOMAIN) }) {
+            Text("Resolve blocked test subdomain")
+        }
+
+        Button(onClick = { resolveTestDomain(ExperimentalDnsTestRules.ALLOWED_TEST_DOMAIN) }) {
+            Text("Resolve allowed test domain")
+        }
+
+        Text(text = lookupResult)
     }
+}
+
+/**
+ * Resolves one of the fixed harmless test domains via [InetAddress] (getaddrinfo → Android's system
+ * resolver). Reports only the outcome and address count. Note: Android caches lookup results in
+ * the app process for ~2 seconds, so wait a few seconds between repeating a lookup across a VPN
+ * start/stop.
+ */
+private fun resolveWithSystemResolver(domain: String): String = try {
+    val addresses = InetAddress.getAllByName(domain)
+    "$domain: resolved (${addresses.size} address(es))"
+} catch (e: Exception) {
+    "$domain: NOT resolved (${e.javaClass.simpleName})"
 }
 
 private fun isVpnPrepared(context: Context): Boolean = VpnService.prepare(context) == null
@@ -180,10 +225,23 @@ private fun stopVpnService(context: Context) {
 private fun describe(state: ProtectionState): String = when (state) {
     ProtectionState.PermissionRequired -> "Permission required"
     ProtectionState.Starting -> "Starting"
-    // Unreachable in M1-04: filteringOperational is always false, so the evaluator can only
-    // ever produce this while a future milestone actually implements filtering.
+    // Unreachable in M1-04/M1-05: filteringOperational is always false (D8, D11), so the evaluator
+    // can only ever produce this once a future, human-approved milestone verifies real protection.
     ProtectionState.Protected -> "Protected"
     is ProtectionState.Degraded -> "Degraded (${state.reasons.joinToString()})"
     ProtectionState.Stopped -> "Stopped"
     is ProtectionState.Error -> "Error: ${state.reason}"
 }
+
+private fun describe(status: DnsProxyStatus): String = when (status) {
+    DnsProxyStatus.NOT_RUNNING -> "not running"
+    DnsProxyStatus.RUNNING -> "running (standard DNS only, experimental)"
+    DnsProxyStatus.REFUSED_PRIVATE_DNS_ACTIVE -> "refused: Private DNS is active (no plaintext downgrade)"
+    DnsProxyStatus.UNAVAILABLE_NO_UPSTREAM -> "unavailable: no usable underlying DNS server"
+    DnsProxyStatus.FAILED -> "failed"
+}
+
+private fun describe(counters: ExperimentalDnsCounters): String =
+    "DNS counters: blocked=${counters.blocked}, forwarded=${counters.forwarded}, " +
+        "refused/unsupported=${counters.refusedOrUnsupported}, dropped=${counters.dropped}, " +
+        "upstream failures=${counters.upstreamFailures}"

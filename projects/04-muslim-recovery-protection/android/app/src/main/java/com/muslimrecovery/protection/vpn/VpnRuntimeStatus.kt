@@ -2,33 +2,30 @@ package com.muslimrecovery.protection.vpn
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import com.muslimrecovery.protection.domain.protection.FatalError
-import com.muslimrecovery.protection.domain.protection.ServiceLifecycleState
-
-/**
- * The runtime facts [LocalProtectionVpnService] actually owns (lifecycle, tunnel, fatal error).
- * Deliberately excludes VPN permission — that is a UI-observable Android fact
- * ([android.net.VpnService.prepare] returning null), not something the service tracks, and
- * deliberately excludes filteringOperational — M1-04 has no filtering, so callers must not
- * invent a value for it; combine this with the permission check via
- * [com.muslimrecovery.protection.domain.protection.ProtectionSignals] instead.
- */
-data class VpnRuntimeFacts(
-    val serviceLifecycleState: ServiceLifecycleState = ServiceLifecycleState.STOPPED,
-    val tunnelEstablished: Boolean = false,
-    val fatalError: FatalError? = null,
-)
+import com.muslimrecovery.protection.dns.ExperimentalDnsCounters
 
 /**
  * In-process bridge from [LocalProtectionVpnService] to UI observers (single process, no AIDL/
  * Messenger needed). Not persisted: after process death the default value (STOPPED, no tunnel,
- * no error) is the truthful state, since nothing has reported otherwise.
+ * no error, DNS proxy not running, zero counters) is the truthful state, since nothing has
+ * reported otherwise.
+ *
+ * [dnsCounters] is a separate state from [facts] because it is written by the DNS worker thread,
+ * while [facts] is written by the service under its lifecycle lock — keeping them apart means
+ * neither writer can overwrite the other's update. Counters are aggregate numbers only.
  */
 object VpnRuntimeStatus {
     private val state = mutableStateOf(VpnRuntimeFacts())
     val facts: State<VpnRuntimeFacts> = state
 
+    private val counters = mutableStateOf(ExperimentalDnsCounters())
+    val dnsCounters: State<ExperimentalDnsCounters> = counters
+
     internal fun update(facts: VpnRuntimeFacts) {
         state.value = facts
+    }
+
+    internal fun updateDnsCounters(value: ExperimentalDnsCounters) {
+        counters.value = value
     }
 }

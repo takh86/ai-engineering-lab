@@ -8,6 +8,12 @@
     <!-- Required on API 33+ for the foreground-service notification to actually be shown;
          the service itself is still permitted to run without it. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- M1-05 (D11), normal permissions only: INTERNET for the VPN-protected upstream DNS socket
+         and the harness's system-resolver lookups; ACCESS_NETWORK_STATE for ConnectivityManager
+         getActiveNetwork/getNetworkCapabilities/getLinkProperties (underlying DNS server and
+         Private DNS state). -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="false"
@@ -37,11 +43,11 @@
             <intent-filter>
                 <action android:name="android.net.VpnService" />
             </intent-filter>
-            <!-- M1-04 is lifecycle-only and does not implement or verify Always-on/boot-start
-                 behavior. VpnService supports Always-on by default unless a service explicitly
-                 opts out via this metadata; opt out now so Android never attempts an Always-on
-                 or boot-triggered start of this service until a future, human-approved milestone
-                 implements and verifies that lifecycle. See docs/decisions.md D10. -->
+            <!-- M1-04/M1-05 do not implement or verify Always-on/boot-start behavior. VpnService
+                 supports Always-on by default unless a service explicitly opts out via this
+                 metadata; opt out now so Android never attempts an Always-on or boot-triggered
+                 start of this service until a future, human-approved milestone implements and
+                 verifies that lifecycle. See docs/decisions.md D10. -->
             <meta-data
                 android:name="android.net.VpnService.SUPPORTS_ALWAYS_ON"
                 android:value="false" />

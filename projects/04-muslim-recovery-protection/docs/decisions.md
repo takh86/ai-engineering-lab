@@ -131,6 +131,100 @@ a packet-processing loop is a separate, reviewed change — none of that exists 
 it. A future milestone that implements and verifies Always-on lifecycle must revisit the
 `SUPPORTS_ALWAYS_ON` metadata explicitly; it must not be flipped to `true` incidentally.
 
+## D11 — DNS-only split-tunnel packet processing (M1-05 standard-DNS experiment)
+
+**Status:** Accepted (M1-05). Approved by the human Tech Lead in the M1-05 Task Contract; this
+record documents that approval and its implementation consequences, it is not an AI-originated
+architecture decision.
+
+**Decision:** The VPN may carry — and the app may minimally parse — exactly the traffic needed to
+run DNS through it, and nothing else.
+
+ALLOWED:
+
+- Minimal IPv4 + UDP framing exclusively for DNS transport: packets read from the TUN are accepted
+  only if they are unfragmented IPv4/UDP datagrams addressed to the virtual DNS server on port 53;
+  everything else is dropped without further inspection. Replies are built as IPv4/UDP packets with
+  swapped addresses/ports and computed IPv4 header and UDP checksums.
+- A strict, local, dependency-free DNS codec (`dns/DnsMessageCodec`) limited to: one-question
+  standard queries, at most one structurally validated EDNS OPT record (never interpreted), QNAME
+  extraction with no compression-pointer following, and header+question synthetic responses.
+
+NOT ALLOWED (unchanged from D1 — requires a new review and explicit human approval):
+
+- General-purpose packet inspection or filtering; any parsing of TCP, HTTP, TLS, or other
+  application content; TLS interception/MITM/certificate installation; browser/page inspection.
+- Any default route (`0.0.0.0/0` or `::/0`) or any route other than the virtual DNS server's `/32`.
+
+Implementation consequences (M1-05):
+
+- **Routing:** TUN address `10.111.222.2/32`, virtual DNS server `10.111.222.1`, configured with
+  `addDnsServer(10.111.222.1)` and the single route `addRoute(10.111.222.1, 32)`. No default route,
+  so ordinary HTTP/HTTPS and all other traffic never enters the TUN. `allowFamily(AF_INET6)` is
+  called because, per the `VpnService.Builder.allowFamily` documentation, a VPN with only IPv4
+  addresses/routes otherwise **blocks all IPv6 traffic** of the apps it covers; it adds no route, so
+  IPv6 traffic falls through to the underlying network untouched. (M1-04's lifecycle-only tunnel had
+  this IPv6-blocking side effect; M1-05 removes it.) The 10.111.222.x pair deliberately avoids
+  10.0.0.x, which common home routers use for their own gateway/DNS.
+- **Upstream DNS:** allowed queries are forwarded unchanged over plaintext UDP to the underlying
+  (non-VPN) network's own DNS server, discovered via `ConnectivityManager` before the VPN is
+  established (IPv4 preferred). No public resolver is hardcoded. Each query uses a fresh socket that
+  is `VpnService.protect()`ed (nothing is sent if protect fails) and bound to that network with
+  `Network.bindSocket()`, then connected to the server; the virtual DNS/TUN addresses can never be
+  selected as upstream, so no forwarding loop is possible. Responses are accepted only if they match
+  the query's transaction ID, QR, OPCODE and exact question, within a 2 s bounded timeout.
+- **Private DNS — plaintext downgrade prohibited:** `LinkProperties.isPrivateDnsActive()` (API 28+;
+  Private DNS does not exist below API 28) is checked on the underlying network before establishing,
+  again before every forward, and every 2 s by the worker. If it is active the experiment refuses to
+  start (or stops, tearing the VPN down) with a truthful error, and never forwards plaintext. It
+  never attempts to disable or bypass Private DNS. Note this includes Android's default "Automatic"
+  (opportunistic) mode whenever the network's resolver supports DNS-over-TLS.
+- **Rule decisions:** the existing RuleSet (D9, unchanged) evaluates the QNAME for every QTYPE.
+  `Blocked` → synthetic NXDOMAIN (same ID and question; QR=1, RA=1, RD/CD copied; no SOA, so it is
+  not negatively cached and stopping the VPN restores resolution immediately). `InvalidInput` →
+  synthetic REFUSED, never forwarded (e.g. `_x.blocked.example` cannot be used to get around a
+  block rule). `Allowed` → forward. Malformed messages are dropped; well-formed but unsupported
+  shapes get NOTIMP/FORMERR/REFUSED; none is ever forwarded.
+- **Runtime:** one dedicated worker thread (`vpn/DnsProxyRuntime`) owns its own duplicate of the TUN
+  descriptor, polls it (non-blocking, 250 ms timeout), processes one packet at a time, and has no
+  app-level queue. If the DNS runtime cannot start or stops itself, the VPN is torn down with a
+  truthful fatal error, so the system's DNS is never left pointing at a virtual server nobody
+  answers.
+- **Permissions:** `INTERNET` and `ACCESS_NETWORK_STATE` (both normal permissions), in addition to
+  M1-04's.
+- **Controlled rules:** `dns/ExperimentalDnsTestRules` blocks only the IANA documentation domain
+  `example.com` (and subdomains); `example.org` is the allowed comparison. Temporary M1 experiment
+  configuration, not a production ruleset (D3).
+- **Privacy:** no query history, hostname logging, packet capture, persistence, analytics, or upload.
+  Diagnostics carry typed reasons only; in-memory aggregate counters (blocked/forwarded/...) exist
+  for the dev harness.
+
+**Why:** M1-05 must empirically test whether a local VpnService can intercept and filter standard
+system DNS at all (D1's hypothesis), with the smallest possible packet surface: only DNS packets
+enter the TUN, so everything else is untouched by construction.
+
+**Consequences:**
+
+- **`ProtectionState.Protected` remains intentionally unreachable.** A working standard-DNS proxy is
+  not verified protection: Private DNS, DoH, browser Secure DNS (Chrome/Firefox), Incognito, TCP DNS,
+  IPv6 DNS transport, and reboot/Always-on are all untested. The public `filteringOperational`
+  signal stays hardcoded `false` (D8); the experiment's state is exposed only as an internal,
+  experimental `DnsProxyStatus` for the development harness.
+- Deferred (each needs its own review/approval): TCP DNS (truncated responses and clients' TCP
+  retries are dropped), IPv6 DNS transport on the TUN, DNS-over-TLS/Private DNS compatibility,
+  DNS-over-HTTPS and browser Secure DNS, EDNS processing, DNSSEC, caching, concurrency beyond one
+  worker, answer-section/CNAME filtering, underlying-network handover (a network change currently
+  stops the experiment), and production rule distribution.
+- Known limitation of the single worker: allowed queries are forwarded one at a time, so one slow or
+  unanswered upstream query delays every other query on the device by up to the 2 s timeout. Any
+  local app could deliberately keep that worker busy (e.g. querying names whose authoritative
+  servers never answer), degrading DNS for all apps for as long as it does so. It cannot crash the
+  app or stop the VPN. Bounded concurrency is deferred.
+- Only the question name is filtered: an allowed name whose upstream answer is a CNAME into a
+  blocked domain still resolves, because upstream answers are relayed unchanged. The experiment's
+  evidence covers direct lookups of blocked names only.
+- The DoH/Private DNS bypass question from D1 is untouched and remains the next architecture gate.
+
 ## AI contribution
 
-This document, the surrounding scaffolding, and the initial project structure were AI-implemented under explicit Tech Lead constraints (see the M1-01 authorization). The Tech Lead owns the decisions themselves; AI recorded them as directed and did not originate the architecture direction.
+This document, the surrounding scaffolding, and the initial project structure were AI-implemented under explicit Tech Lead constraints (see the M1-01 authorization). The Tech Lead owns the decisions themselves; AI recorded them as directed and did not originate the architecture direction. D11's implementation details (address pair, `allowFamily(AF_INET6)`, REFUSED for `InvalidInput`, the periodic Private DNS re-check, tearing the VPN down on runtime failure) were chosen by AI within the approved contract and are flagged for human review in the M1-05 PR.

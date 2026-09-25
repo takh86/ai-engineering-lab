@@ -7,7 +7,8 @@ This is a placeholder for M1-01. No protection architecture is implemented yet. 
 ## Current state (M1-03)
 
 - A single Android module (`android/app`) containing an empty Jetpack Compose app.
-- No services, no networking, no persistence, no backend.
+- No services, no networking, no persistence, no backend. (M1-03 snapshot; M1-04 and M1-05 below
+  add the VPN service and the DNS experiment.)
 - A pure-Kotlin protection-state domain model under
   `android/app/src/main/java/com/muslimrecovery/protection/domain/protection/`:
   - `ProtectionSignals` — verifiable runtime facts only (VPN permission granted, service
@@ -84,12 +85,82 @@ without claiming filtering is operational (filtering does not exist yet). New co
   `VpnService.prepare()` consent flow, and a status line driven by `ProtectionStateEvaluator`).
   This is explicitly not product UI/onboarding/design system — see D10.
 
+(The M1-04 "no route and no DNS server" configuration above is historical; M1-05 below replaces it
+with a DNS-only split tunnel.)
+
+## Current state (M1-05) — standard-DNS filtering experiment (D11)
+
+M1-05 tests whether the VPN foundation can intercept standard system DNS, evaluate the queried
+hostname with the existing RuleSet, block a controlled harmless domain, and forward everything else —
+without touching any other traffic. It is an experiment, **not** protection: `ProtectionState.Protected`
+remains unreachable (see D11).
+
+Packet flow:
+
+```
+Android system resolver (apps covered by the VPN, including this app's own harness)
+        ↓ DNS server = 10.111.222.1 (addDnsServer)
+DNS-only route 10.111.222.1/32 (addRoute) — no default route
+        ↓
+TUN (10.111.222.2/32)
+        ↓ one worker thread, Os.poll + read (non-blocking fd)
+dns/Ipv4UdpDnsPacketAdapter   — IPv4/UDP to 10.111.222.1:53 only; everything else dropped
+        ↓ DNS payload
+dns/DnsMessageCodec           — strict one-question query parse
+        ↓ QNAME (as sent)
+domain/rules/RuleSet          — EXISTING, unchanged (D9 normalization + label-suffix matching)
+   ↙ Blocked      ↓ InvalidInput      ↘ Allowed
+NXDOMAIN        REFUSED              vpn/ProtectedUpstreamDnsExchange
+(synthetic)     (synthetic)            Private DNS re-check → protect() → bindSocket(underlying)
+                                       → connect(underlying DNS:53) → send original bytes
+                                       → accept only the matching response (≤ 2 s)
+        ↓
+dns/Ipv4UdpDnsPacketAdapter.buildResponse — swapped addresses/ports, IPv4 + UDP checksums
+        ↓
+TUN → system resolver
+```
+
+Components:
+
+- `dns/` — pure Kotlin, no Android dependency, unit tested and fuzz-tested on the JVM:
+  `Ipv4UdpDnsPacketAdapter` (+ `InternetChecksum`), `DnsMessageCodec`, `DnsFilteringEngine`
+  (codec + RuleSet → Forward / Respond / Drop), `DnsPacketProcessor` (the whole per-packet pipeline
+  against an `UpstreamDnsExchange` interface), `UpstreamDnsSelector` (underlying-network facts →
+  chosen DNS server or a typed refusal; Private DNS checked first), `DnsProxyStatus` (the internal
+  experimental status), and `ExperimentalDnsTestRules` (temporary controlled rules: block
+  `example.com`).
+- `vpn/` — Android side effects only:
+  - `LocalProtectionVpnService` runs the upstream preflight (refuses to start if Private DNS is active
+    or no usable underlying DNS server exists), establishes the DNS-only tunnel, starts/stops the DNS
+    runtime, and publishes facts. Its M1-04 locking discipline is unchanged and now also covers the
+    DNS runtime and its status.
+  - `DnsProxyRuntime` — the single worker thread; owns a duplicate TUN descriptor that only it uses
+    and closes, so stop/revoke never races a read on a reused fd; stops within ~250 ms; re-checks the
+    upstream precondition every 2 s; reports self-stops (never external stops) to the service, which
+    tears the VPN down with a truthful `FatalError` rather than leaving DNS black-holed.
+  - `UnderlyingNetworkInspector` / `ProtectedUpstreamDnsExchange` — ConnectivityManager facts and the
+    protected, network-bound, per-query upstream socket.
+  - `VpnLifecycleController` gained `onStartupRefused` and `onRuntimeFailed`; `filteringOperational`
+    is still hardcoded false.
+  - `VpnRuntimeFacts` (now its own file) carries the experimental `dnsProxyStatus` and builds the
+    public `ProtectionSignals` with `filteringOperational = false`, whatever that status is.
+    `VpnRuntimeStatus` additionally publishes in-memory aggregate DNS counters (counts only).
+- `MainActivity` harness: adds the experimental DNS proxy status, counters, and buttons that resolve
+  the fixed test domains through the system resolver off the main thread. Still not product UI.
+
+Known limitations of M1-05A (deliberately deferred, see D11): standard plaintext DNS only, IPv4
+UDP only, one query at a time (a slow upstream delays others by up to 2 s, which a local app could
+exploit to degrade DNS for all apps), only the question name is filtered (a CNAME into a blocked
+domain is not caught), no TCP DNS (truncated responses fail), no IPv6 DNS transport on the TUN,
+DoH/DoT/Private DNS/browser Secure DNS not handled, and an underlying-network change stops the
+experiment instead of handing over.
+
 ## Planned technical direction for M1 (not yet implemented)
 
-- Feeding the rules engine (`domain/rules/`) real resolved hostnames from the established tunnel
-  and acting on its `RuleDecision` — this is what would first make `filteringOperational` capable
-  of being true, and is out of scope until a future milestone.
-- No packet-level inspection, no TLS interception, no MITM, no elevated OS privileges (Device Owner / root / AccessibilityService).
+- M1-05 feeds the rules engine real hostnames from standard DNS (see above), but
+  `filteringOperational` stays false until a future, human-approved milestone establishes what
+  "operational filtering" must cover (at minimum the Private DNS / DoH / browser Secure DNS gate).
+- No general packet-level inspection (D11 permits only DNS framing), no TLS interception, no MITM, no elevated OS privileges (Device Owner / root / AccessibilityService).
 - Entirely local-first: no backend calls required for the DNS filtering hypothesis itself.
 
 This direction is a hypothesis to validate, not a committed final design. See [`decisions.md`](decisions.md) and [`requirements.md`](requirements.md) for the stop/escalation criteria if DNS filtering proves trivially bypassable.
