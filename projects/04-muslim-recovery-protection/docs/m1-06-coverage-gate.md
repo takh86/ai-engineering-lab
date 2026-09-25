@@ -28,8 +28,9 @@ reclassified inside M1-06 (D1, `requirements.md` → Success / stop criteria).
 | P8 | The remaining source marked † (F5) has been re-read by a human, and its classification updated if needed. | Record that it was not re-read. |
 
 Harmless controlled domains only. Never use, type, reference or record real adult-content domains
-(D3). Below, `<TID>` is the test ID; the query string `?m106=<TID>` defeats HTTP caches and is
-ignored by the harmless test site.
+(D3). Below, `<TID>` is the test ID; the query string `?m106=<TID>` is intended to defeat HTTP caches and to be
+ignored by the harmless test site (ASSUMPTION). It does not affect DNS caches or reused
+connections; SBA's browser reset handles those.
 
 ## Threat / coverage question
 
@@ -57,7 +58,7 @@ Two bypass classes are kept separate:
   hostname. These rows are **characterization**. Whether bypass by the user themself is in scope
   for this product's threat model is a Tech Lead decision (H2), taken before execution.
 
-## Verified platform facts
+## Platform findings
 
 Researched 2026-09-25. **FACT** means the cited official source or the Chromium source says it.
 **HISTORICAL FACT** means it was true when the source was published and says nothing about current
@@ -91,7 +92,7 @@ including through server-side field trials.
 | A8 | M1-05 refuses to start, or stops, whenever the underlying network reports Private DNS active: before start, before each forward, and every 2 s. So in **Automatic** mode it refuses on networks whose resolver validates DoT and runs on the others. | ASSUMPTION (M1-05 design, Draft PR #11; not device-verified) | D11 on the M1-05 branch |
 | A9 | Samsung's as-shipped Private DNS mode, and whether a given network validates DoT | UNKNOWN (record as found) | — |
 | A10 | A Wi-Fi reconnect or a switch of the underlying network makes M1-05 stop truthfully (it has no handover) | ASSUMPTION (M1-05 documented limitation) | PR #11 |
-| A11 | Swiping the app out of Recents, or Doze while idle, leaves the foreground VPN service running. Force-stop tears it down (A4). | ASSUMPTION (swipe, Doze); FACT (force-stop → A4) | — |
+| A11 | Swiping the app out of Recents, or Doze while idle, leaves the foreground VPN service running. Force-stop tears it down (A4 covers a VPN app killed by the system; a user force-stop is assumed to behave the same). | ASSUMPTION | — |
 | A12 | M1-05's counters are in memory and reset on every Start and when the process dies. | FACT (M1-05 code, read-only review) | M1-05 branch |
 
 ### Chrome Android
@@ -103,10 +104,10 @@ including through server-side field trials.
 | C3 | Chrome reads its nameservers and Private DNS state from the **active network's** `LinkProperties`. Its built-in resolver is on by default on Android. | FACT (source) | `AndroidNetworkLibrary.getDnsStatus`, `net/base/features.cc` (`kAsyncDns`) |
 | C4 | Chrome's built-in plaintext resolver is not used while Private DNS is active. Chrome then uses the OS resolver. | FACT (source) | `dns_client.cc` `CanUseInsecureDnsTransactions` |
 | C5 | A newer "automatic with DoH fallback" option falls back to `8.8.8.8`'s DoH. It is **not applied when a nameserver is non-public** (such as `10.111.222.1`) unless `kDohFallbackAllowedWithLocalNameservers`, which is off by default, is enabled. | FACT (source) | `dns_client.cc`, `stub_resolver_config_reader.cc` |
-| C6 | As a VPN-covered app, Chrome sees the nameserver `10.111.222.1`, which matches no provider and gets no fallback. So its lookups reach the filter in plaintext. In G1, ΔB ≥ 1 shows the query reached the filter; a query sent to the underlying resolver would give ΔB = 0 and a BYPASS. | ASSUMPTION (follows from C2–C5 and A3) | Must test: G1, G9-C |
+| C6 | As a VPN-covered app, Chrome sees the nameserver `10.111.222.1`, which matches no provider and gets no fallback. So its lookups reach the filter in plaintext. In G1, ΔB ≥ 1 shows the query reached the filter. A query sent to the underlying resolver would give ΔB = 0 and the page would load (BYPASS); ΔB = 0 with a NAME ERROR is INCONCLUSIVE, per the decision rule. | ASSUMPTION (follows from C2–C5 and A3) | Must test: G1, G9-C |
 | C7 | Incognito uses the same Secure DNS configuration as normal mode | UNKNOWN | Must test: G2 |
 | C8 | The installed version and its field trials match Chromium `main` | UNKNOWN | Record the version; G1, D2 |
-| C9 | Chrome's automatic upgrade can only trigger when a tested network's resolver is on Chrome's list (for example a public resolver handed out by the router or carrier). If no tested network uses such a resolver, that trigger is not exercised. | FACT (follows from C2); coverage limit | R0 step 5; U1b |
+| C9 | Per C2, Chrome's automatic upgrade triggers when a tested network's resolver is on Chrome's list (for example a public resolver handed out by the router or carrier), or when a strict Private DNS hostname is on the list. If no tested network uses a listed resolver, the first trigger is not exercised. | ASSUMPTION (inferred from C2); coverage limit | R0 step 5; U1b |
 
 ### Firefox Android
 
@@ -215,7 +216,7 @@ Not measured in M1-06, but listed for the stop report:
 R0 → R1 → G1–G9 → D1–D5 → N1 → L1 → L3a → L7 → L5 → L6 → L8 → L3b → L4 → L2 → P1–P5.
 
 Rows that load the blocked domain unfiltered or change Private DNS run last, so they cannot seed
-browser history or caches for the gating rows. Repeat R1 after every network change.
+browser history or caches for the gating rows. Repeat R1 after completing each row that changes the network (never in the middle of an L row).
 
 ### R0 — Preparation (once)
 
@@ -226,8 +227,9 @@ browser history or caches for the gating rows. Repeat R1 after every network cha
 2. Record the **as-found Private DNS mode** before changing anything. Take a screenshot of
    *Settings → Connections → More connection settings → Private DNS*, then run
    `adb shell settings get global private_dns_mode` and
-   `adb shell settings get global private_dns_specifier`. Record the raw output; `null` means
-   the platform default.
+   `adb shell settings get global private_dns_specifier`. Also run `adb shell settings get global private_dns_default_mode` (if present). Record the raw
+   output. `null` means the setting was never changed; it does not by itself show Samsung's actual
+   default (A9), so the Settings screenshot is the primary record.
 3. Record the browser versions: `adb shell dumpsys package com.android.chrome | findstr versionName`,
    and the same for `org.mozilla.firefox` and `com.sec.android.app.sbrowser`.
 4. Record each browser's **as-found DNS setting** with a screenshot:
@@ -310,20 +312,20 @@ sequence once.
 | ID | Setup | Action | Expected observation | Evidence | Classification |
 |---|---|---|---|---|---|
 | G1–G4, G7, G8 | Private DNS Off. Browser DNS setting as found. R1 passed. | SBA in the row's browser and mode | See the matrix | SBA screenshots, browser DNS settings screenshot | Decision rule |
-| G5-W, G5-M, G6 | Stop the experiment. Set Private DNS to **Automatic**. On the row's network, turn it off and on (Wi-Fi, or mobile data for G5-M) and wait 30 s for DoT validation. Record the underlying network's Private DNS lines (R0 step 5). | Start. If the proxy shows `refused: Private DNS is active`, record it: the row is UNSUPPORTED (S2). Otherwise run C1, then SBA, then record the Private DNS lines again. | Depends on whether the network validates DoT | Private DNS screenshot, dumpsys lines (before Start, after SBA), harness, SBA | Decision rule. INCONCLUSIVE if the dumpsys lines disagree with the harness (active but running, or inactive but refused) |
+| G5-W, G5-M, G6 | Stop the experiment. Set Private DNS to **Automatic**. On the row's network, turn it off and on (Wi-Fi, or mobile data for G5-M) and wait 30 s for DoT validation. Record the underlying network's Private DNS lines (R0 step 5). | Start. If the proxy shows `refused: Private DNS is active`, record it: the row is UNSUPPORTED (S2). Otherwise run C1, then SBA, then record the Private DNS lines again. | Depends on whether the network validates DoT | Private DNS screenshot, dumpsys lines (before Start, after SBA), harness, SBA | Decision rule. If the dumpsys lines disagree with the harness (active but running, or inactive but refused), record that as an M1-05 anomaly. It never overrides the decision rule: a BYPASS stays a BYPASS. If the attempt would otherwise be PASS, it becomes INCONCLUSIVE. |
 | G9-C, G9-F | Private DNS Off; experiment **stopped**. Reset the browser (SBA step 2). | Open the browser and load `https://www.wikipedia.org/`. Do **not** visit the blocked domain. Leave the browser running in the background. Start the experiment and wait 5 s, then take the **before** record. Return to the same browser **without force-stopping it**, open a new tab and do SBA steps 5–7. | See the matrix | As SBA | Decision rule |
-| P1–P4 | Stop the experiment. Set Private DNS to hostname `dns.google`. Start. | Record the harness state and proxy status, then do the SBA blocked attempt in the row's mode | The proxy shows `refused …` and the state shows `Error: DNS experiment refused …`. Lookups then work through Private DNS if the network allows DoT; if all DNS fails, record it as a network condition. | Harness, Private DNS screenshot, browser | UNSUPPORTED if the refusal is truthful, whatever the lookup result; BLOCKING FALSE CLAIM if S0 applies |
-| P5 | Private DNS Off; experiment running; C1 passed. Start the Samsung screen recorder (it shows the clock) and `adb logcat -v time -s LocalProtectionVpn DnsProxyRuntime`. | Set Private DNS to hostname `dns.google`. Within 5 s, do the SBA blocked attempt in Chrome, then open the harness. | The experiment stops with `… Private DNS became active …` | Screen recording, logcat with timestamps, harness | BYPASS if the blocked page finished loading before the logged stop time; UNSUPPORTED if it did not load before the stop; INCONCLUSIVE if the order cannot be established |
+| P1–P4 | Stop the experiment. Set Private DNS to hostname `dns.google`. Start. | Record the harness state and proxy status, then do SBA steps 2, 4 and 5 in the row's mode, then record the harness again | The proxy shows `refused …` and the state shows `Error: DNS experiment refused …`. Lookups then work through Private DNS if the network allows DoT; if all DNS fails, record it as a network condition. | Harness, Private DNS screenshot, browser | UNSUPPORTED if the refusal is truthful, whatever the lookup result; BLOCKING FALSE CLAIM if S0 applies |
+| P5 | Private DNS Off; experiment running; C1 passed. Start the Samsung screen recorder (it shows the clock) and `adb logcat -v time -s LocalProtectionVpn DnsProxyRuntime`. | Reset Chrome first (SBA step 2). Set Private DNS to hostname `dns.google`. Immediately do SBA steps 4–5 in Chrome, then open the harness. Known limitation: M1-05 re-checks every 2 s, so the window is short and many attempts may end INCONCLUSIVE. | The experiment stops with `… Private DNS became active …` | Screen recording, logcat with timestamps, harness | BYPASS if the blocked page finished loading before the logged stop time; UNSUPPORTED if it did not load before the stop; INCONCLUSIVE if the order cannot be established |
 | D1–D5 | Private DNS Off. Set the row's browser DNS setting. | SBA (normal mode) | See the matrix | Screenshot of the browser DNS setting with the provider visible, plus SBA | Decision rule |
 | L1 | Running; C1 passed | Stop, wait 5 s, run HSC-OFF. Start, wait 5 s, run HSC-ON. Repeat 3 times. Then disconnect via Settings → Connections → More connection settings → VPN and confirm `Stopped`. Start again, run HSC-ON, then SBA in Chrome. | Blocking returns after every Start and disappears after every Stop | HSC per cycle; SBA | PASS only if every HSC-ON passes. BYPASS if a blocked name resolves while the proxy shows `running`. A DNS black hole after Stop is an M1-05 defect. |
 | L2 | Experiment stopped. Chrome normal. | Load `https://BLOCKED_TEST_DOMAIN/?m106=L2-0` (it loads) and keep the tab open. Start and wait 5 s. Without force-stopping, load `?m106=L2-1` in the same tab, then `L2-2` at +60 s and `L2-3` at +5 min. Then run a full SBA. | Some reloads may still load (browser cache or connection reuse) | Timestamped screenshots per reload; ΔB | BYPASS (cause: pre-existing state) for each load while running; record the time window |
-| L3a | Running; C1 passed | Open Recents and swipe the app away. Wait 10 s and confirm the VPN key icon. Do an SBA in Chrome. Reopen the app and record status and counters. | The VPN keeps running and blocking continues | Key-icon screenshot, SBA, harness | Decision rule |
-| L3b | Running | Force-stop the app (Settings → Apps → Recovery Protection → Force stop). Wait 10 s. Do the SBA blocked attempt in Chrome. Reopen the app. | The VPN is gone; the state is `Stopped` or `not running`; the blocked domain loads | Key icon absent, harness, browser | UNSUPPORTED if truthful; BYPASS if the harness shows `running` while the blocked domain resolves |
-| L4 | Running | Restart the device. Unlock and wait 60 s. Record the VPN icon and any notification. Open the app, run HSC-OFF, then the SBA blocked attempt in Chrome. In Settings → VPN, record (without changing it) whether Always-on is offered for the app. | Not running after reboot (A5) | Screenshots | UNSUPPORTED if truthful; BLOCKING FALSE CLAIM / BYPASS as in the rule |
-| L5 | Mobile data **off**; Wi-Fi on; running; C1 passed | Turn Wi-Fi off, wait 10 s, record the harness. Turn Wi-Fi on and wait until connected plus 10 s. Record the harness, run HSC-ON if it shows running (HSC-OFF otherwise), then SBA in Chrome. | The experiment stops truthfully (A10) | Harness before and after; HSC; SBA | Decision rule; UNSUPPORTED if the stop is truthful |
-| L6 | Mobile data **on**; Wi-Fi on; running on Wi-Fi; C1 passed | Turn Wi-Fi off, wait 15 s, record the harness. Run HSC-ON if it shows running (HSC-OFF otherwise), then SBA in Chrome. | The experiment stops truthfully (A10) | As L5 | As L5 |
-| L7 | Running on N-W; C1 passed; device unplugged | Lock the screen and leave the device idle for 30 min. Unlock, record the harness (no Start in between, so counters stay valid), run HSC-ON, then SBA in Chrome. | Still running and blocking (A11) | Harness before and after, HSC, SBA | Decision rule |
-| L8 | Wi-Fi off, mobile data on; running on N-M; C1 passed | Turn Wi-Fi on (it auto-joins N-W) and wait 15 s. Record the harness. Run HSC-ON if it shows running (HSC-OFF otherwise), then SBA in Chrome. | Unknown (see the matrix) | As L5 | Decision rule |
+| L3a | Running; C1 passed. Reset Chrome (SBA step 2). Take the **before** harness record now. | Open Recents and swipe the app away. Wait 10 s and confirm the VPN key icon. Do SBA steps 4–5 and 7 in Chrome without opening the app. Then reopen the app and take the **after** record (SBA step 6). | The VPN keeps running and blocking continues | Key-icon screenshot, SBA, harness | Decision rule |
+| L3b | Running | Force-stop the app (Settings → Apps → Recovery Protection → Force stop). Wait 10 s. Do SBA steps 2, 4 and 5 in Chrome. Reopen the app and record the harness (the process restarted, so counters are not comparable). | The VPN is gone; the state is `Stopped` or `not running`; the blocked domain loads | Key icon absent, harness, browser | UNSUPPORTED if truthful; BYPASS if the harness shows `running` while the blocked domain resolves |
+| L4 | Running | Restart the device. Unlock and wait 60 s. Record the VPN icon and any notification. Open the app, run HSC-OFF, then do SBA steps 2, 4 and 5 in Chrome. In Settings → VPN, record (without changing it) whether Always-on is offered for the app. | Not running after reboot (A5) | Screenshots | UNSUPPORTED if truthful; BLOCKING FALSE CLAIM / BYPASS as in the rule |
+| L5 | Mobile data **off**; Wi-Fi on; running; C1 passed | Turn Wi-Fi off, wait 10 s, record the harness. Turn Wi-Fi on and wait until connected plus 10 s. Record the harness, run HSC-ON if it shows running (HSC-OFF otherwise), then SBA in Chrome. | The experiment stops truthfully (A10) | Harness before and after; HSC; SBA | Decision rule; UNSUPPORTED if the stop is truthful. A blocked name resolving in HSC-ON while the proxy shows `running` is BYPASS (as L1). |
+| L6 | Mobile data **on**; Wi-Fi on; running on Wi-Fi; C1 passed | Turn Wi-Fi off, wait 15 s, record the harness. Run HSC-ON if it shows running (HSC-OFF otherwise), then SBA in Chrome. | The experiment stops truthfully (A10) | As L5 | As L5. A blocked name resolving in HSC-ON while the proxy shows `running` is BYPASS (as L1). |
+| L7 | Running on N-W; C1 passed; device unplugged | Lock the screen and leave the device idle for 30 min. Unlock, record the harness (no Start in between, so counters stay valid), run HSC-ON, then SBA in Chrome. | Still running and blocking (A11) | Harness before and after, HSC, SBA | Decision rule. A blocked name resolving in HSC-ON while the proxy shows `running` is BYPASS (as L1). |
+| L8 | Wi-Fi off, mobile data on; running on N-M; C1 passed | Turn Wi-Fi on (it auto-joins N-W) and wait 15 s. Record the harness. Run HSC-ON if it shows running (HSC-OFF otherwise), then SBA in Chrome. | Unknown (see the matrix) | As L5 | Decision rule. A blocked name resolving in HSC-ON while the proxy shows `running` is BYPASS (as L1). |
 | N1 | On the network R0 recorded as having IPv6; Private DNS Off | Run R1, then SBA in Chrome and SBA in Firefox. Record whether the underlying DNS servers are IPv4 or IPv6 (redacted). | PASS | R0 IPv6 record; SBA | Decision rule. If no IPv6 network is available: NOT RUN (N/A), with R0 evidence |
 
 ## Evidence requirements
@@ -400,15 +402,16 @@ name-resolution error nor a no-network error is treated as **post-resolution**.
 5. The PASS conditions are all met → PASS.
 6. Otherwise → INCONCLUSIVE.
 
-A BYPASS is recorded when it is first observed with valid evidence. One reproduction attempt then
-labels it **reproduced** or **intermittent**. Both count as BYPASS for the stop criteria.
+A BYPASS is recorded when it is first observed with valid evidence. In G and G-b rows, one
+reproduction attempt is **mandatory** ("not attempted" is not allowed there). It labels the BYPASS
+**reproduced** or **intermittent**; both count as BYPASS for the stop criteria.
 
 ## Architecture stop criteria
 
 | Stop | Trigger | Effect |
 |---|---|---|
 | **S0** | BLOCKING FALSE CLAIM in any row | Stop execution immediately. Report the defect. No other result from this build is trusted. |
-| **S1** | BYPASS, reproduced or intermittent, in any **G** or **G-b** row | Architecture stop |
+| **S1** | Any evidenced BYPASS in a **G** or **G-b** row (after its mandatory reproduction attempt, whether reproduced or intermittent) | Architecture stop |
 | **S2** | UNSUPPORTED in G5 or G6 with `refused: Private DNS is active`, meaning the experiment refuses under the **Android default** Private DNS setting (a default-configuration coverage gap) | Architecture stop / review (proposed decision H3; not a project kill) |
 
 On S1 or S2:
@@ -418,7 +421,8 @@ On S1 or S2:
 - Write one stop report per distinct bypass or gap (template below).
 - Stop for human architecture review.
 
-S1 and S2 apply as written only once the Tech Lead approves H2 and H3 (P3).
+Execution cannot start before the Tech Lead approves H1–H3 (P3), so S1 and S2 always run under
+approved decisions.
 
 BYPASS or UNSUPPORTED results in **C** rows, and UNSUPPORTED in G-b rows, are documented in the
 same report format. They do not trigger a stop by themselves.
