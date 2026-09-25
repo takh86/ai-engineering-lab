@@ -1,8 +1,13 @@
 # M1-06 DNS Coverage & Bypass Validation
 
 **Status:** Draft validation gate. Not executed. Measures behavior only; it implements no mitigation
-and changes no architecture. Execution requires Tech Lead approval of this document (see
-[Proposed Tech Lead decisions](#proposed-tech-lead-decisions-required-before-execution)).
+and changes no architecture.
+
+The Tech Lead approved decisions H1–H3 on 2026-09-25 (see
+[Tech Lead decisions](#tech-lead-decisions-approved)). Execution still waits for:
+
+- M1-05 to pass its own gates (P1, P2);
+- the Tech Lead's approval of this document.
 
 ## Purpose
 
@@ -20,7 +25,7 @@ reclassified inside M1-06 (D1, `requirements.md` → Success / stop criteria).
 |---|---|---|
 | P1 | The build under test is the M1-05 DNS-only experiment: Draft PR #11, branch `feat/04-m1-05-mobile-fixes` at `ddabe8a`. **M1-05 is not merged to `main`**; nothing here assumes it is. Any other commit, including a later merge commit, needs the Tech Lead to confirm it is behaviorally equivalent. | Do not start. |
 | P2 | M1-05's own gates have passed on the desktop: `.\gradlew clean assembleDebug testDebugUnitTest lintDebug --no-daemon` and the full M1-05 manual device plan A–I. Otherwise no M1-06 failure can be attributed. | Do not start. |
-| P3 | The Tech Lead has approved the proposed decisions H1–H3. Until then they are proposals only. | Do not start. |
+| P3 | Tech Lead decisions H1–H3 are approved (2026-09-25; see [Tech Lead decisions](#tech-lead-decisions-approved)). | Do not start. |
 | P4 | Physical Samsung device. No other VPN, DNS, ad-block or "security" app active. No work profile, MDM or device owner (Chrome disables Secure DNS on managed devices, which would distort results). | Remove it, or record it and mark affected rows INCONCLUSIVE. |
 | P5 | Chrome, Firefox and Samsung Internet updated to current stable from the store. Versions recorded. | Record the actual versions. |
 | P6 | Networks: N-W = the normal home Wi-Fi; N-M = mobile data (SIM). Record for each whether it has IPv6. | Rows needing a missing network are NOT RUN (with the reason). |
@@ -40,8 +45,8 @@ around it. M1-06 measures each such path under realistic settings:
 
 | Path around the filter | How it arises | Measured by |
 |---|---|---|
-| Browser DNS-over-HTTPS | The browser's own Secure DNS / DoH, whether on by default or turned on by the user | G1–G9, D1–D5 |
-| Android Private DNS (DoT) | Automatic (the Android default) or a provider hostname | G5, G6, P1–P5 |
+| Browser DNS-over-HTTPS | The browser's own Secure DNS / DoH, whether on by default or turned on by the user | G1–G11, D1–D5 |
+| Android Private DNS (DoT) | Automatic (the Android default) or a provider hostname | G5, G6, G10, G11, P1–P5 |
 | Stale DNS configuration, cached lookups or reused connections | The browser was already running, or had already resolved or connected, before the filter started | G9, L2 |
 | Lifecycle gaps | Restart, app kill, idle/Doze, reboot or network change leaves the filter stopped or stale | L1–L8 |
 | IPv6 | IPv6 underlying network or IPv6 DNS servers | N1 |
@@ -51,7 +56,7 @@ Two bypass classes are kept separate:
 - **Passive** means the browser DNS settings are as found. Private DNS is either Off or Automatic:
   - **Off** is a controlled isolation setting. It is M1-05's supported path, not the Android
     default.
-  - **Automatic** is the Android default. It is covered by G5 and G6 only.
+  - **Automatic** is the Android default. It is covered by G5, G6, G10 and G11 only.
 
   A passive bypass is **gating**.
 - **User-configured encrypted DNS** means the user turns on a browser's DoH or sets a Private DNS
@@ -126,7 +131,7 @@ including through server-side field trials.
 | ID | Finding | Class |
 |---|---|---|
 | SI1 | Whether it has its own Secure DNS / DoH setting, and its default | UNKNOWN. Record in Settings during preparation. |
-| SI2 | Secret mode's DNS behavior | UNKNOWN. Must test: G8. |
+| SI2 | Secret mode's DNS behavior | UNKNOWN. Must test: G8, G11. |
 
 ## Unknowns requiring device testing
 
@@ -136,8 +141,8 @@ including through server-side field trials.
 | U1b | Chrome's automatic upgrade on a network whose resolver is on its list (C9) | Only if such a network is tested; otherwise reported open |
 | U2 | Chrome Incognito (C7) | G2 |
 | U3 | Firefox Default Protection and Private Browsing (F4, F6) | G3, G4, G9-F |
-| U4 | Samsung Internet (SI1, SI2) | G7, G8 |
-| U5 | Whether the Android default (Automatic) lets the experiment run on each network (A8, A9) | G5, G6 |
+| U4 | Samsung Internet (SI1, SI2) | G7, G8, G10, G11 |
+| U5 | Whether the Android default (Automatic) lets the experiment run on each network (A8, A9) | G5, G6, G10, G11 |
 | U6 | Lifecycle, Doze and network change (A10, A11) | L1, L3a–L8 |
 | U7 | The IPv6 path | N1 |
 | U8 | How long a browser's pre-existing cache or connection keeps a domain reachable | L2 |
@@ -147,9 +152,9 @@ including through server-side field trials.
 
 **Gate** column:
 
-- **G** = gating. A BYPASS triggers S1. An UNSUPPORTED is valid only in G5/G6, with
-  `refused: Private DNS is active`, and triggers S2. Any other non-running state in a G row is
-  INCONCLUSIVE.
+- **G** = gating. A BYPASS triggers S1. An UNSUPPORTED is valid only in the Private DNS
+  Automatic rows (G5, G6, G10, G11), with `refused: Private DNS is active`, and triggers S2. Any
+  other non-running state in a G row is INCONCLUSIVE, unless it is an M1-05 DEFECT (S3).
 - **G-b** = gating for BYPASS only. An UNSUPPORTED (a truthful stop) is reported as a coverage gap
   (see H2).
 - **C** = characterization. The result is reported in full but does not trigger a stop by itself
@@ -168,6 +173,8 @@ The "Expected" column is a **hypothesis** with its basis. It is not the pass cri
 | G7 | added | Samsung Internet normal | Off | as found | N-W | G | UNKNOWN (SI1) |
 | G8 | added | Samsung Internet Secret | Off | as found | N-W | G | UNKNOWN (SI2) |
 | G9-C / G9-F | added | Chrome / Firefox normal, **already running** before Start | Off | as found | N-W | G | UNKNOWN (U9) |
+| G10 | added (H2) | Samsung Internet normal | **Automatic** | as found | N-W | G | as G5, plus SI1 |
+| G11 | added (H2) | Samsung Internet Secret | **Automatic** | as found | N-W | G | as G5, plus SI2 |
 | P1 | 5 | Chrome normal | hostname `dns.google` | as found | N-W | C | UNSUPPORTED: the experiment refuses (A8) |
 | P2 | 6 | Chrome Incognito | hostname | as found | N-W | C | UNSUPPORTED |
 | P3 | 7 | Firefox normal | hostname | as found | N-W | C | UNSUPPORTED |
@@ -213,7 +220,7 @@ Not measured in M1-06, but listed for the stop report:
 
 ### Execution order
 
-R0 → R1 → G1–G9 → D1–D5 → N1 → L1 → L3a → L7 → L5 → L6 → L8 → L3b → L4 → L2 → P1–P5.
+R0 → R1 → G1–G11 → D1–D5 → N1 → L1 → L3a → L7 → L5 → L6 → L8 → L3b → L4 → L2 → P1–P5.
 
 Rows that load the blocked domain unfiltered or change Private DNS run last, so they cannot seed
 browser history or caches for the gating rows. Repeat R1 after completing each row that changes the network (never in the middle of an L row).
@@ -255,8 +262,10 @@ browser history or caches for the gating rows. Repeat R1 after completing each r
   INCONCLUSIVE.
 - **C1, VPN on:** Start the experiment and wait 5 s. The harness must show state
   `Degraded (FILTERING_NOT_OPERATIONAL)` and proxy `running (standard DNS only, experimental)`.
-  Run **HSC-ON**; it must pass. If C1 fails, do not run browser rows. Record the failure and
-  escalate it as a failure of M1-05, not of M1-06.
+  Run **HSC-ON**; it must pass.
+  - If C1 fails after C0 passed, repeat C0 + C1 once.
+  - If C1 fails again, the result is **M1-05 DEFECT** (S3).
+  - If C0 fails, the environment is the problem and the session is INCONCLUSIVE, not a defect.
 
 ### Harness checks
 
@@ -274,7 +283,8 @@ first, because of the in-process lookup cache.
 state shows `Stopped`.
 
 If the blocked names still fail more than 5 s after a Stop, the Stop left a **DNS black hole**.
-That is an M1-05 defect: stop the session and report it. It is not an M1-06 classification.
+This counts only while the allowed name resolves; if it does not, the environment is failing and
+the result is INCONCLUSIVE. A black hole is an **M1-05 DEFECT** (S3).
 
 **Counters (A12).** ΔB is valid only within one running session. Always take the **before** record
 after the last Start.
@@ -312,7 +322,7 @@ sequence once.
 | ID | Setup | Action | Expected observation | Evidence | Classification |
 |---|---|---|---|---|---|
 | G1–G4, G7, G8 | Private DNS Off. Browser DNS setting as found. R1 passed. | SBA in the row's browser and mode | See the matrix | SBA screenshots, browser DNS settings screenshot | Decision rule |
-| G5-W, G5-M, G6 | Stop the experiment. Set Private DNS to **Automatic**. On the row's network, turn it off and on (Wi-Fi, or mobile data for G5-M) and wait 30 s for DoT validation. Record the underlying network's Private DNS lines (R0 step 5). | Start. If the proxy shows `refused: Private DNS is active`, record it: the row is UNSUPPORTED (S2). Otherwise run C1, then SBA, then record the Private DNS lines again. | Depends on whether the network validates DoT | Private DNS screenshot, dumpsys lines (before Start, after SBA), harness, SBA | Decision rule. If the dumpsys lines disagree with the harness (active but running, or inactive but refused), record that as an M1-05 anomaly. It never overrides the decision rule: a BYPASS stays a BYPASS. If the attempt would otherwise be PASS, it becomes INCONCLUSIVE. |
+| G5-W, G5-M, G6, G10, G11 | Stop the experiment. Set Private DNS to **Automatic**. On the row's network, turn it off and on (Wi-Fi, or mobile data for G5-M) and wait 30 s for DoT validation. Record the underlying network's Private DNS lines (R0 step 5). | Start. If the proxy shows `refused: Private DNS is active` **and** the dumpsys lines show Private DNS active, the row is UNSUPPORTED (S2). Otherwise run C1, then SBA in the row's browser and mode, then record the Private DNS lines again. | Depends on whether the network validates DoT | Private DNS screenshot, dumpsys lines (before Start, after SBA), harness, SBA | Decision rule. If the dumpsys lines disagree with the harness (Private DNS active while the proxy shows `running`, or inactive while it shows `refused`), the row is **M1-05 DEFECT** (S3). Record any browser outcome as an observation. |
 | G9-C, G9-F | Private DNS Off; experiment **stopped**. Reset the browser (SBA step 2). | Open the browser and load `https://www.wikipedia.org/`. Do **not** visit the blocked domain. Leave the browser running in the background. Start the experiment and wait 5 s, then take the **before** record. Return to the same browser **without force-stopping it**, open a new tab and do SBA steps 5–7. | See the matrix | As SBA | Decision rule |
 | P1–P4 | Stop the experiment. Set Private DNS to hostname `dns.google`. Start. | Record the harness state and proxy status, then do SBA steps 2, 4 and 5 in the row's mode, then record the harness again | The proxy shows `refused …` and the state shows `Error: DNS experiment refused …`. Lookups then work through Private DNS if the network allows DoT; if all DNS fails, record it as a network condition. | Harness, Private DNS screenshot, browser | UNSUPPORTED if the refusal is truthful, whatever the lookup result; BLOCKING FALSE CLAIM if S0 applies |
 | P5 | Private DNS Off; experiment running; C1 passed. Start the Samsung screen recorder (it shows the clock) and `adb logcat -v time -s LocalProtectionVpn DnsProxyRuntime`. | Reset Chrome first (SBA step 2). Set Private DNS to hostname `dns.google`. Immediately do SBA steps 4–5 in Chrome, then open the harness. Known limitation: M1-05 re-checks every 2 s, so the window is short and many attempts may end INCONCLUSIVE. | The experiment stops with `… Private DNS became active …` | Screen recording, logcat with timestamps, harness | BYPASS if the blocked page finished loading before the logged stop time; UNSUPPORTED if it did not load before the stop; INCONCLUSIVE if the order cannot be established |
@@ -320,7 +330,7 @@ sequence once.
 | L1 | Running; C1 passed | Stop, wait 5 s, run HSC-OFF. Start, wait 5 s, run HSC-ON. Repeat 3 times. Then disconnect via Settings → Connections → More connection settings → VPN and confirm `Stopped`. Start again, run HSC-ON, then SBA in Chrome. | Blocking returns after every Start and disappears after every Stop | HSC per cycle; SBA | PASS only if every HSC-ON passes. BYPASS if a blocked name resolves while the proxy shows `running`. A DNS black hole after Stop is an M1-05 defect. |
 | L2 | Experiment stopped. Chrome normal. | Load `https://BLOCKED_TEST_DOMAIN/?m106=L2-0` (it loads) and keep the tab open. Start and wait 5 s. Without force-stopping, load `?m106=L2-1` in the same tab, then `L2-2` at +60 s and `L2-3` at +5 min. Then run a full SBA. | Some reloads may still load (browser cache or connection reuse) | Timestamped screenshots per reload; ΔB | BYPASS (cause: pre-existing state) for each load while running; record the time window |
 | L3a | Running; C1 passed. Reset Chrome (SBA step 2). Take the **before** harness record now. | Open Recents and swipe the app away. Wait 10 s and confirm the VPN key icon. Do SBA steps 4–5 and 7 in Chrome without opening the app. Then reopen the app and take the **after** record (SBA step 6). | The VPN keeps running and blocking continues | Key-icon screenshot, SBA, harness | Decision rule |
-| L3b | Running | Force-stop the app (Settings → Apps → Recovery Protection → Force stop). Wait 10 s. Do SBA steps 2, 4 and 5 in Chrome. Reopen the app and record the harness (the process restarted, so counters are not comparable). | The VPN is gone; the state is `Stopped` or `not running`; the blocked domain loads | Key icon absent, harness, browser | UNSUPPORTED if truthful; BYPASS if the harness shows `running` while the blocked domain resolves |
+| L3b | Running | Force-stop the app (Settings → Apps → Recovery Protection → Force stop). Wait 10 s. Do SBA steps 2, 4 and 5 in Chrome. Reopen the app and record the harness (the process restarted, so counters are not comparable). | The VPN is gone; the state is `Stopped` or `not running`; the blocked domain loads | Key icon absent, harness, browser | UNSUPPORTED if truthful. M1-05 DEFECT (S3 (d)) if the harness shows `running` while the VPN key icon is absent. Otherwise, per the decision rule. |
 | L4 | Running | Restart the device. Unlock and wait 60 s. Record the VPN icon and any notification. Open the app, run HSC-OFF, then do SBA steps 2, 4 and 5 in Chrome. In Settings → VPN, record (without changing it) whether Always-on is offered for the app. | Not running after reboot (A5) | Screenshots | UNSUPPORTED if truthful; BLOCKING FALSE CLAIM / BYPASS as in the rule |
 | L5 | Mobile data **off**; Wi-Fi on; running; C1 passed | Turn Wi-Fi off, wait 10 s, record the harness. Turn Wi-Fi on and wait until connected plus 10 s. Record the harness, run HSC-ON if it shows running (HSC-OFF otherwise), then SBA in Chrome. | The experiment stops truthfully (A10) | Harness before and after; HSC; SBA | Decision rule; UNSUPPORTED if the stop is truthful. A blocked name resolving in HSC-ON while the proxy shows `running` is BYPASS (as L1). |
 | L6 | Mobile data **on**; Wi-Fi on; running on Wi-Fi; C1 passed | Turn Wi-Fi off, wait 15 s, record the harness. Run HSC-ON if it shows running (HSC-OFF otherwise), then SBA in Chrome. | The experiment stops truthfully (A10) | As L5 | As L5. A blocked name resolving in HSC-ON while the proxy shows `running` is BYPASS (as L1). |
@@ -352,7 +362,7 @@ Device / Android version / One UI:
 Browser / version:
 Mode (normal / Incognito / Private / Secret):
 Network (N-W / N-M; IPv6 yes/no; resolver operator):
-Private DNS (Off / Automatic / hostname=…; dumpsys Private DNS lines if G5/G6):
+Private DNS (Off / Automatic / hostname=…; dumpsys Private DNS lines if G5, G6, G10, G11):
 Browser Secure DNS / DoH setting:
 VPN status (key icon; system VPN screen):
 Experimental DNS status (before → after):
@@ -361,8 +371,8 @@ Blocked test result (outcome class + exact text):
 Allowed test result:
 General site (wikipedia.org) result:
 ProtectionState (every value seen):
-Classification (PASS / BYPASS / UNSUPPORTED / BLOCKING FALSE CLAIM / INCONCLUSIVE):
-Bypass path, if BYPASS (browser DoH / Private DNS / stale config / cache-connection / IPv6 / stale status / resolved-connection-failed / unknown):
+Classification (PASS / BYPASS / UNSUPPORTED / BLOCKING FALSE CLAIM / M1-05 DEFECT / INCONCLUSIVE):
+Bypass path, if BYPASS (browser DoH / Private DNS / stale config / cache-connection / IPv6 / resolved-connection-failed / unknown):
 Reproduction (reproduced / intermittent / not attempted):
 Notes:
 ```
@@ -371,36 +381,48 @@ Notes:
 
 ### Blocked-attempt outcome (fixed before execution)
 
-The error strings are an ASSUMPTION; record the exact text. Any error that is neither a
-name-resolution error nor a no-network error is treated as **post-resolution**.
+The error strings are an ASSUMPTION; record the exact text. Only evidence that itself shows the
+name resolved counts as resolution. An error that is not listed is **AMBIGUOUS**.
 
 | Outcome | Examples | Meaning |
 |---|---|---|
 | NAME ERROR | Chrome / Samsung Internet `ERR_NAME_NOT_RESOLVED`, `DNS_PROBE_FINISHED_NXDOMAIN`; Firefox "Hmm. We're having trouble finding that site." | The name did not resolve |
 | LOADED | The site's page is shown | Resolved and connected |
-| POST-RESOLUTION ERROR | Connection timed out, refused or reset; TLS or certificate error; HTTP error | The name **resolved** |
+| POST-RESOLUTION ERROR | An HTTP response or HTTP error from the site; a TLS or certificate error for the site; an explicit connection refused or reset where a connection attempt is evident (`ERR_CONNECTION_REFUSED`, `ERR_CONNECTION_RESET`; Firefox "Unable to connect", "The connection was reset") | The name **resolved** |
+| AMBIGUOUS ERROR | `ERR_TIMED_OUT`, `ERR_CONNECTION_TIMED_OUT`, `ERR_NETWORK_CHANGED`, generic `ERR_FAILED`, a browser DoH/Secure DNS failure page, and any other unlisted network error | Resolution **not established** |
 | NO NETWORK | Chrome `ERR_INTERNET_DISCONNECTED`; Firefox offline page | Environment failure |
+
+An AMBIGUOUS ERROR counts as resolution only with **independent evidence** from the same running
+session:
+
+- a harness lookup of the blocked name resolved; or
+- the page loaded, or a POST-RESOLUTION ERROR appeared, on the retry.
+
+Otherwise the attempt is INCONCLUSIVE.
 
 ### Classes
 
 | Result | Definition |
 |---|---|
 | **PASS** | The experiment showed `running` before and after. The blocked outcome was NAME ERROR **and** ΔB ≥ 1 (the experiment saw and blocked the query). The allowed domain and the general site loaded. S0 did not apply. |
-| **BYPASS** | The experiment showed `running` before and after, **and** the blocked outcome was LOADED or POST-RESOLUTION ERROR (or a harness lookup resolved). The path is recorded, not used to excuse the result. A path outside the experiment (DoH, Private DNS, stale config, cache, IPv6) while the experiment reports `running` is **always BYPASS, never UNSUPPORTED.** |
-| **UNSUPPORTED** | The experiment truthfully reported that it was **not** running, in both records, for a documented reason: refused because Private DNS is active, stopped on a network change, or not started after Stop, force-stop or reboot. `ProtectionState` was `Stopped` or `Error`. The blocked domain resolving in this state is expected and is not a bypass. In G rows, this is valid only in G5/G6 with `refused: Private DNS is active`. |
+| **BYPASS** | The experiment showed `running` before and after, **and** the blocked outcome was LOADED or POST-RESOLUTION ERROR, or an AMBIGUOUS ERROR with independent evidence of resolution (or a harness lookup resolved). The path is recorded, not used to excuse the result. A path outside the experiment (DoH, Private DNS, stale config, cache, IPv6) while the experiment reports `running` is **always BYPASS, never UNSUPPORTED.** |
+| **UNSUPPORTED** | The experiment truthfully reported that it was **not** running, in both records, for a documented reason: refused because Private DNS is active, stopped on a network change, or not started after Stop, force-stop or reboot. `ProtectionState` was `Stopped` or `Error`. The blocked domain resolving in this state is expected and is not a bypass. In G rows, this is valid only in G5, G6, G10 and G11, with `refused: Private DNS is active` confirmed by the dumpsys lines. |
 | **BLOCKING FALSE CLAIM** | S0 applies: the harness `State:` line shows `Protected` at any time, or any harness or notification text states that the device or user is protected or that filtering is operational. The app name "Recovery Protection" and the VPN session name do not count. `Protected` is unreachable in M1-05 by design (D8/D11), so any sighting is a blocking defect, whether or not a bypass was seen. |
-| **INCONCLUSIVE** | Added. Any other outcome, for example: NAME ERROR with ΔB = 0 (the failure was not caused by the experiment); a failed allowed or general control; NO NETWORK; a state change during the attempt; a non-running state in a G row other than the S2 case; missing evidence. Retry once; a second INCONCLUSIVE stands and is reported. |
+| **M1-05 DEFECT** | Added. M1-05 itself violated a precondition this gate relies on (**S3**). Mechanical triggers:<br>(a) C1 fails after C0 passed, on the original run and on one immediate repeat;<br>(b) a DNS black hole after Stop while the allowed name resolves;<br>(c) the underlying network's Private DNS is active (dumpsys) while the proxy shows `running`, or inactive while it shows `refused`;<br>(d) the runtime state contradicts itself: the proxy shows `running` while `ProtectionState` is `Stopped`/`Error` or the VPN key icon is absent, or the proxy shows not running while the VPN key icon and the experiment notification are present. |
+| **INCONCLUSIVE** | Added. Evidence is missing or not attributable while M1-05 behaves correctly. For example: NAME ERROR with ΔB = 0 (the failure was not caused by the experiment); an AMBIGUOUS ERROR without independent evidence; a failed allowed or general control; NO NETWORK; a failed C0; a state change during the attempt; a non-running state in a G row other than the S2 case; missing evidence. Retry once; a second INCONCLUSIVE stands and is reported. |
 
 **Decision rule** (apply in this order; the first match wins):
 
 1. S0 applies → BLOCKING FALSE CLAIM.
-2. The proxy status differs between the before and after records, or logcat shows a stop during
+2. An S3 trigger (a)–(d) applies → M1-05 DEFECT.
+3. The proxy status differs between the before and after records, or logcat shows a stop during
    the attempt → INCONCLUSIVE. Record the timestamps and retry. P5 uses its own rule.
-3. Non-running in both records, with a truthful documented reason → UNSUPPORTED, subject to the
+4. Non-running in both records, with a truthful documented reason → UNSUPPORTED, subject to the
    G-row restriction above.
-4. `running` in both records, and the blocked outcome is LOADED or POST-RESOLUTION ERROR → BYPASS.
-5. The PASS conditions are all met → PASS.
-6. Otherwise → INCONCLUSIVE.
+5. `running` in both records, and the blocked outcome is LOADED, POST-RESOLUTION ERROR, or an
+   AMBIGUOUS ERROR with independent evidence of resolution → BYPASS.
+6. `running` in both records, NAME ERROR, ΔB ≥ 1, and both controls loaded → PASS.
+7. Otherwise → INCONCLUSIVE, including every AMBIGUOUS ERROR without independent evidence.
 
 A BYPASS is recorded when it is first observed with valid evidence. In G and G-b rows, one
 reproduction attempt is **mandatory** ("not attempted" is not allowed there). It labels the BYPASS
@@ -412,7 +434,8 @@ reproduction attempt is **mandatory** ("not attempted" is not allowed there). It
 |---|---|---|
 | **S0** | BLOCKING FALSE CLAIM in any row | Stop execution immediately. Report the defect. No other result from this build is trusted. |
 | **S1** | Any evidenced BYPASS in a **G** or **G-b** row (after its mandatory reproduction attempt, whether reproduced or intermittent) | Architecture stop |
-| **S2** | UNSUPPORTED in G5 or G6 with `refused: Private DNS is active`, meaning the experiment refuses under the **Android default** Private DNS setting (a default-configuration coverage gap) | Architecture stop / review (proposed decision H3; not a project kill) |
+| **S2** | UNSUPPORTED in G5, G6, G10 or G11 with `refused: Private DNS is active`, meaning the experiment refuses under the **Android default** Private DNS setting on a normal tested network (a default-configuration coverage gap) | Architecture stop / review (approved decision H3; not a project kill; no mitigation authorized) |
+| **S3** | M1-05 DEFECT in any row (triggers (a)–(d) above) | Stop execution. Report the defect against M1-05. M1-06 results after the defect are not trusted. |
 
 On S1 or S2:
 
@@ -421,18 +444,18 @@ On S1 or S2:
 - Write one stop report per distinct bypass or gap (template below).
 - Stop for human architecture review.
 
-Execution cannot start before the Tech Lead approves H1–H3 (P3), so S1 and S2 always run under
-approved decisions.
+S1 and S2 run under the approved decisions H2 and H3 (P3).
 
 BYPASS or UNSUPPORTED results in **C** rows, and UNSUPPORTED in G-b rows, are documented in the
 same report format. They do not trigger a stop by themselves.
 
 The **gate outcome** is derived mechanically from the results, in this order:
 
-1. **STOP — DEFECT** if S0 occurred.
+1. **STOP — DEFECT** if S0 or S3 occurred.
 2. **STOP — ARCHITECTURE REVIEW** if S1 or S2 occurred. Unexecuted rows do not delay this.
 3. **INCOMPLETE** if any G or G-b row is NOT RUN or INCONCLUSIVE, except N1 when no IPv6 network is
-   available.
+   available. INCOMPLETE applies only when no S0 or S3 has occurred, meaning M1-05 behaved
+   correctly and only M1-06 evidence is missing or not attributable.
 4. **NO GATING BYPASS OBSERVED** otherwise.
 
 The last outcome covers only the recorded device, versions, settings and networks, and it must
@@ -484,13 +507,16 @@ Deviations from this runbook:
 Tech Lead decision (human only): ______________________
 ```
 
-## Proposed Tech Lead decisions (required before execution)
+## Tech Lead decisions (approved)
 
-**Status: PROPOSED. The Tech Lead has not approved these yet.** Approving them fixes them before
-execution. They are not revised after results are seen; any later change is recorded as a dated
-revision.
+**Status: APPROVED by the Tech Lead on 2026-09-25.** These decisions are fixed before execution.
+They are not revised after results are seen; any later change is recorded as a dated revision.
+The Tech Lead also decided the following on 2026-09-25:
 
-### H1 — Test domains (proposed)
+- the browser-error classification (see Result classification);
+- M1-05 defects during M1-06 map to STOP — DEFECT (S3).
+
+### H1 — Test domains — APPROVED (as proposed)
 
 ```text
 BLOCKED_TEST_DOMAIN    = example.com
@@ -503,11 +529,11 @@ harness already uses (hardcoded in the M1-05 build; M1-06 changes no code). Any 
 need a separately approved code change. `example.com` and `example.org` may share hosting or a
 certificate; SBA's ordering handles this.
 
-### H2 — Gating scope (proposed)
+### H2 — Gating scope — APPROVED (with G10/G11 added)
 
 **Gating:**
 
-| Proposed scope | Rows |
+| Scope | Rows |
 |---|---|
 | Chrome normal | G1 |
 | Chrome Incognito | G2 |
@@ -517,14 +543,16 @@ certificate; SBA's ordering handles this.
 | Samsung Internet Secret | G8 |
 | Already-running browser scenarios | G9-C, G9-F |
 | Android Private DNS Automatic | G5-W, G5-M, G6 |
+| Samsung Internet normal, Private DNS Automatic (added by the Tech Lead) | G10 |
+| Samsung Internet Secret, Private DNS Automatic (added by the Tech Lead) | G11 |
 
-G1–G4 and G7–G9 use Private DNS Off as an isolation setting. Only G5 and G6 cover the Android
-default. The existing G-b rows (D1, D3, L1, L3a–L8, N1) stay gating for BYPASS only, as the matrix
+G1–G4 and G7–G9 use Private DNS Off as an isolation setting. Only G5, G6, G10 and G11 cover the
+Android default. The existing G-b rows (D1, D3, L1, L3a–L8, N1) stay gating for BYPASS only, as the matrix
 already defines.
 
 **Characterization:**
 
-| Proposed scope | Rows |
+| Scope | Rows |
 |---|---|
 | The user explicitly enables browser DoH / Secure DNS | D2, D4, D5 |
 | The user explicitly sets a Private DNS hostname | P1–P5 |
@@ -533,11 +561,11 @@ already defines.
 
 This split only assigns rows before execution. It does not interpret any result.
 
-### H3 — Android default Private DNS (proposed)
+### H3 — Android default Private DNS — APPROVED (as proposed)
 
 Suppose M1-05 refuses to operate under Android's default Private DNS **Automatic** mode on a normal
-tested network, because encrypted DNS is active there (G5 or G6 UNSUPPORTED with
-`refused: Private DNS is active`). That is an **architecture stop / review condition** (S2).
+tested network, because Private DNS is active there (G5, G6, G10 or G11 UNSUPPORTED with
+`refused: Private DNS is active`). The gate outcome is then **STOP — ARCHITECTURE REVIEW** (S2).
 
 This does **not** mean the project is killed. It means:
 
