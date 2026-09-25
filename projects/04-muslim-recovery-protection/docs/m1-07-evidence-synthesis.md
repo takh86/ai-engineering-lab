@@ -15,9 +15,9 @@ However, M1 cannot be closed yet from the evidence currently preserved in the re
 Two close-out blockers remain:
 
 1. **Build provenance mismatch.** The physical-device M1-05 work was performed on the mobile-fix line rooted at `ddabe8a`, and the full GitHub verification gate later passed at `1492c108`. PR #11 was merged from `a292b6d`, and current `main` does **not** contain the two `ddabe8a` VPN builder changes (`setUnderlyingNetworks(...)` and API-29+ `setMetered(false)`). The tested build and merged production tree are therefore not the same behavior by evidence.
-2. **M1-06 execution evidence is incomplete in the repository.** The approved runbook is merged, but no row-by-row execution report is checked in. The recoverable project record confirms at least one executed browser row (Samsung Internet normal / Private DNS Off = PASS), but does not preserve the complete matrix required by the runbook.
+2. **M1-06 execution is now human-confirmed complete.** The Tech Lead confirmed the full runbook was executed on build `1492c108`. The repository now preserves a row-by-row execution report; rows whose exact timing/network branch cannot be reconstructed are explicitly classified `INCONCLUSIVE` rather than guessed.
 
-**Mechanical M1 gate result at this point: `INCOMPLETE`.**
+**Mechanical M1 gate result at this point: `INCOMPLETE` — now due to build/source reconciliation and M-1, not M1-06 execution completeness.**
 
 This is not an architecture verdict and not a project stop. It means the evidence package is not yet strong enough to honestly close M1.
 
@@ -250,20 +250,19 @@ Partially recoverable result:
 - later `upstream failures = 0`;
 - the decisive browser observation for `example.com` is not recoverable, so the row cannot honestly be classified PASS or BYPASS.
 
-### 7.3 Missing execution evidence
+### 7.3 M1-06 execution completion
 
-A repository-native recovery file now exists, but it is explicitly partial.
+The Tech Lead subsequently confirmed that the **complete M1-06 runbook was executed** on the physical Samsung device using build `1492c108`.
 
-The available project record still does **not** preserve final classifications for all required gating cases, including:
+The row-by-row recovery file now records:
 
-- Chrome normal / Incognito;
-- Firefox normal / Private;
-- Private DNS Automatic gating rows G10/G11;
-- the complete Wi-Fi/mobile variants;
-- the required D/P/L characterization/lifecycle rows;
-- the full explicit-Private-DNS P1–P5 evidence set.
+- deterministic successful rows as PASS / UNSUPPORTED / BYPASS according to the runbook;
+- rows whose exact timing/network branch is no longer reconstructable as **INCONCLUSIVE**;
+- no row is silently converted to PASS merely from a generic success statement.
 
-**Therefore missing rows remain MISSING EVIDENCE, not PASS.**
+This satisfies the M1 evidence rule that required cases either have a classification or are explicitly recorded as inconclusive/unavailable.
+
+**M1-06 execution status: COMPLETE (human-confirmed).**
 
 ---
 
@@ -325,7 +324,7 @@ Final user-facing wording belongs to M2-01 after the evidence gaps are closed.
 |---|---|---|
 | M1-05 reviewed build passed required verification | **PARTIAL / PROVENANCE OPEN** | CI passed at `1492c108`; device evidence is on the mobile-fix line, while merged PR #11 is `a292b6d` |
 | M1-06 approved fixed scope | **PASS** | PR #12 merged; H1-H3 and decision rules recorded |
-| Required M1-06 cases have evidence or explicit unavailable/inconclusive classification | **FAIL / MISSING** | Complete execution result set is not preserved |
+| Required M1-06 cases have evidence or explicit unavailable/inconclusive classification | **PASS** | Full execution human-confirmed; row classifications preserved in `m1-06-execution-results.md`, with unreconstructable branches explicitly INCONCLUSIVE |
 | Final M1 evidence report exists | **PASS as draft** | This document |
 | Stop conditions visible | **PASS** | S0/S2/S3 policy remains in M1-06 runbook |
 | Tech Lead M1 → M2 decision recorded | **PENDING** | Must follow evidence close-out |
@@ -350,23 +349,14 @@ This conclusion is driven by evidence completeness/provenance, not by an AI pref
    - installed APK;
    - M1-06 execution.
 
-3. **Create/restore the M1-06 execution result table** with every required row classified as:
-   - PASS,
-   - BYPASS,
-   - UNSUPPORTED,
-   - M1-05 DEFECT,
-   - BLOCKING FALSE CLAIM,
-   - INCONCLUSIVE,
-   - or NOT RUN / unavailable with reason.
-
-4. **Resolve M-1** before declaring the DNS experiment a stable M1 baseline:
+3. **Resolve M-1** before declaring the DNS experiment a stable M1 baseline:
    - narrow fix + targeted test, or
    - explicit Tech Lead acceptance as a known limitation.
 
-5. **Re-run only the evidence invalidated by a code change.**
+4. **Re-run only the evidence invalidated by a code change.**
    Do not rerun unrelated rows mechanically if the final commit is demonstrated behaviorally equivalent for those paths.
 
-6. Update this report from **DRAFT / INCOMPLETE** to the final gate state.
+5. Update this report from **DRAFT / INCOMPLETE** to the final gate state.
 
 ---
 
