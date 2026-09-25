@@ -12,12 +12,15 @@ M1 has produced useful evidence that the DNS-only experiment can intercept and b
 
 However, M1 cannot be closed yet from the evidence currently preserved in the repository and recoverable project record.
 
-Two close-out blockers remain:
+One close-out blocker remains:
 
-1. **Build provenance mismatch.** The physical-device M1-05 work was performed on the mobile-fix line rooted at `ddabe8a`, and the full GitHub verification gate later passed at `1492c108`. PR #11 was merged from `a292b6d`, and current `main` does **not** contain the two `ddabe8a` VPN builder changes (`setUnderlyingNetworks(...)` and API-29+ `setMetered(false)`). The tested build and merged production tree are therefore not the same behavior by evidence.
-2. **M1-06 execution is now human-confirmed complete.** The Tech Lead confirmed the full runbook was executed on build `1492c108`. The repository now preserves a row-by-row execution report; rows whose exact timing/network branch cannot be reconstructed are explicitly classified `INCONCLUSIVE` rather than guessed.
+1. **M-1 stale-underlying-network reliability finding.** The remaining M1 close-out work is to fix M-1 narrowly or explicitly accept it as a known limitation after targeted verification.
 
-**Mechanical M1 gate result at this point: `INCOMPLETE` — now due to build/source reconciliation and M-1, not M1-06 execution completeness.**
+The build-provenance mismatch is still documented as a fact: the physical-device M1-05 work was performed on the mobile-fix line rooted at `ddabe8a`, and the full GitHub verification gate later passed at `1492c108`, while PR #11 was merged from `a292b6d`. PR #30 was created to test a possible source reconciliation path, but the Tech Lead intentionally closed it **without merge**. M1 therefore keeps `1492c108` as historical tested-build evidence and does **not** claim that current `main` is behaviorally identical to that build.
+
+M1-06 execution is human-confirmed complete. The repository preserves a row-by-row execution report; rows whose exact timing/network branch cannot be reconstructed are explicitly classified `INCONCLUSIVE` rather than guessed.
+
+**Mechanical M1 gate result at this point: `INCOMPLETE` — due to M-1 only.**
 
 This is not an architecture verdict and not a project stop. It means the evidence package is not yet strong enough to honestly close M1.
 
@@ -66,7 +69,7 @@ c6e3a30   enforce assemble + tests + lint gate
 
 The changes after `ddabe8a` are workflow configuration plus a manifest lint suppression/comment. They do not change the DNS packet pipeline or filtering rules.
 
-### 3.3 Provenance mismatch that blocks M1 close
+### 3.3 Provenance mismatch — recorded, not reconciled
 
 PR #11 was merged from `a292b6d`, not `ddabe8a`.
 
@@ -75,9 +78,11 @@ Current `main` does not contain:
 - `Builder.setUnderlyingNetworks(arrayOf(underlyingNetwork))`
 - API-29+ `Builder.setMetered(false)`
 
-Those are runtime VPN-builder behavior changes. Therefore the tested candidate cannot be declared behaviorally identical to current `main` without either integrating them or re-running the required verification against the exact merged code.
+Those are runtime VPN-builder behavior changes. Therefore the tested candidate cannot be declared behaviorally identical to current `main`.
 
-**Status:** **RECONCILIATION IMPLEMENTED IN DRAFT PR #30 — pending CI, review, and Tech Lead merge approval.**
+PR #30 explored a reconciliation path and its CI passed, but the Tech Lead intentionally closed PR #30 **without merge**. This was a deliberate project decision: no source reconciliation is required for M1 close. The verified/device-tested evidence remains attached to `1492c108` as historical evidence only, and no claim is made that current `main` is the exact tested build.
+
+**Status:** **RECORDED / ACCEPTED PROVENANCE LIMITATION — PR #30 CLOSED UNMERGED BY TECH LEAD DECISION.**
 
 ---
 
@@ -322,7 +327,7 @@ Final user-facing wording belongs to M2-01 after the evidence gaps are closed.
 
 | Exit criterion | Status | Reason |
 |---|---|---|
-| M1-05 reviewed build passed required verification | **PARTIAL / PROVENANCE OPEN** | CI passed at `1492c108`; device evidence is on the mobile-fix line, while merged PR #11 is `a292b6d` |
+| M1-05 reviewed build passed required verification | **PASS — TESTED BUILD ONLY** | CI passed at `1492c108`; device evidence is attached to that build. Current `main` is not claimed identical; PR #30 was intentionally closed unmerged and the provenance difference is retained as a documented limitation. |
 | M1-06 approved fixed scope | **PASS** | PR #12 merged; H1-H3 and decision rules recorded |
 | Required M1-06 cases have evidence or explicit unavailable/inconclusive classification | **PASS** | Full execution human-confirmed; row classifications preserved in `m1-06-execution-results.md`, with unreconstructable branches explicitly INCONCLUSIVE |
 | Final M1 evidence report exists | **PASS as draft** | This document |
@@ -339,19 +344,16 @@ This conclusion is driven by evidence completeness/provenance, not by an AI pref
 
 ## 11. Required close-out actions before the human M1 → M2 gate
 
-1. **Complete source/build reconciliation via Draft PR #30.**
-   - The tested `1492c108` lineage has been ported onto current `main` without unrelated changes.
-   - Required before close: PR #30 CI passes, diff is reviewed, and the Tech Lead explicitly approves merge.
-   - After merge, record the resulting merge commit as the maintained source corresponding to the verified M1 behavior.
-
-2. **Resolve M-1** before declaring the DNS experiment a stable M1 baseline:
+1. **Resolve M-1** before declaring the DNS experiment a stable M1 baseline:
    - narrow fix + targeted test, or
    - explicit Tech Lead acceptance as a known limitation.
 
-3. **Re-run only the evidence invalidated by a code change.**
-   Do not rerun unrelated rows mechanically if the final commit is demonstrated behaviorally equivalent for those paths.
+2. **Re-run only the evidence invalidated by an M-1 code change.**
+   Do not rerun unrelated rows mechanically.
 
-4. Update this report from **DRAFT / INCOMPLETE** to the final gate state.
+3. Update this report from **DRAFT / INCOMPLETE** to the final gate state.
+
+**Recorded Tech Lead decision:** PR #30 was intentionally closed without merge. The `1492c108` build remains historical M1 verification evidence; current `main` must not inherit claims that were only verified on `1492c108`.
 
 ---
 
