@@ -2,7 +2,7 @@
 
 **Status:** Draft validation gate. Not executed. Measures behavior only; it implements no mitigation
 and changes no architecture. Execution requires Tech Lead approval of this document (see
-[Decisions required before execution](#decisions-required-before-execution)).
+[Proposed Tech Lead decisions](#proposed-tech-lead-decisions-required-before-execution)).
 
 ## Purpose
 
@@ -19,13 +19,13 @@ reclassified inside M1-06 (D1, `requirements.md` → Success / stop criteria).
 | # | Precondition | If not met |
 |---|---|---|
 | P1 | The build under test is the M1-05 DNS-only experiment: Draft PR #11, branch `feat/04-m1-05-mobile-fixes` at `ddabe8a`. **M1-05 is not merged to `main`**; nothing here assumes it is. Any other commit, including a later merge commit, needs the Tech Lead to confirm it is behaviorally equivalent. | Do not start. |
-| P2 | M1-05's own gates have passed on the desktop: `.\gradlew clean assembleDebug testDebugUnitTest lintDebug --no-daemon` and the M1-05 device plan A–H. Otherwise no M1-06 failure can be attributed. | Do not start. |
-| P3 | The Tech Lead has confirmed `BLOCKED_TEST_DOMAIN`, `BLOCKED_TEST_SUBDOMAIN` and `ALLOWED_TEST_DOMAIN` (decision H1). | Do not start. |
+| P2 | M1-05's own gates have passed on the desktop: `.\gradlew clean assembleDebug testDebugUnitTest lintDebug --no-daemon` and the full M1-05 manual device plan A–I. Otherwise no M1-06 failure can be attributed. | Do not start. |
+| P3 | The Tech Lead has approved the proposed decisions H1–H3. Until then they are proposals only. | Do not start. |
 | P4 | Physical Samsung device. No other VPN, DNS, ad-block or "security" app active. No work profile, MDM or device owner (Chrome disables Secure DNS on managed devices, which would distort results). | Remove it, or record it and mark affected rows INCONCLUSIVE. |
 | P5 | Chrome, Firefox and Samsung Internet updated to current stable from the store. Versions recorded. | Record the actual versions. |
 | P6 | Networks: N-W = the normal home Wi-Fi; N-M = mobile data (SIM). Record for each whether it has IPv6. | Rows needing a missing network are NOT RUN (with the reason). |
 | P7 | A desktop with `adb`, for **read-only** evidence commands only. | Use Settings screenshots instead. |
-| P8 | Every source marked † has been re-read by a human, and its classification updated if needed. | Record that it was not re-read. |
+| P8 | The remaining source marked † (F5) has been re-read by a human, and its classification updated if needed. | Record that it was not re-read. |
 
 Harmless controlled domains only. Never use, type, reference or record real adult-content domains
 (D3). Below, `<TID>` is the test ID; the query string `?m106=<TID>` defeats HTTP caches and is
@@ -59,14 +59,23 @@ Two bypass classes are kept separate:
 
 ## Verified platform facts
 
-Researched 2026-09-25. **FACT** means the cited source says it (developer.android.com wording, or
-Chromium source). **ASSUMPTION** means it is inferred or not directly verified. **UNKNOWN** means
-it must be tested.
+Researched 2026-09-25. **FACT** means the cited official source or the Chromium source says it.
+**HISTORICAL FACT** means it was true when the source was published and says nothing about current
+behavior. **ASSUMPTION** means it is inferred or not directly verified. **UNKNOWN** means it must
+be tested on the device.
 
-Official Google and Mozilla help and blog pages marked † could not be reached from the research
-sandbox. They are known only from search-engine excerpts, so they are classed as **ASSUMPTION †**
-until they are re-read (P8). Chromium findings come from the source on its `main` branch; the
-installed Chrome can differ, including through server-side field trials.
+A FACT about documented behavior is not device evidence. Rows that depend on actual device or
+installed-version behavior stay ASSUMPTION or UNKNOWN until they are tested.
+
+The AI research sandbox could not reach the official Google and Mozilla help and blog pages.
+
+- **Tech Lead-verified (‡).** A7, C1, F1, F2 and F3 are classified from the official source and
+  marked ‡.
+- **Unverified (†).** F5 is still known only from a search-engine excerpt. It stays
+  **ASSUMPTION †** until it is re-read (P8).
+
+Chromium findings come from the source on its `main` branch. The installed Chrome can differ,
+including through server-side field trials.
 
 ### Android
 
@@ -78,7 +87,7 @@ installed Chrome can differ, including through server-side field trials.
 | A4 | Only one VPN runs at a time. "The network is restored automatically when the file descriptor is closed", including when the VPN app "is crashed or killed by the system". | FACT | [VpnService][vpnservice] |
 | A5 | Always-on keeps a VPN "persisted after device reboot and app upgrade". Apps opt out with `SUPPORTS_ALWAYS_ON=false`, which M1-04/M1-05 declare (D10). There is no boot receiver in the manifest. | FACT (docs + manifest) | [VpnService][vpnservice], [VPN guide][vpnguide] |
 | A6 | `isPrivateDnsActive()`: while Private DNS is in use, "applications must not send unencrypted DNS queries". A non-null `getPrivateDnsServerName()` means strict mode; null while active means opportunistic mode. | FACT | [LinkProperties][linkprops] |
-| A7 | Private DNS modes are Off, Automatic (opportunistic DoT to the network's resolver, with fallback to plaintext) and provider hostname (strict). Automatic is the platform default. | ASSUMPTION † | [Android Developers Blog 2018][dotblog] † |
+| A7 | Private DNS modes are Off, Automatic (opportunistic DoT to the network's resolver, with fallback to plaintext) and provider hostname (strict). Automatic is the platform default. | FACT ‡ | [Android Developers Blog 2018][dotblog] ‡ |
 | A8 | M1-05 refuses to start, or stops, whenever the underlying network reports Private DNS active: before start, before each forward, and every 2 s. So in **Automatic** mode it refuses on networks whose resolver validates DoT and runs on the others. | ASSUMPTION (M1-05 design, Draft PR #11; not device-verified) | D11 on the M1-05 branch |
 | A9 | Samsung's as-shipped Private DNS mode, and whether a given network validates DoT | UNKNOWN (record as found) | — |
 | A10 | A Wi-Fi reconnect or a switch of the underlying network makes M1-05 stop truthfully (it has no handover) | ASSUMPTION (M1-05 documented limitation) | PR #11 |
@@ -89,7 +98,7 @@ installed Chrome can differ, including through server-side field trials.
 
 | ID | Finding | Class | Source |
 |---|---|---|---|
-| C1 | Secure DNS is on by default in **automatic** mode. Path: Settings → Privacy and security → Use secure DNS. It is unavailable when the device is managed or parental controls are on. With a custom provider selected, Chrome does not fall back to unencrypted DNS. | ASSUMPTION † | [Chrome Help][chromehelp] † |
+| C1 | Secure DNS is on by default in **automatic** mode, which may fall back to unencrypted DNS. With a manually chosen (custom) provider, Chrome does **not** fall back to unencrypted DNS. Path: Settings → Privacy and security → Use secure DNS. It is unavailable when the device is managed or parental controls are on. This is documented behavior; what the installed Chrome actually does on the device is covered by C6–C8. | FACT ‡ | [Chrome Help][chromehelp] ‡ |
 | C2 | Automatic mode upgrades to DoH only when a system nameserver IP matches Chrome's built-in provider list. Under strict Android Private DNS, it upgrades only when the DoT hostname matches that list. | FACT (source) | `net/dns/dns_client.cc`, `net/dns/public/doh_provider_entry.cc` |
 | C3 | Chrome reads its nameservers and Private DNS state from the **active network's** `LinkProperties`. Its built-in resolver is on by default on Android. | FACT (source) | `AndroidNetworkLibrary.getDnsStatus`, `net/base/features.cc` (`kAsyncDns`) |
 | C4 | Chrome's built-in plaintext resolver is not used while Private DNS is active. Chrome then uses the OS resolver. | FACT (source) | `dns_client.cc` `CanUseInsecureDnsTransactions` |
@@ -103,10 +112,10 @@ installed Chrome can differ, including through server-side field trials.
 
 | ID | Finding | Class | Source |
 |---|---|---|---|
-| F1 | The DoH levels are Default Protection, Increased Protection, Max Protection and Off. Path: Settings → Privacy and security → DNS over HTTPS. | ASSUMPTION † | [Mozilla Support][ffdoh] † |
-| F2 | Default Protection "lets Firefox for Android select a DoH server automatically in specific regions when available" and falls back to the default resolvers when there are problems. | ASSUMPTION † | [Mozilla Support][ffdoh] † |
-| F3 | Firefox 143 (Sep 2025) let users opt in (Increased Protection). Mozilla said it planned a later on-by-default rollout in some regions. | ASSUMPTION † | [Mozilla Blog][ffblog] † |
-| F4 | Whether Default Protection currently turns DoH on for this device's version and region | UNKNOWN | Must test: G3, G4, G9-F |
+| F1 | The DoH levels are Default Protection, Increased Protection, Max Protection and Off. Path: Settings → Privacy and security → DNS over HTTPS. | FACT ‡ | [Mozilla Support][ffdoh] ‡ |
+| F2 | Default Protection can use secure DNS (DoH) automatically where supported ("select a DoH server automatically in specific regions when available") and can fall back to the default resolver. | FACT ‡ | [Mozilla Support][ffdoh] ‡ |
+| F3 | The September 2025 Mozilla announcement (Firefox 143 for Android) let users opt in (Increased Protection) and said Mozilla planned a later on-by-default rollout in some regions. This is **not** evidence of the default behavior in September 2026. | HISTORICAL FACT ‡ (Sep 2025) | [Mozilla Blog][ffblog] ‡ |
+| F4 | Whether Default Protection currently turns DoH on for this device. It depends on the installed version, rollout state, region and device; F2 and F3 do not settle it. | UNKNOWN / MUST TEST | Must test: G3, G4, G9-F |
 | F5 | Mozilla documents a network "canary domain" (`use-application-dns.net`) that disables DoH in Firefox's default mode. Its behavior on Android is UNKNOWN. **M1-06 does not use or emulate it** (that would be mitigation). It is listed only as input for the architecture review. | ASSUMPTION † / UNKNOWN (Android) | [Mozilla Support][ffcanary] † |
 | F6 | Private Browsing uses the same DoH setting | UNKNOWN | Must test: G4 |
 | F7 | With DoH Off, Firefox uses the OS resolver and is therefore filtered | ASSUMPTION | Must test: D3 |
@@ -115,8 +124,8 @@ installed Chrome can differ, including through server-side field trials.
 
 | ID | Finding | Class |
 |---|---|---|
-| S1 | Whether it has its own Secure DNS / DoH setting, and its default | UNKNOWN. Record in Settings during preparation. |
-| S2 | Secret mode's DNS behavior | UNKNOWN. Must test: G8. |
+| SI1 | Whether it has its own Secure DNS / DoH setting, and its default | UNKNOWN. Record in Settings during preparation. |
+| SI2 | Secret mode's DNS behavior | UNKNOWN. Must test: G8. |
 
 ## Unknowns requiring device testing
 
@@ -126,7 +135,7 @@ installed Chrome can differ, including through server-side field trials.
 | U1b | Chrome's automatic upgrade on a network whose resolver is on its list (C9) | Only if such a network is tested; otherwise reported open |
 | U2 | Chrome Incognito (C7) | G2 |
 | U3 | Firefox Default Protection and Private Browsing (F4, F6) | G3, G4, G9-F |
-| U4 | Samsung Internet (S1, S2) | G7, G8 |
+| U4 | Samsung Internet (SI1, SI2) | G7, G8 |
 | U5 | Whether the Android default (Automatic) lets the experiment run on each network (A8, A9) | G5, G6 |
 | U6 | Lifecycle, Doze and network change (A10, A11) | L1, L3a–L8 |
 | U7 | The IPv6 path | N1 |
@@ -155,8 +164,8 @@ The "Expected" column is a **hypothesis** with its basis. It is not the pass cri
 | G4 | 4 | Firefox Private | Off | as found | N-W | G | UNKNOWN (F4, F6) |
 | G5-W / G5-M | added | Chrome normal | **Automatic** | as found | N-W, then N-M | G | UNSUPPORTED if the network validates DoT, else PASS (A8) |
 | G6 | added | Firefox normal | **Automatic** | as found | N-W | G | as G5, plus F4 |
-| G7 | added | Samsung Internet normal | Off | as found | N-W | G | UNKNOWN (S1) |
-| G8 | added | Samsung Internet Secret | Off | as found | N-W | G | UNKNOWN (S2) |
+| G7 | added | Samsung Internet normal | Off | as found | N-W | G | UNKNOWN (SI1) |
+| G8 | added | Samsung Internet Secret | Off | as found | N-W | G | UNKNOWN (SI2) |
 | G9-C / G9-F | added | Chrome / Firefox normal, **already running** before Start | Off | as found | N-W | G | UNKNOWN (U9) |
 | P1 | 5 | Chrome normal | hostname `dns.google` | as found | N-W | C | UNSUPPORTED: the experiment refuses (A8) |
 | P2 | 6 | Chrome Incognito | hostname | as found | N-W | C | UNSUPPORTED |
@@ -164,10 +173,10 @@ The "Expected" column is a **hypothesis** with its basis. It is not the pass cri
 | P4 | 8 | Firefox Private | hostname | as found | N-W | C | UNSUPPORTED |
 | P5 | added | Chrome normal | Off → hostname **mid-session** | as found | N-W | C | Stops within about 2–5 s (A8); a load that completes before the stop is BYPASS |
 | D1 | 9 | Chrome normal | Off | Secure DNS **off** | N-W | G-b | PASS (control for G1) |
-| D2 | 10 | Chrome normal | Off | Secure DNS **on, chosen provider** (record which) | N-W | C | BYPASS (C1 †: the chosen provider's DoH, no fallback) |
+| D2 | 10 | Chrome normal | Off | Secure DNS **on, chosen provider** (record which) | N-W | C | BYPASS (C1: chosen provider, no fallback; device behavior to be tested) |
 | D3 | 9 | Firefox normal | Off | DoH **Off** | N-W | G-b | PASS (F7) |
-| D4 | 10 | Firefox normal | Off | DoH **Increased** | N-W | C | BYPASS (F1 †) |
-| D5 | 10 | Firefox normal | Off | DoH **Max** | N-W | C | BYPASS (F1 †) |
+| D4 | 10 | Firefox normal | Off | DoH **Increased** | N-W | C | BYPASS (F1; device behavior to be tested) |
+| D5 | 10 | Firefox normal | Off | DoH **Max** | N-W | C | BYPASS (F1; device behavior to be tested) |
 | L1 | 11 | Harness + Chrome normal | Off | as found | N-W | G-b | PASS after every Start (M1-05 G) |
 | L2 | added | Chrome normal, tab kept open | Off | as found | N-W | C | Possible transient BYPASS (U8) |
 | L3a | 12 | App swiped from Recents | Off | as found | N-W | G-b | PASS (A11) |
@@ -400,7 +409,7 @@ labels it **reproduced** or **intermittent**. Both count as BYPASS for the stop 
 |---|---|---|
 | **S0** | BLOCKING FALSE CLAIM in any row | Stop execution immediately. Report the defect. No other result from this build is trusted. |
 | **S1** | BYPASS, reproduced or intermittent, in any **G** or **G-b** row | Architecture stop |
-| **S2** | UNSUPPORTED in G5 or G6 with `refused: Private DNS is active`, meaning the experiment refuses under the **Android default** Private DNS setting (a default-configuration coverage gap) | Architecture stop |
+| **S2** | UNSUPPORTED in G5 or G6 with `refused: Private DNS is active`, meaning the experiment refuses under the **Android default** Private DNS setting (a default-configuration coverage gap) | Architecture stop / review (proposed decision H3; not a project kill) |
 
 On S1 or S2:
 
@@ -408,6 +417,8 @@ On S1 or S2:
 - Start no fix, mitigation, code change or M1-07 work.
 - Write one stop report per distinct bypass or gap (template below).
 - Stop for human architecture review.
+
+S1 and S2 apply as written only once the Tech Lead approves H2 and H3 (P3).
 
 BYPASS or UNSUPPORTED results in **C** rows, and UNSUPPORTED in G-b rows, are documented in the
 same report format. They do not trigger a stop by themselves.
@@ -456,7 +467,7 @@ M1-06 GATE REPORT
 Build commit:            Device / Android / One UI:
 Executed by / dates:     Browsers + versions:
 As-found Private DNS:    As-found browser DNS settings:
-Networks (IPv6; resolver operator):   † sources re-read (P8): yes / no
+Networks (IPv6; resolver operator):   † source F5 re-read (P8): yes / no
 
 Row results: ID | Classification | ΔB | Bypass path | Reproduction | Evidence ref
 (one line per matrix row; NOT RUN rows state the reason)
@@ -469,26 +480,66 @@ Deviations from this runbook:
 Tech Lead decision (human only): ______________________
 ```
 
-## Decisions required before execution
+## Proposed Tech Lead decisions (required before execution)
 
-These are fixed when this document is approved. They are not revised after results are seen; any
-later change is recorded as a dated revision.
+**Status: PROPOSED. The Tech Lead has not approved these yet.** Approving them fixes them before
+execution. They are not revised after results are seen; any later change is recorded as a dated
+revision.
 
-- **H1, test domains.** Confirm `BLOCKED_TEST_DOMAIN`, `BLOCKED_TEST_SUBDOMAIN` and
-  `ALLOWED_TEST_DOMAIN`. The M1-05 build hardcodes `example.com`, `www.example.com` and
-  `example.org`, and M1-06 changes no code. Any other values need a separately approved code
-  change. The IANA example domains may share hosting or a certificate; SBA's ordering handles this.
-- **H2, gating scope.** Confirm all of the following:
-  1. Samsung Internet (G7, G8), already-running browsers (G9) and Private DNS Automatic (G5, G6)
-     are gating.
-  2. The Android-default Private DNS setting is covered by G5/G6 only; all other browser rows use
-     Off as an isolation setting.
-  3. Rows where the user switches on encrypted DNS (P1–P5, D2, D4, D5) are characterization.
-  4. Pre-existing browser state (L2) is characterization.
-  5. Truthful lifecycle stops (G-b UNSUPPORTED: force-stop, reboot, network change) are reported
-     coverage gaps, not stops.
-- **H3, S2.** Confirm that the experiment refusing under the Android default Private DNS setting is
-  an architecture stop.
+### H1 — Test domains (proposed)
+
+```text
+BLOCKED_TEST_DOMAIN    = example.com
+BLOCKED_TEST_SUBDOMAIN = www.example.com
+ALLOWED_TEST_DOMAIN    = example.org
+```
+
+These are harmless controlled test domains (IANA example domains) that the M1-05 experimental
+harness already uses (hardcoded in the M1-05 build; M1-06 changes no code). Any other values would
+need a separately approved code change. `example.com` and `example.org` may share hosting or a
+certificate; SBA's ordering handles this.
+
+### H2 — Gating scope (proposed)
+
+**Gating:**
+
+| Proposed scope | Rows |
+|---|---|
+| Chrome normal | G1 |
+| Chrome Incognito | G2 |
+| Firefox normal | G3 |
+| Firefox Private | G4 |
+| Samsung Internet normal | G7 |
+| Samsung Internet Secret | G8 |
+| Already-running browser scenarios | G9-C, G9-F |
+| Android Private DNS Automatic | G5-W, G5-M, G6 |
+
+G1–G4 and G7–G9 use Private DNS Off as an isolation setting. Only G5 and G6 cover the Android
+default. The existing G-b rows (D1, D3, L1, L3a–L8, N1) stay gating for BYPASS only, as the matrix
+already defines.
+
+**Characterization:**
+
+| Proposed scope | Rows |
+|---|---|
+| The user explicitly enables browser DoH / Secure DNS | D2, D4, D5 |
+| The user explicitly sets a Private DNS hostname | P1–P5 |
+| Pre-existing browser cache or connection state | L2 |
+| Truthful lifecycle stops, where the VPN no longer claims to be running | UNSUPPORTED results in G-b rows (e.g. L3b, L4, L5, L6, L8) |
+
+This split only assigns rows before execution. It does not interpret any result.
+
+### H3 — Android default Private DNS (proposed)
+
+Suppose M1-05 refuses to operate under Android's default Private DNS **Automatic** mode on a normal
+tested network, because encrypted DNS is active there (G5 or G6 UNSUPPORTED with
+`refused: Private DNS is active`). That is an **architecture stop / review condition** (S2).
+
+This does **not** mean the project is killed. It means:
+
+- no mitigation is implemented automatically;
+- no broader protection claim is made;
+- alternatives are brought back to the human Tech Lead, who decides the next step.
 
 ## Sources
 
@@ -499,13 +550,16 @@ Android developer reference (read directly, 2026-09-25):
 - [VPN guide][vpnguide]
 - [LinkProperties][linkprops]
 
-Official pages known only from search-engine excerpts (†):
+Official pages the AI sandbox could not reach. Classification verified by the Tech Lead (‡):
 
-- [Android Developers Blog: DNS over TLS in Android P][dotblog]
-- [Chrome Help: safety and security (Android)][chromehelp]
-- [Mozilla Support: DoH protection levels in Firefox for Android][ffdoh]
-- [Mozilla Blog: Firefox DNS privacy on Android][ffblog]
-- [Mozilla Support: configure networks to disable DoH][ffcanary]
+- [Android Developers Blog: DNS over TLS in Android P][dotblog] (A7)
+- [Chrome Help: safety and security (Android)][chromehelp] (C1)
+- [Mozilla Support: DoH protection levels in Firefox for Android][ffdoh] (F1, F2)
+- [Mozilla Blog: Firefox DNS privacy on Android][ffblog] (F3, historical)
+
+Official page known only from a search-engine excerpt (†, unverified):
+
+- [Mozilla Support: configure networks to disable DoH][ffcanary] (F5)
 
 Chromium source (`main`, read 2026-09-25): `net/dns/dns_client.cc`,
 `net/dns/public/doh_provider_entry.cc`, `net/dns/dns_config_service_android.cc`,
