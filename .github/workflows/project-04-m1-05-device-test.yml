@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   build-device-test-apk:
-    name: Build M1-05 device-test APK
+    name: Verify and build M1-05 device-test APK
     runs-on: ubuntu-latest
 
     defaults:
@@ -43,8 +43,8 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
-      - name: Run unit tests and build M1-05 debug APK
-        run: ./gradlew clean testDebugUnitTest assembleDebug --no-daemon
+      - name: Verify M1-05 and build debug APK
+        run: ./gradlew clean assembleDebug testDebugUnitTest lintDebug --no-daemon
 
       - name: Upload M1-05 debug APK
         uses: actions/upload-artifact@v4
