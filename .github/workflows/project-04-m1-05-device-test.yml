@@ -1,0 +1,55 @@
+name: Project 04 M1-05 Device Test APK
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "projects/04-muslim-recovery-protection/**"
+      - ".github/workflows/project-04-m1-05-device-test.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-device-test-apk:
+    name: Verify and build M1-05 device-test APK
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: projects/04-muslim-recovery-protection/android
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools"
+
+      - name: Install Android API 36
+        run: sdkmanager "platforms;android-36"
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Verify M1-05 and build debug APK
+        run: ./gradlew clean assembleDebug testDebugUnitTest lintDebug --no-daemon
+
+      - name: Upload M1-05 debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: muslim-recovery-protection-m1-05-debug-apk
+          path: projects/04-muslim-recovery-protection/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
