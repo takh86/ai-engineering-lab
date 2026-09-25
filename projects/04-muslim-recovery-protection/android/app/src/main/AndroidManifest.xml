@@ -1,4 +1,6 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <!-- VPN apps configured via Settings > Network & Internet > VPN are an explicitly
@@ -34,12 +36,18 @@
 
         <!-- android:exported="true" and this exact intent-filter are required by the
              VpnService contract so the system can locate/bind this service; the
-             android:permission below restricts binding to the system itself. -->
+             android:permission below restricts binding to the system itself.
+
+             Android documents VPN apps configured through system VPN settings as eligible
+             for the systemExempted foreground-service type. Lint cannot infer that runtime
+             VPN eligibility and otherwise reports the exact-alarm permission branch as
+             mandatory, so suppress only that false positive on this VpnService. -->
         <service
             android:name=".vpn.LocalProtectionVpnService"
             android:permission="android.permission.BIND_VPN_SERVICE"
             android:exported="true"
-            android:foregroundServiceType="systemExempted">
+            android:foregroundServiceType="systemExempted"
+            tools:ignore="ForegroundServicePermission">
             <intent-filter>
                 <action android:name="android.net.VpnService" />
             </intent-filter>
