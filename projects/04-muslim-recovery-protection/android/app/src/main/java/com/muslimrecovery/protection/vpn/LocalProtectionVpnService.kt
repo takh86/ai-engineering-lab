@@ -147,7 +147,7 @@ class LocalProtectionVpnService : VpnService() {
         }
 
         val established = try {
-            Builder()
+            val builder = Builder()
                 .setSession(SESSION_NAME)
                 .addAddress(TUN_ADDRESS, HOST_PREFIX_LENGTH)
                 // D11: the ONLY route is the virtual DNS server's /32. No default route — never
@@ -158,9 +158,19 @@ class LocalProtectionVpnService : VpnService() {
                 // apps it covers (VpnService.Builder.allowFamily docs). Unblocking IPv6 adds no
                 // route: IPv6 traffic falls through to the underlying network untouched.
                 .allowFamily(OsConstants.AF_INET6)
+                // Declare the exact network the upstream DNS sockets are bound to (API 22+), so
+                // the system attributes this VPN's capabilities to it rather than guessing.
+                .setUnderlyingNetworks(arrayOf(underlyingNetwork))
                 // Explicit (also the documented default): the DNS worker polls a non-blocking fd.
                 .setBlocking(false)
-                .establish()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // Apps targeting API 29+ get a VPN that is metered by default; false makes the VPN
+                // inherit meteredness from the underlying network, so a DNS-only experiment never
+                // makes an unmetered Wi-Fi look metered to other apps. Below API 29 the method does
+                // not exist and the platform's own default applies.
+                builder.setMetered(false)
+            }
+            builder.establish()
         } catch (e: Exception) {
             // Builder/establish() can throw IllegalArgumentException (bad interface config),
             // IllegalStateException (not prepared), or SecurityException (permission revoked

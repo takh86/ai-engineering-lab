@@ -131,7 +131,9 @@ Components:
   `example.com`).
 - `vpn/` — Android side effects only:
   - `LocalProtectionVpnService` runs the upstream preflight (refuses to start if Private DNS is active
-    or no usable underlying DNS server exists), establishes the DNS-only tunnel, starts/stops the DNS
+    or no usable underlying DNS server exists), establishes the DNS-only tunnel (declaring the
+    captured underlying network via `setUnderlyingNetworks` and, on API 29+, inheriting its
+    meteredness via `setMetered(false)`), starts/stops the DNS
     runtime, and publishes facts. Its M1-04 locking discipline is unchanged and now also covers the
     DNS runtime and its status.
   - `DnsProxyRuntime` — the single worker thread; owns a duplicate TUN descriptor that only it uses

@@ -166,6 +166,13 @@ Implementation consequences (M1-05):
   IPv6 traffic falls through to the underlying network untouched. (M1-04's lifecycle-only tunnel had
   this IPv6-blocking side effect; M1-05 removes it.) The 10.111.222.x pair deliberately avoids
   10.0.0.x, which common home routers use for their own gateway/DNS.
+- **Underlying network and meteredness:** `setUnderlyingNetworks([captured network])` (API 22)
+  declares the exact network the protected upstream sockets are bound to, instead of leaving the
+  system to assume the default network. On API 29+, `setMetered(false)` makes the VPN inherit
+  meteredness from that underlying network (apps targeting API 29+ otherwise get a VPN that is
+  metered by default, which would make an unmetered Wi-Fi look metered to every covered app). Below
+  API 29 `setMetered` does not exist and the platform default applies. The TUN fd is explicitly
+  non-blocking (`setBlocking(false)`, also the documented default).
 - **Upstream DNS:** allowed queries are forwarded unchanged over plaintext UDP to the underlying
   (non-VPN) network's own DNS server, discovered via `ConnectivityManager` before the VPN is
   established (IPv4 preferred). No public resolver is hardcoded. Each query uses a fresh socket that
