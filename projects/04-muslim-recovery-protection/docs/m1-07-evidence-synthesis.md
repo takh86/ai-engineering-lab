@@ -226,35 +226,42 @@ FACT:
 
 ### 7.2 Recoverable execution evidence
 
-The recoverable project record confirms:
+The recovered row-by-row evidence is now preserved in:
 
-**Samsung Internet — Normal mode — Private DNS Off**
+`docs/m1-06-execution-results.md`
 
-- allowed control loaded;
-- blocked domain was blocked;
+Confirmed recoverable result:
+
+**G7 — Samsung Internet Normal — Private DNS Off → PASS**
+
 - proxy remained running;
-- `blocked` counter increased from 0 to 75 during the reset run;
+- after browser reset/retest, `example.com` was blocked;
+- `blocked` increased from 0 to 75;
 - `example.org` and `wikipedia.org` opened;
-- result classified **PASS**.
+- an earlier apparent page load was treated as stale cache/pre-existing connection state and was not accepted as a bypass.
 
-An earlier apparent load of the blocked page was investigated as stale cache/pre-existing connection state and was not accepted as a bypass after reset/retest.
+Partially recoverable result:
 
-One screenshot/run also showed `upstream failures=1`; this was not shown to produce a false protection claim.
+**G8 — Samsung Internet Secret — Private DNS Off → UNRESOLVED / INCONCLUSIVE**
+
+- proxy remained running;
+- `blocked = 0`;
+- `forwarded` increased 237→261 and later 261→305;
+- later `upstream failures = 0`;
+- the decisive browser observation for `example.com` is not recoverable, so the row cannot honestly be classified PASS or BYPASS.
 
 ### 7.3 Missing execution evidence
 
-No complete repository-native row-by-row result file is present.
+A repository-native recovery file now exists, but it is explicitly partial.
 
-The available project record does **not** preserve final classifications for all required gating cases, including the complete set of:
+The available project record still does **not** preserve final classifications for all required gating cases, including:
 
 - Chrome normal / Incognito;
 - Firefox normal / Private;
-- Samsung Internet Secret;
-- Private DNS Automatic gating rows;
+- Private DNS Automatic gating rows G10/G11;
 - the complete Wi-Fi/mobile variants;
-- the required D/P/L characterization/lifecycle rows.
-
-The Tech Lead later stated that M1-05 and M1-06 were completed, but the full evidence needed to independently reconstruct the M1-06 matrix is not currently preserved in the repository or recoverable conversation record.
+- the required D/P/L characterization/lifecycle rows;
+- the full explicit-Private-DNS P1–P5 evidence set.
 
 **Therefore missing rows remain MISSING EVIDENCE, not PASS.**
 
