@@ -77,7 +77,7 @@ Current `main` does not contain:
 
 Those are runtime VPN-builder behavior changes. Therefore the tested candidate cannot be declared behaviorally identical to current `main` without either integrating them or re-running the required verification against the exact merged code.
 
-**Status:** **OPEN — must be reconciled before M1 closes.**
+**Status:** **RECONCILIATION IMPLEMENTED IN DRAFT PR #30 — pending CI, review, and Tech Lead merge approval.**
 
 ---
 
@@ -339,24 +339,19 @@ This conclusion is driven by evidence completeness/provenance, not by an AI pref
 
 ## 11. Required close-out actions before the human M1 → M2 gate
 
-1. **Choose one exact source-of-truth build.**
-   - Either integrate the reviewed `ddabe8a` VPN-builder changes into the maintained branch/main path and verify the resulting commit,
-   - or explicitly abandon those changes and rerun the required acceptance evidence against the exact merged implementation.
+1. **Complete source/build reconciliation via Draft PR #30.**
+   - The tested `1492c108` lineage has been ported onto current `main` without unrelated changes.
+   - Required before close: PR #30 CI passes, diff is reviewed, and the Tech Lead explicitly approves merge.
+   - After merge, record the resulting merge commit as the maintained source corresponding to the verified M1 behavior.
 
-2. **Record one exact build commit** for:
-   - source tree;
-   - CI build/test/lint;
-   - installed APK;
-   - M1-06 execution.
-
-3. **Resolve M-1** before declaring the DNS experiment a stable M1 baseline:
+2. **Resolve M-1** before declaring the DNS experiment a stable M1 baseline:
    - narrow fix + targeted test, or
    - explicit Tech Lead acceptance as a known limitation.
 
-4. **Re-run only the evidence invalidated by a code change.**
+3. **Re-run only the evidence invalidated by a code change.**
    Do not rerun unrelated rows mechanically if the final commit is demonstrated behaviorally equivalent for those paths.
 
-5. Update this report from **DRAFT / INCOMPLETE** to the final gate state.
+4. Update this report from **DRAFT / INCOMPLETE** to the final gate state.
 
 ---
 
