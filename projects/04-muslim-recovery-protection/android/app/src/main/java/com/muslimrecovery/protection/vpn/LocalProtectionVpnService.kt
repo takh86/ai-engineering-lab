@@ -22,6 +22,7 @@ import com.muslimrecovery.protection.dns.ExperimentalDnsCounters
 import com.muslimrecovery.protection.dns.ExperimentalDnsTestRules
 import com.muslimrecovery.protection.dns.Ipv4Address
 import com.muslimrecovery.protection.dns.Ipv4UdpDnsPacketAdapter
+import com.muslimrecovery.protection.dns.UnderlyingNetworkDnsFacts
 import com.muslimrecovery.protection.dns.UpstreamDnsSelection
 import com.muslimrecovery.protection.dns.UpstreamDnsSelector
 import com.muslimrecovery.protection.dns.UpstreamRefusalReason
@@ -43,26 +44,35 @@ import java.net.InetAddress
  * usable underlying DNS server exists. None of this makes `filteringOperational` true: see
  * [VpnRuntimeFacts.toProtectionSignals] — `ProtectionState.Protected` stays unreachable in M1-05.
  *
+ * M1-07 (M-1): while a session runs, an [UnderlyingNetworkMonitor] watches the network captured at
+ * startup. When that network is lost, loses INTERNET or VALIDATED, stops being usable by this app,
+ * loses its usable DNS server, gets Private DNS, or (API 31+) is superseded by another physical
+ * network, the monitor only reports it. The session is then stopped through the same
+ * runtime-failure path the DNS worker uses: truthful fatal error, tunnel closed, proxy not RUNNING.
+ * The experiment never hands over to another network; the user may Start again.
+ *
  * All lifecycle decisions (idempotent start/stop, failure handling, revoke) are delegated to
  * [VpnLifecycleController], a pure class with no Android dependency, so that decision logic is
  * unit tested off-device. This class only does the Android-framework side effects the
  * controller's decisions call for: building the TUN, running as a foreground service, starting and
  * stopping the DNS runtime, and publishing the resulting facts to [VpnRuntimeStatus] for the UI.
  *
- * [tunnel], [dnsRuntime] and [dnsProxyStatus] are resources jointly owned with [lifecycle]'s state:
- * every read or write of them is done inside `synchronized(lifecycle)`, the same monitor
+ * [tunnel], [dnsRuntime], [networkMonitor] and [dnsProxyStatus] are resources jointly owned with
+ * [lifecycle]'s state: every read or write of them is done inside `synchronized(lifecycle)`, the same monitor
  * [lifecycle]'s own `@Synchronized` methods use. This closes a real race Android's contract allows:
  * [onRevoke] "might not happen on the main thread" per the platform docs, so a revoke can arrive
  * while [establishTunnel] is still in flight on another thread. Without this lock, a tunnel could
  * finish establishing after a concurrent revoke already moved the controller back to STOPPED, get
  * assigned to [tunnel] anyway, and never be closed by anything — a leaked native file descriptor.
- * The DNS runtime reports self-stops from its own worker thread, so the same lock applies there.
+ * The DNS runtime reports self-stops from its own worker thread, and the network monitor reports
+ * from its callback thread, so the same lock applies there.
  */
 class LocalProtectionVpnService : VpnService() {
 
     private val lifecycle = VpnLifecycleController()
     private var tunnel: ParcelFileDescriptor? = null
     private var dnsRuntime: DnsProxyRuntime? = null
+    private var networkMonitor: UnderlyingNetworkMonitor? = null
     private var dnsProxyStatus: DnsProxyStatus = DnsProxyStatus.NOT_RUNNING
 
     private val runtimeListener = object : DnsProxyRuntime.Listener {
@@ -76,6 +86,10 @@ class LocalProtectionVpnService : VpnService() {
         override fun onRuntimeStopped(runtime: DnsProxyRuntime, reason: DnsRuntimeStopReason) {
             handleRuntimeStopped(runtime, reason)
         }
+    }
+
+    private val networkMonitorListener = UnderlyingNetworkMonitor.Listener { monitor, reason ->
+        handleUnderlyingNetworkInvalidated(monitor, reason)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -138,8 +152,9 @@ class LocalProtectionVpnService : VpnService() {
         }
         val inspector = UnderlyingNetworkInspector(connectivityManager)
         val underlyingNetwork: Network? = inspector.currentDefaultNetwork()
-        val selection = UpstreamDnsSelector.select(inspector.factsFor(underlyingNetwork), EXCLUDED_UPSTREAM_ADDRESSES)
-        if (underlyingNetwork == null || selection is UpstreamDnsSelection.Refused) {
+        val initialFacts = inspector.factsFor(underlyingNetwork)
+        val selection = UpstreamDnsSelector.select(initialFacts, EXCLUDED_UPSTREAM_ADDRESSES)
+        if (underlyingNetwork == null || initialFacts == null || selection is UpstreamDnsSelection.Refused) {
             refuseStartup(
                 (selection as? UpstreamDnsSelection.Refused)?.reason ?: UpstreamRefusalReason.NO_UNDERLYING_NETWORK,
             )
@@ -209,8 +224,40 @@ class LocalProtectionVpnService : VpnService() {
             }
 
             dnsRuntime = runtime
+            val monitor = startNetworkMonitor(connectivityManager, underlyingNetwork, initialFacts)
+            if (monitor == null) {
+                // Without the monitor a stale underlying network could go unnoticed (M-1): fail closed.
+                applyStopDecision(lifecycle.onRuntimeFailed("DNS experiment stopped: network monitoring failed to start"))
+                dnsProxyStatus = DnsProxyStatus.FAILED
+                publishState()
+                shutDownForeground()
+                return
+            }
+
+            networkMonitor = monitor
             dnsProxyStatus = DnsProxyStatus.RUNNING
             publishState()
+        }
+    }
+
+    private fun startNetworkMonitor(
+        connectivityManager: ConnectivityManager,
+        underlyingNetwork: Network,
+        initialFacts: UnderlyingNetworkDnsFacts,
+    ): UnderlyingNetworkMonitor? {
+        val monitor = UnderlyingNetworkMonitor(
+            connectivityManager,
+            underlyingNetwork,
+            initialFacts,
+            EXCLUDED_UPSTREAM_ADDRESSES,
+            networkMonitorListener,
+        )
+        return try {
+            monitor.start()
+            monitor
+        } catch (e: RuntimeException) {
+            Log.e(TAG, "Underlying-network monitor failed to start", e)
+            null
         }
     }
 
@@ -250,15 +297,37 @@ class LocalProtectionVpnService : VpnService() {
             // A report from a runtime this service no longer owns (an earlier session, or one already
             // being stopped) must not affect the current state.
             if (runtime !== dnsRuntime) return
-            val stopDecision = lifecycle.onRuntimeFailed(runtimeStopMessage(reason))
-            applyStopDecision(stopDecision)
-            if (stopDecision == VpnLifecycleController.StopDecision.CloseTunnel) {
-                dnsProxyStatus = DnsProxyStatus.fromStopReason(reason)
-            }
-            publishState()
-            stopDecision
+            failRunningSession(runtimeStopMessage(reason), DnsProxyStatus.fromStopReason(reason))
         }
         if (decision == VpnLifecycleController.StopDecision.CloseTunnel) shutDownForeground()
+    }
+
+    /** Called on the network callback's thread when the captured underlying network is no longer valid. */
+    private fun handleUnderlyingNetworkInvalidated(monitor: UnderlyingNetworkMonitor, reason: UpstreamRefusalReason) {
+        val decision = synchronized(lifecycle) {
+            // A report from a monitor this service no longer owns (an earlier session, or one already
+            // being stopped) must not stop the current session.
+            if (monitor !== networkMonitor) return
+            Log.w(TAG, "Underlying network no longer valid: $reason")
+            failRunningSession(invalidationMessage(reason), DnsProxyStatus.fromRefusal(reason))
+        }
+        if (decision == VpnLifecycleController.StopDecision.CloseTunnel) shutDownForeground()
+    }
+
+    /**
+     * The shared runtime-failure path: the lifecycle controller decides (it ignores the report unless
+     * a session is RUNNING, so it cannot race a stop/revoke into an error), and the result is
+     * published. Caller holds the lifecycle lock and calls [shutDownForeground] after releasing it
+     * when the decision is [VpnLifecycleController.StopDecision.CloseTunnel].
+     */
+    private fun failRunningSession(message: String, stoppedStatus: DnsProxyStatus): VpnLifecycleController.StopDecision {
+        val stopDecision = lifecycle.onRuntimeFailed(message)
+        applyStopDecision(stopDecision)
+        if (stopDecision == VpnLifecycleController.StopDecision.CloseTunnel) {
+            dnsProxyStatus = stoppedStatus
+        }
+        publishState()
+        return stopDecision
     }
 
     private fun stopTunnel() {
@@ -303,6 +372,11 @@ class LocalProtectionVpnService : VpnService() {
     }
 
     private fun closeTunnel() {
+        // Stop watching this session's underlying network first; any report still in flight is
+        // ignored because it no longer comes from the current monitor.
+        networkMonitor?.stop()
+        networkMonitor = null
+
         // Non-blocking: signals the worker, which closes its own duplicate descriptor on exit.
         dnsRuntime?.stop()
         dnsRuntime = null
@@ -407,7 +481,29 @@ class LocalProtectionVpnService : VpnService() {
                 "DNS experiment refused: Private DNS is active (plaintext forwarding not allowed)"
             UpstreamRefusalReason.NO_UNDERLYING_NETWORK -> "DNS experiment refused: no underlying network"
             UpstreamRefusalReason.UNDERLYING_NETWORK_IS_VPN -> "DNS experiment refused: underlying network is a VPN"
+            UpstreamRefusalReason.UNDERLYING_NETWORK_NOT_VALIDATED ->
+                "DNS experiment refused: underlying network is not validated"
+            UpstreamRefusalReason.UNDERLYING_NETWORK_NOT_USABLE ->
+                "DNS experiment refused: underlying network is background, suspended or blocked"
+            UpstreamRefusalReason.UNDERLYING_NETWORK_SUPERSEDED ->
+                "DNS experiment refused: another underlying network is preferred"
             UpstreamRefusalReason.NO_USABLE_DNS_SERVER -> "DNS experiment refused: no usable underlying DNS server"
+        }
+
+        /** M-1: the captured underlying network stopped being a trustworthy upstream path mid-session. */
+        private fun invalidationMessage(reason: UpstreamRefusalReason): String = when (reason) {
+            UpstreamRefusalReason.PRIVATE_DNS_ACTIVE -> runtimeStopMessage(DnsRuntimeStopReason.PRIVATE_DNS_ACTIVE)
+            UpstreamRefusalReason.NO_UNDERLYING_NETWORK ->
+                "DNS experiment stopped: underlying network lost (no automatic handover)"
+            UpstreamRefusalReason.UNDERLYING_NETWORK_IS_VPN -> "DNS experiment stopped: underlying network became a VPN"
+            UpstreamRefusalReason.UNDERLYING_NETWORK_NOT_VALIDATED ->
+                "DNS experiment stopped: underlying network lost validated Internet access"
+            UpstreamRefusalReason.UNDERLYING_NETWORK_NOT_USABLE ->
+                "DNS experiment stopped: underlying network became background, suspended or blocked"
+            UpstreamRefusalReason.UNDERLYING_NETWORK_SUPERSEDED ->
+                "DNS experiment stopped: another network became preferred (no automatic handover)"
+            UpstreamRefusalReason.NO_USABLE_DNS_SERVER ->
+                "DNS experiment stopped: underlying network has no usable DNS server"
         }
 
         private fun runtimeStopMessage(reason: DnsRuntimeStopReason): String = when (reason) {

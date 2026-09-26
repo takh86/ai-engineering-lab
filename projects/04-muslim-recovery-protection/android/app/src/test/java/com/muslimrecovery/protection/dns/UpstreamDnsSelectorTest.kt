@@ -25,9 +25,17 @@ class UpstreamDnsSelectorTest {
     private fun facts(
         isVpn: Boolean = false,
         hasInternet: Boolean = true,
+        isValidated: Boolean = true,
+        isForeground: Boolean = true,
+        isSuspended: Boolean = false,
+        isBlockedForApp: Boolean = false,
         privateDnsActive: Boolean = false,
         dnsServers: List<InetAddress> = listOf(routerDns),
-    ) = UnderlyingNetworkDnsFacts(isVpn, hasInternet, privateDnsActive, dnsServers)
+    ) = UnderlyingNetworkDnsFacts(
+        capabilities = UnderlyingNetworkCapabilityFacts(isVpn, hasInternet, isValidated, isForeground, isSuspended),
+        link = UnderlyingNetworkLinkFacts(privateDnsActive, dnsServers),
+        isBlockedForApp = isBlockedForApp,
+    )
 
     @Test
     fun `selects the underlying network's own DNS server`() {
@@ -55,6 +63,40 @@ class UpstreamDnsSelectorTest {
         assertEquals(
             UpstreamDnsSelection.Refused(UpstreamRefusalReason.NO_UNDERLYING_NETWORK),
             UpstreamDnsSelector.select(facts(hasInternet = false), excluded),
+        )
+    }
+
+    @Test
+    fun `a network without validated Internet access is refused`() {
+        assertEquals(
+            UpstreamDnsSelection.Refused(UpstreamRefusalReason.UNDERLYING_NETWORK_NOT_VALIDATED),
+            UpstreamDnsSelector.select(facts(isValidated = false), excluded),
+        )
+    }
+
+    @Test
+    fun `a background, suspended or blocked network is not usable by the experiment`() {
+        val notUsable = UpstreamDnsSelection.Refused(UpstreamRefusalReason.UNDERLYING_NETWORK_NOT_USABLE)
+
+        // e.g. mobile data kept up in the background after Wi-Fi became the default network
+        assertEquals(notUsable, UpstreamDnsSelector.select(facts(isForeground = false), excluded))
+        assertEquals(notUsable, UpstreamDnsSelector.select(facts(isSuspended = true), excluded))
+        assertEquals(notUsable, UpstreamDnsSelector.select(facts(isBlockedForApp = true), excluded))
+    }
+
+    @Test
+    fun `Private DNS is reported ahead of every other network problem, never downgraded`() {
+        val broken = facts(
+            privateDnsActive = true,
+            isValidated = false,
+            isForeground = false,
+            isBlockedForApp = true,
+            dnsServers = emptyList(),
+        )
+
+        assertEquals(
+            UpstreamDnsSelection.Refused(UpstreamRefusalReason.PRIVATE_DNS_ACTIVE),
+            UpstreamDnsSelector.select(broken, excluded),
         )
     }
 

@@ -237,7 +237,7 @@ private fun describe(status: DnsProxyStatus): String = when (status) {
     DnsProxyStatus.NOT_RUNNING -> "not running"
     DnsProxyStatus.RUNNING -> "running (standard DNS only, experimental)"
     DnsProxyStatus.REFUSED_PRIVATE_DNS_ACTIVE -> "refused: Private DNS is active (no plaintext downgrade)"
-    DnsProxyStatus.UNAVAILABLE_NO_UPSTREAM -> "unavailable: no usable underlying DNS server"
+    DnsProxyStatus.UNAVAILABLE_NO_UPSTREAM -> "unavailable: underlying network or its DNS server not usable"
     DnsProxyStatus.FAILED -> "failed"
 }
 

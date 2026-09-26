@@ -153,7 +153,49 @@ UDP only, one query at a time (a slow upstream delays others by up to 2 s, which
 exploit to degrade DNS for all apps), only the question name is filtered (a CNAME into a blocked
 domain is not caught), no TCP DNS (truncated responses fail), no IPv6 DNS transport on the TUN,
 DoH/DoT/Private DNS/browser Secure DNS not handled, and an underlying-network change stops the
-experiment instead of handing over.
+experiment instead of handing over (made reliable by the M1-07 M-1 fix below; automatic handover is
+not implemented).
+
+## Current state (M1-07) — M-1: stale underlying network stops the experiment
+
+The experiment forwards allowed queries through the underlying `Network` captured before the VPN is
+established. M-1 was the risk that this captured network goes stale mid-session while the proxy
+still reports `running`. Examples: it is lost, loses INTERNET or VALIDATED, is kept only in the
+background after another network becomes default, or loses its DNS server. Allowed DNS would then
+fail while the experiment looked active.
+
+Policy: **underlying-network invalidation stops the experimental VPN session. Automatic network
+handover is not implemented.** After conditions stabilise, the user starts again manually.
+
+- `vpn/UnderlyingNetworkMonitor` (Android side) registers one session-scoped `NetworkCallback` for
+  physical Internet networks (`INTERNET` + `NOT_VPN`) when the DNS runtime starts, and unregisters
+  it on every teardown. On API 31+ it uses `registerBestMatchingNetworkCallback`, so another network
+  becoming the best match is also reported. On API 24–30 it uses `registerNetworkCallback` and
+  reacts only to the captured network's own events. It never uses `getActiveNetwork()` or the
+  default-network callback after the VPN is up, because the app's default network "may be ... a VPN
+  that applies to the application" (ConnectivityManager docs). It never calls synchronous
+  ConnectivityManager getters inside callbacks, which the NetworkCallback docs forbid; decisions come
+  only from callback payloads.
+- `vpn/CapturedNetworkWatch` (pure Kotlin, unit tested) turns those payloads into at most one
+  invalidation per session, using the same `UpstreamDnsSelector` policy as startup. The captured
+  network must still exist, have INTERNET and VALIDATED, and be usable by this app (FOREGROUND and
+  NOT_SUSPENDED on API 28+, not blocked on API 29+). It must also have a usable DNS server and no
+  Private DNS; Private DNS is still reported first and is never downgraded. Events for other
+  networks, and any event after the session stopped, are ignored.
+- The monitor only reports. `LocalProtectionVpnService` ignores reports from any monitor that is not
+  its current one, then uses the existing runtime-failure path (`VpnLifecycleController.onRuntimeFailed`),
+  shared with the DNS worker's self-stop. Result: the tunnel is closed, the DNS runtime stopped, the
+  proxy status is no longer `running`, and a truthful fatal error is published (`ProtectionState.Error`).
+  `filteringOperational` stays false, so `Protected` stays unreachable.
+- The worker's 2 s synchronous re-check and the per-forward re-check remain as a backstop and apply
+  the same (now stricter) policy. The startup preflight also uses it, so Start is refused on a
+  network that is not validated or not usable.
+
+Limitations: no automatic handover and no debounce, so a transient loss of VALIDATED stops the
+session. Below API 31 a change of preferred network is only noticed once the old network is lost or
+loses FOREGROUND (API 28+), VALIDATED or INTERNET. Below API 28 FOREGROUND / NOT_SUSPENDED are not
+observable. Repeated upstream timeouts on a network the platform still reports healthy are not
+treated as invalidation. On-device behaviour needs human verification.
 
 ## Planned technical direction for M1 (not yet implemented)
 

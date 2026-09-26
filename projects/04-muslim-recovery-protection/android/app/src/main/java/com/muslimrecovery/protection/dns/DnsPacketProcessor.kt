@@ -52,6 +52,9 @@ enum class DnsRuntimeStopReason {
             UpstreamRefusalReason.PRIVATE_DNS_ACTIVE -> PRIVATE_DNS_ACTIVE
             UpstreamRefusalReason.NO_UNDERLYING_NETWORK,
             UpstreamRefusalReason.UNDERLYING_NETWORK_IS_VPN,
+            UpstreamRefusalReason.UNDERLYING_NETWORK_NOT_VALIDATED,
+            UpstreamRefusalReason.UNDERLYING_NETWORK_NOT_USABLE,
+            UpstreamRefusalReason.UNDERLYING_NETWORK_SUPERSEDED,
             UpstreamRefusalReason.NO_USABLE_DNS_SERVER,
             -> UPSTREAM_UNAVAILABLE
         }

@@ -213,8 +213,8 @@ enter the TUN, so everything else is untouched by construction.
 - Deferred (each needs its own review/approval): TCP DNS (truncated responses and clients' TCP
   retries are dropped), IPv6 DNS transport on the TUN, DNS-over-TLS/Private DNS compatibility,
   DNS-over-HTTPS and browser Secure DNS, EDNS processing, DNSSEC, caching, concurrency beyond one
-  worker, answer-section/CNAME filtering, underlying-network handover (a network change currently
-  stops the experiment), and production rule distribution.
+  worker, answer-section/CNAME filtering, underlying-network handover (a network change stops the
+  experiment; see D12), and production rule distribution.
 - Known limitation of the single worker: allowed queries are forwarded one at a time, so one slow or
   unanswered upstream query delays every other query on the device by up to the 2 s timeout. Any
   local app could deliberately keep that worker busy (e.g. querying names whose authoritative
@@ -224,6 +224,33 @@ enter the TUN, so everything else is untouched by construction.
   blocked domain still resolves, because upstream answers are relayed unchanged. The experiment's
   evidence covers direct lookups of blocked names only.
 - The DoH/Private DNS bypass question from D1 is untouched and remains the next architecture gate.
+
+## D12 — M-1: underlying-network invalidation stops the experiment; no automatic handover
+
+**Status:** Proposed (M1-07). The Tech Lead set this policy in the M1-07 M-1 task contract. This
+record documents its implementation, which is pending physical-device verification and merge
+approval.
+
+**Decision:** While a DNS-experiment session runs, the underlying network captured at startup is
+watched through one session-scoped `ConnectivityManager` network callback. It is re-checked with
+the same policy used at startup: present; `INTERNET`; `VALIDATED`; usable by this app
+(`FOREGROUND` / `NOT_SUSPENDED` on API 28+, not blocked on API 29+); a usable DNS server; Private
+DNS not active; and, on API 31+, still the best network for a physical-Internet request. Once any
+of these fails, the session is stopped through the existing runtime-failure path, with a truthful
+fatal error, the tunnel closed and the proxy no longer `running`. It never switches to another
+network and never downgrades Private DNS. After conditions stabilise the user can Start again.
+
+**Why:** Fail closed / stop truthfully is preferred over automatic handover in M1. A stale network
+would otherwise leave allowed DNS failing while the experiment still looked active.
+`getActiveNetwork()` and the default-network callback are not used after the VPN is established:
+the ConnectivityManager docs say the app's default network may be a VPN that applies to the app.
+
+**Consequences:** Automatic handover remains out of scope. There is no debounce, so a transient
+loss of `VALIDATED` stops the session. Start is also refused on a network that is not validated
+or not usable. Below API 31 a change of preferred network is noticed only when the old network is
+lost or loses `FOREGROUND`/`VALIDATED`/`INTERNET`. `filteringOperational` stays false and
+`ProtectionState.Protected` stays unreachable. No new permission, route, or architecture component
+is introduced.
 
 ## AI contribution
 
