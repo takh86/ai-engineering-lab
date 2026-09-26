@@ -1737,6 +1737,25 @@ result, suppress a bypass, change privacy exposure, or widen the claim.
 The five outcome-mapping questions and the three extra-provider privacy flows in §2.5 remain
 explicit execution blockers until their authoritative decision record exists.
 
+### 15.1 Tech Lead classification freeze — 2026-09-26
+
+The Tech Lead approved the following split before execution:
+
+- **DECISION-CRITICAL:** Q1, Q2, Q5, Q7, Q8, Q9, Q10, Q11, Q13, Q14, Q16, Q17, Q19, Q21, Q22, Q23.
+- **PROCEDURAL-ONLY:** Q3, Q4, Q6, Q12, Q15.
+- **RESOLVED BY SEPARATE FROZEN MAPPINGS:** Q18 and Q20.
+
+Clarifications already frozen:
+- Q16's V7 cold-start outcome semantics are governed by the approved V7 mapping; only the remaining
+  browser/configuration choice stays decision-critical.
+- Q17's "part of V3" outcome semantics are governed by the approved V8/V9/V11 mapping; only the
+  remaining C1 browser/mode choice stays decision-critical.
+- Q18 is covered by the approved V7, V8, V9 and embedded-"part of V3" mappings.
+- Q20 is covered by the approved V10 partial-availability → AC7 mapping.
+
+Procedural-only readings may be followed as defaults only if they do not improve a result, suppress
+a bypass, change privacy exposure, or widen the claim.
+
 | Q | Where | Gap in M2-02 | Runbook reading | Tech Lead |
 |---|---|---|---|---|
 | Q1 | §E.5, §I.1 | §E.5 says runs and repeats "follow §I.1", but §I.1 defines run rules only for T1 rows | T1 rows exactly as §I.1. Other browser-level rows: two runs, and a bypass in either run counts. DNS-level and signal rows: one run. (§6.4) | [ ] accept / amend: |
