@@ -798,16 +798,23 @@ Tech Lead:             [ ] continue to V4   [ ] pause   [ ] stop
 
 **Sub-rows:**
 
-- **V4-CHR-DOH:** Chrome, "Use secure DNS" with the C2 provider.
-- **V4-FFX-INC:** Firefox, DNS over HTTPS set to Increased Protection.
-- **V4-FFX-MAX:** Firefox, DNS over HTTPS set to Max Protection.
+- **V4-CHR-DOH:** Chrome, "Use secure DNS" with the approved C2 provider (Cloudflare standard
+  non-filtering).
+- **V4-FFX-INC:** Firefox, DNS over HTTPS set to Increased Protection with the approved C2 provider.
+- **V4-FFX-MAX:** Firefox, DNS over HTTPS set to Max Protection with the same approved C2 provider.
 
-For both Firefox sub-rows, record the DoH provider shown.
+For both Firefox sub-rows, record the DoH provider shown **before network activity**. If the installed
+Firefox version/region cannot select or retain the approved C2 provider for that protection level,
+do not substitute another provider silently: pause that sub-row for an explicit privacy decision or
+record it NOT RUN with the resulting AC6 consequence.
 
 **Setup, per sub-row:**
 
 1. SC.
-2. Change the browser's DNS setting by hand, and take a screenshot with the provider visible.
+2. Change the browser's DNS setting by hand. For V4, select/confirm the approved C2 provider
+   (Cloudflare standard non-filtering) before the first lookup, then take a screenshot with the
+   provider visible. Do not continue if a different provider would receive the test DNS without a
+   separate Tech Lead privacy decision.
 
 **Action:** run 1 is BR then BA; run 2 is BR then BA.
 
