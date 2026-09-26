@@ -3,11 +3,12 @@
 > **Project:** Muslim Recovery Protection\
 > **Nature:** REPORT ONLY. Independent audit prepared by AI for the Tech Lead. It changes no code,
 > test, workflow or existing document. It makes no decision: it does not approve A8, does not
-> authorize M3, and does not close M1.\
+> authorize M3, and does not record the M1 gate decision.\
 > **Date:** 2026-09-26\
 > **Audited commit:** `main` at `6e3349b`. Its `android/` tree and `.github/workflows/` are
-> byte-identical to `4137653` (the PR #32 merge) and to `5382a6c` (the PR #32 head that passed CI).
-> This was checked with `git diff --quiet` (§12.1).\
+> byte-identical to `4137653` (the PR #32 merge), to `5382a6c` (the PR #32 head that passed CI), to
+> `fd55932` (the M1-07 Samsung close-out build) and to current `main` at `e689bcb`. This was checked
+> with `git diff --quiet` (§12.1).\
 > **Scope:** `projects/04-muslim-recovery-protection/android/` (all production and test sources,
 > Gradle and lint configuration, manifest) and `.github/workflows/project-04-m1-07-verification.yml`.
 
@@ -21,7 +22,7 @@
 | **CI** | A GitHub Actions result read through the GitHub API during this audit. The job logs were not re-read. |
 | **SOURCE** | Read directly from the repository source during this audit |
 | **DOC** | Stated in an existing Project 04 document. It is cited, not re-verified. |
-| **HUMAN-REPORTED** | Device behaviour reported by the Tech Lead (M1-05 / M1-06), mostly without preserved artifacts |
+| **HUMAN-REPORTED** | Device behaviour reported by the Tech Lead (M1-05, M1-06 and the M1-07 close-out), mostly without artifacts preserved in the repository |
 | **ASSUMPTION** | Not verified in this audit |
 
 **Classification** (task vocabulary): **VERIFIED**, **PARTIALLY VERIFIED**, **HUMAN-VERIFIED ONLY**,
@@ -69,7 +70,8 @@ code survives:
 ## 1. Executive summary
 
 **The pure-Kotlin half of the app is well tested. The Android half has no automated test at all.
-None of the exact code now on `main` has recorded device evidence.**
+Its device behaviour on the current Android tree is HUMAN-VERIFIED ONLY, and the repository does
+not currently preserve that final close-out evidence.**
 
 **Measured facts:**
 
@@ -93,17 +95,24 @@ None of the exact code now on `main` has recorded device evidence.**
     executions.
   - JaCoCo coverage of those 17 files: **519/538 lines (96.5%)** and **294/306 branches (96.1%)**.
   - The Android glue cannot be loaded on a plain JVM, so its automated coverage is **0%**.
-- M1 device evidence belongs to build `1492c108` (DOC: M1-06, M1-07).
-  - That build contains `setUnderlyingNetworks(...)` / `setMetered(false)`, which `main` does not
-    (SOURCE + DOC).
-  - It predates the M-1 network monitor.
-  - The M-1 fix on `main` has "CI PASS on `5382a6c`; device run not recorded" (DOC: M2-02 §C).
+- Device evidence exists for two builds (HUMAN-REPORTED):
+  - **M1-05 / M1-06** ran on `1492c108` (DOC: M1-06, M1-07). That build contains
+    `setUnderlyingNetworks(...)` / `setMetered(false)`, which `main` does not (SOURCE + DOC), and it
+    predates the M-1 network monitor.
+  - **The M1-07 Samsung close-out** ran on `fd55932`, whose `android/` tree is identical to `main`
+    (RUN). CI run #5 passed the full gate on that commit (CI). The Tech Lead reported rows P, M, S,
+    R, PD and X as PASS, and the guided P screenshots showed a truthful stop and no persistent DNS
+    black hole.
+- The close-out is not preserved in the repository. PR #36 (`9e11791`) recorded it in
+  `m1-07-evidence-synthesis.md`, and PR #37 (`0034aa3`) reverted that. The current
+  `m1-07-evidence-synthesis.md` and M2-02 §C ("device run not recorded") still describe the state
+  before the close-out (SOURCE).
 
 **Top 5 verification gaps:**
 
 | # | Gap | Classification | Now / If kept |
 |---|---|---|---|
-| TG-01 | No recorded device evidence for the exact code on `main`. The M1 evidence is on a different build (`1492c108`), and the M-1 fix was never run on a device. | HUMAN-VERIFIED ONLY (`1492c108`) · UNVERIFIED (`main`) | HIGH / HIGH |
+| TG-01 | Device evidence for the current Android tree (the M1-07 Samsung close-out on `fd55932`) is human-reported only, and the repository's evidence package is stale because the close-out record was reverted | Runtime behaviour: HUMAN-VERIFIED ONLY · Repository-native evidence: INCOMPLETE / STALE DOCUMENTATION | MEDIUM / MEDIUM |
 | TG-02 | Android glue (6 files, 1,332 lines) has zero automated execution: service orchestration, DNS worker, upstream socket, network monitor, status bridge, harness UI | UNVERIFIED | MEDIUM / HIGH |
 | TG-03 | DNS-only tunnel configuration: no test asserts "single /32 route, no default route" | HUMAN-VERIFIED ONLY | MEDIUM / HIGH |
 | TG-04 | Upstream socket safety depends on untested glue: `protect()` before send, `bindSocket`, per-forward Private DNS re-check, cancel | PARTIALLY VERIFIED | MEDIUM / HIGH |
@@ -113,15 +122,15 @@ None of the exact code now on `main` has recorded device evidence.**
 
 - The next stage is the M2-03 decision and gate G0. It does not depend on the runtime behaviour of
   this code.
-- M2-02 §C already records the provenance and device-evidence gap.
 - A8 verification runs without this app in the DNS path.
+- TG-01 is a documentation and evidence-preservation gap, not a runtime one: the M1-07 close-out ran
+  on the same Android tree as `main`.
 
-TG-01 does, however, block two things:
+TG-01 should be closed by a separate docs task that restores the close-out record in the
+repository: the build SHA, the row results and the guided P screenshots (or where they are kept).
+This audit does not make that change.
 
-1. honestly calling M-1 "done";
-2. making any statement that the code on `main` behaves on a device as `1492c108` did.
-
-If the current code is carried into M3, TG-01 through TG-05 become entry work for M3's verification
+If the current code is carried into M3, TG-02 through TG-05 become entry work for M3's verification
 strategy.
 
 ---
@@ -248,12 +257,12 @@ accessors). They are not behaviour.
 
 | Unit | Direct tests | Indirect | Automated coverage | Classification |
 |---|---|---|---|---|
-| `LocalProtectionVpnService` | None | Its **decisions** are delegated to the controller, which is tested. The service's **use** of those decisions is not. | 0% | **UNVERIFIED** (automated) · **HUMAN-VERIFIED ONLY** on `1492c108`, for pre-M-1 behaviour |
-| `DnsProxyRuntime` | None | `DnsPacketProcessor`, which it drives, is tested | 0% | **UNVERIFIED** (automated) · HUMAN-VERIFIED ONLY (`1492c108`) |
-| `UnderlyingNetworkInspector` / `ProtectedUpstreamDnsExchange` | None | The selector policy it calls is tested | 0% | **UNVERIFIED** (automated) · HUMAN-VERIFIED ONLY (`1492c108`, pre-M-1 selector) |
-| `UnderlyingNetworkMonitor` | None | `CapturedNetworkWatch`, which it feeds, is tested | 0% | **UNVERIFIED**. Code added after `1492c108`, with no device run recorded. |
+| `LocalProtectionVpnService` | None | Its **decisions** are delegated to the controller, which is tested. The service's **use** of those decisions is not. | 0% | **UNVERIFIED** (automated) · **HUMAN-VERIFIED ONLY** (M1-06 on `1492c108`; M1-07 close-out on `fd55932`, same tree as `main`) |
+| `DnsProxyRuntime` | None | `DnsPacketProcessor`, which it drives, is tested | 0% | **UNVERIFIED** (automated) · HUMAN-VERIFIED ONLY (`1492c108`, `fd55932`) |
+| `UnderlyingNetworkInspector` / `ProtectedUpstreamDnsExchange` | None | The selector policy it calls is tested | 0% | **UNVERIFIED** (automated) · HUMAN-VERIFIED ONLY (`1492c108` with the pre-M-1 selector; `fd55932` with the current one) |
+| `UnderlyingNetworkMonitor` | None | `CapturedNetworkWatch`, which it feeds, is tested | 0% | **UNVERIFIED** (automated) · **HUMAN-VERIFIED ONLY** (M1-07 close-out on `fd55932`). Code added after `1492c108`. |
 | `VpnRuntimeStatus` | None | — | 0% | **UNVERIFIED** (trivial holder) |
-| `MainActivity` | None | — | 0% | **UNVERIFIED** (automated) · HUMAN-VERIFIED ONLY (`1492c108`) · **OBSOLETE IF A8 SELECTED** (replaced by product UI per M2-02 §H.1) |
+| `MainActivity` | None | — | 0% | **UNVERIFIED** (automated) · HUMAN-VERIFIED ONLY (`1492c108`, `fd55932`) · **OBSOLETE IF A8 SELECTED** (replaced by product UI per M2-02 §H.1) |
 
 ---
 
@@ -263,13 +272,13 @@ accessors). They are not behaviour.
 
 | ID | Gap | Classification | Now | If kept | Evidence |
 |---|---|---|---|---|---|
-| **TG-01** | **No device evidence for the code on `main`.** All M1-05 / M1-06 device results are for `1492c108`, which differs at runtime from `main`. `1492c108` has `setUnderlyingNetworks` / `setMetered(false)`; `main` does not. `main` has the M-1 monitor, the stricter selector, and startup refusal on unvalidated or unusable networks; `1492c108` does not. The M-1 fix's device run (rows L5, L6, L8, a basic Start/block/allow check, and the Private DNS stop path, per M1-07 §11) is not recorded. | HUMAN-VERIFIED ONLY (`1492c108`) · UNVERIFIED (`main`) | HIGH | HIGH | SOURCE (`grep`: `setUnderlyingNetworks` / `setMetered` absent); DOC M1-07 §3.3, §11; DOC M2-02 §C ("device run not recorded") |
+| **TG-01** | **Device evidence for the current Android tree is human-reported only, and the repository evidence package is stale.** The M1-07 Samsung close-out ran on `fd55932`, whose `android/` tree is identical to `main`. The Tech Lead reported rows P (Wi-Fi loss), M (mobile → Wi-Fi), S (steady state), R (Start → Stop → Start), PD (Private DNS regression) and X (false-stop / configuration matrix) as PASS. The guided P screenshots showed a truthful stop and no persistent DNS black hole. PR #36 added that record to `m1-07-evidence-synthesis.md`, and PR #37 reverted it. So the current `m1-07-evidence-synthesis.md` (M-1 "NOT DONE", M1 "INCOMPLETE") and M2-02 §C ("device run not recorded") are stale, and the screenshots are not in the repository. The earlier M1-05 / M1-06 results remain tied to `1492c108`, which differs at runtime from `main` (`setUnderlyingNetworks` / `setMetered(false)`; no M-1 monitor). | Runtime behaviour: HUMAN-VERIFIED ONLY · Repository-native evidence: INCOMPLETE / STALE DOCUMENTATION | MEDIUM (documentation / evidence preservation) | MEDIUM | RUN (`git diff --quiet` of `fd55932` against `HEAD` and `origin/main`); CI run #5 on `fd55932`; HUMAN-REPORTED (Tech Lead, PR #58 review); SOURCE (history: `9e11791`, reverted by `0034aa3`); DOC M1-07 §5, §10; DOC M2-02 §C |
 | **TG-02** | **Android glue has zero automated execution.** 6 files, 1,332 of 2,786 lines (47.8%). No `androidTest/`, no Robolectric. Details in §6. | UNVERIFIED | MEDIUM | HIGH | SOURCE; RUN (harness could not compile these files) |
 | **TG-03** | **Tunnel configuration is asserted by no test.** The `Builder` chain (`addAddress(10.111.222.2/32)`, the single `addRoute(10.111.222.1/32)`, `addDnsServer`, `allowFamily(AF_INET6)`, `setBlocking(false)`) is inline in the service. A regression that adds a default route would capture all device traffic and violate D11. No automated check would notice it. | HUMAN-VERIFIED ONLY ("ordinary Internet traffic continued to work"; N1 IPv6 PASS, both on `1492c108`) | MEDIUM | HIGH | SOURCE `LocalProtectionVpnService.kt:164-178`; DOC M1-07 §4.2, M1-06 §8 |
 | **TG-04** | **Upstream socket safety is untested.** `ProtectedUpstreamDnsExchange` is untested: nothing is sent if `protect()` returns false; `bindSocket`; `connect()` (kernel-side source filtering); the per-forward Private DNS re-check; the 2 s deadline loop; `cancel()` classification (CANCELLED / IO_ERROR / SOCKET_SETUP_FAILED). Only the selector policy it calls is tested. | PARTIALLY VERIFIED | MEDIUM | HIGH | SOURCE `UnderlyingNetworkDns.kt:136-214` |
 | **TG-05** | **DNS worker concurrency and timing are untested.** Untested behaviour: `compareAndSet` so that only self-stops are reported; ownership of the duplicated fd; POLLERR / POLLHUP / POLLNVAL handling; EAGAIN / EINTR retry; the per-packet write-errno allowlist; the catch-all `RuntimeException`; the 2 s health check; the ~250 ms stop bound; counter publication. `SystemClock` is not injectable, so timing is untestable as written. | UNVERIFIED | MEDIUM | HIGH | SOURCE `DnsProxyRuntime.kt` |
 | **TG-06** | **Service orchestration is untested.** The controller's decisions are VERIFIED, but the service code applying them is not. Untested: the `synchronized(lifecycle)` discipline; closing the raced `establish()` descriptor; identity guards (`runtime !== dnsRuntime`, `monitor !== networkMonitor`); teardown order (monitor → runtime → fd); the `onDestroy` safety net; the `startForeground` failure path; failing closed when the runtime or monitor fails to start; the refusal / invalidation / stop message mapping. | PARTIALLY VERIFIED | MEDIUM | HIGH | SOURCE `LocalProtectionVpnService.kt` |
-| **TG-07** | **Network monitor registration is untested.** Untested: the API ≥ 31 `registerBestMatchingNetworkCallback` path (main-looper handler) vs the `registerNetworkCallback` path; the `capabilityFacts` / `linkFacts` defaults below API 28; unregister idempotence. The source itself flags the initial best-match delivery on API 31+ as "observed behaviour, not stated in the docs". This could stop every session at Start under a per-app network preference (fail-closed). | UNVERIFIED (monitor) · VERIFIED (pure watch) | MEDIUM | HIGH | SOURCE `UnderlyingNetworkMonitor.kt:23-28`; DOC D12 |
+| **TG-07** | **Network monitor registration is untested.** Untested: the API ≥ 31 `registerBestMatchingNetworkCallback` path (main-looper handler) vs the `registerNetworkCallback` path; the `capabilityFacts` / `linkFacts` defaults below API 28; unregister idempotence. The source itself flags the initial best-match delivery on API 31+ as "observed behaviour, not stated in the docs". This could stop every session at Start under a per-app network preference (fail-closed). | UNVERIFIED (monitor, automated) · HUMAN-VERIFIED ONLY (M1-07 close-out on `fd55932`, one device) · VERIFIED (pure watch) | MEDIUM | HIGH | SOURCE `UnderlyingNetworkMonitor.kt:23-28`; DOC D12 |
 | **TG-08** | **"Protected unreachable" is guarded only at today's two construction sites.** Both sites hardcode `filteringOperational = false` and are exhaustively tested. However, `ProtectionSignals` has a public constructor, and no structural test prevents a new call site. `MainActivity`'s use of `toProtectionSignals` is code review only. | PARTIALLY VERIFIED | LOW | MEDIUM (M3 is where `filteringOperational` semantics change) | SOURCE (`grep`: exactly 2 `ProtectionSignals(` constructions; no `filteringOperational = true`); RUN tests |
 | **TG-09** | **Log privacy is guarded by code review only.** `toString` redaction is VERIFIED for `DnsQuery`, parse results, filter decisions, processing results and `InvalidInput`. No test or lint rule guards the 15 `Log.*` call sites. This audit reviewed all 15 (§7). | PARTIALLY VERIFIED | LOW | MEDIUM | SOURCE; RUN tests |
 | **TG-10** | **Manifest-level properties have no targeted assertion.** Nothing beyond default lint checks: the permission allowlist, `BIND_VPN_SERVICE` on the exported service, `SUPPORTS_ALWAYS_ON = false`, `allowBackup = false`, the absence of `QUERY_ALL_PACKAGES`, and eligibility for the `systemExempted` FGS type (lint suppressed). | PARTIALLY VERIFIED (lint) · HUMAN-VERIFIED ONLY (L4 reboot → not running, `1492c108`) | LOW | MEDIUM | SOURCE manifest; DOC M1-06 §7 |
@@ -278,13 +287,15 @@ accessors). They are not behaviour.
 | **TG-13** | **Race tests are sequential models.** They prove the controller and watch decide correctly for every modeled ordering. They cannot detect lock-ordering, deadlock or visibility bugs in the real multi-threaded glue. | PARTIALLY VERIFIED | LOW | MEDIUM | SOURCE tests |
 | **TG-14** | **`NormalizedHostname` edge cases on the direct API.** Kotlin `lowercase()` folds some non-ASCII characters to ASCII. A probe (RUN) showed `"Kexample.test"` (KELVIN SIGN) normalizes to `kexample.test` and is **Blocked** by a `kexample.test` rule. There is no total-length bound: a 383-character name was accepted (RUN). The bare `"."` input is untested. **None of these is reachable from the DNS path**: the codec accepts only printable ASCII 0x21–0x7E and at most 255 wire octets, which is VERIFIED. | UNVERIFIED (direct API) · OBSOLETE IF A8 SELECTED | LOW | LOW | RUN probe; SOURCE `DnsMessageCodec.kt:143-157` |
 | **TG-15** | **Tooling hygiene.** `gradlew` is committed as mode `100644`, so `./gradlew` fails with "Permission denied" on Linux or macOS (RUN); CI works around this with `chmod +x`. The `androidTest` dependencies are declared but unused. `MainActivity` imports `kotlinx.coroutines` without declaring it directly (it arrives transitively). | — | LOW | LOW | RUN; SOURCE |
-| **TG-16** | **Evidence preservation.** There is no git tag on `origin` (RUN: `git ls-remote --tags` is empty); M2-02 §H.1 plans a tag before any removal. CI APK artifacts are retained for 7 days. The `m1-07-evidence-synthesis.md` status text still says the M-1 fix is "implemented on a branch", although PR #32 is merged. M2-02 §H.3 already lists that doc update as a separate task, and it is not changed here. | KEEP AS HISTORICAL EVIDENCE | LOW | LOW (MEDIUM once any removal is authorized: tag first) | RUN; SOURCE workflow; DOC |
+| **TG-16** | **Evidence preservation.** There is no git tag on `origin` (RUN: `git ls-remote --tags` is empty); M2-02 §H.1 plans a tag before any removal. CI APK artifacts are retained for 7 days. The stale M1-07 close-out record is tracked separately as TG-01. | KEEP AS HISTORICAL EVIDENCE | LOW | LOW (MEDIUM once any removal is authorized: tag first) | RUN; SOURCE workflow; DOC |
 
 ### 5.2 Behaviour that relies only on HUMAN-REPORTED device testing (Q7)
 
-Unless marked otherwise, every row below was executed on build **`1492c108`**, not on the code on
-`main` (DOC: M1-06 §2, M1-07 §3). Only G7 has preserved detail (counter values and a retest
-narrative). Every other row rests on the Tech Lead's attestation.
+Unless marked otherwise, every row below was executed on build **`1492c108`** (DOC: M1-06 §2,
+M1-07 §3). Rows that name **`fd55932`** come from the M1-07 Samsung close-out; that build's
+`android/` tree is identical to `main`. Only G7 (counter values and a retest narrative) and the
+guided P close-out screenshots have preserved detail, and the screenshots are not in the repository
+(TG-01). Every other row rests on the Tech Lead's attestation.
 
 | Behaviour | Source rows | Recorded result | Classification |
 |---|---|---|---|
@@ -297,12 +308,12 @@ narrative). Every other row rests on the Tech Lead's attestation.
 | Private DNS enabled mid-session | P5 | INCONCLUSIVE | UNVERIFIED |
 | Browser DoH / Secure DNS bypass | D2, D4, D5 | BYPASS (characterization) | HUMAN-VERIFIED ONLY |
 | Swipe from Recents keeps the VPN; force-stop and reboot end it | L3a / L3b / L4 | PASS / UNSUPPORTED / UNSUPPORTED | HUMAN-VERIFIED ONLY |
-| Network change stops the session truthfully | L5, L6 (UNSUPPORTED), L8 (INCONCLUSIVE) | Pre-M-1 code | HUMAN-VERIFIED ONLY (pre-M-1) · **UNVERIFIED for the M-1 code on `main`** |
+| Network change stops the session truthfully | L5, L6 (UNSUPPORTED) and L8 (INCONCLUSIVE) on `1492c108` (pre-M-1 code); close-out P (Wi-Fi loss) and M (mobile → Wi-Fi) on `fd55932` (current code) | Pre-M-1: as listed. Current code: PASS; the guided P screenshots show a truthful stop and no persistent DNS black hole | HUMAN-VERIFIED ONLY |
 | 30-minute idle soak | L7 | PASS | HUMAN-VERIFIED ONLY |
 | IPv6-capable network usable | N1 | PASS | HUMAN-VERIFIED ONLY |
 | Browsers already running / pre-existing tabs | G9-C, G9-F, L2 | INCONCLUSIVE | UNVERIFIED |
 | Eligibility of the `systemExempted` FGS type for this VPN | Implicit in every run (the service started) | Worked | HUMAN-VERIFIED ONLY (lint suppressed, TG-10) |
-| M-1 monitor (API 24–30 and API 31+ paths), stricter startup refusal | — | **Not recorded** | **UNVERIFIED** |
+| Current code: steady state, Start → Stop → Start, Private DNS regression, false-stop / configuration matrix | Close-out S, R, PD, X on `fd55932` | PASS | HUMAN-VERIFIED ONLY. One device runs one API level, so only one of the monitor's two registration paths (API 24–30 or API 31+) can have run. The record does not say which. |
 
 ### 5.3 Flaky, time-based and concurrency test risks (Q11)
 
@@ -323,11 +334,11 @@ narrative). Every other row rests on the Tech Lead's attestation.
 
 | Component | Behaviour with no automated coverage | Best available evidence |
 |---|---|---|
-| `LocalProtectionVpnService` | `onStartCommand` action routing and the unexpected-action → `stopSelf` path. `startForeground` before `establish()`, and the failure path. The preflight (`activeNetwork` → facts → selector → refusal). The `Builder` configuration (TG-03). The raced-establish descriptor close. Assigning the runtime and monitor under the lock. Failing closed when the runtime or monitor cannot start. Identity guards. `failRunningSession`. Teardown order in `closeTunnel`. `onRevoke` / `onDestroy`. `publishState` content. Notification channel, text and `FLAG_IMMUTABLE` PendingIntent. Diagnostic message mapping. | Code review (this audit and earlier reviews); HUMAN-REPORTED lifecycle rows on `1492c108` |
+| `LocalProtectionVpnService` | `onStartCommand` action routing and the unexpected-action → `stopSelf` path. `startForeground` before `establish()`, and the failure path. The preflight (`activeNetwork` → facts → selector → refusal). The `Builder` configuration (TG-03). The raced-establish descriptor close. Assigning the runtime and monitor under the lock. Failing closed when the runtime or monitor cannot start. Identity guards. `failRunningSession`. Teardown order in `closeTunnel`. `onRevoke` / `onDestroy`. `publishState` content. Notification channel, text and `FLAG_IMMUTABLE` PendingIntent. Diagnostic message mapping. | Code review (this audit and earlier reviews); HUMAN-REPORTED lifecycle rows on `1492c108` and M1-07 close-out rows on `fd55932` |
 | `DnsProxyRuntime` | See TG-05. Also: behaviour when the processor throws (the catch-all). The listener callback thread. Worker thread name and start failure. | Code review; HUMAN-REPORTED L7 soak and counters on `1492c108` |
 | `UnderlyingNetworkInspector` | The capability mapping, including `isVpn = TRANSPORT_VPN or !NOT_VPN`. The FOREGROUND / NOT_SUSPENDED defaults below API 28. `isPrivateDnsActive` below API 28. Null and `RuntimeException` handling. | Code review |
 | `ProtectedUpstreamDnsExchange` | See TG-04. Also: a receive buffer of 65,535 bytes, so responses are never truncated. Response-matching integration (the codec side is VERIFIED). | Code review; HUMAN-REPORTED "upstream failures=0" on `1492c108` |
-| `UnderlyingNetworkMonitor` | See TG-07. | Code review only |
+| `UnderlyingNetworkMonitor` | See TG-07. | Code review; HUMAN-REPORTED M1-07 close-out on `fd55932` |
 | `VpnRuntimeStatus` | Writes to Compose `MutableState` from the worker and binder threads. Counter publication per packet. | Code review only |
 | `MainActivity` (harness) | The notification-permission → consent sequencing. Re-checking permission in `onResume`. The system-resolver lookups. The UI renders `ProtectionState.Error.reason` directly, although `ProtectionState`'s KDoc says that reason "must not be rendered to users"; this is acceptable only because this is a harness. | HUMAN-REPORTED (`1492c108`) |
 
@@ -368,7 +379,7 @@ narrative). Every other row rests on the Tech Lead's attestation.
 | Always-on / boot start disabled (`SUPPORTS_ALWAYS_ON = false`) | Manifest review; L4 human-reported | HUMAN-VERIFIED ONLY | LOW / MEDIUM |
 | Permission set limited to the D11 list; no `QUERY_ALL_PACKAGES` | Manifest review | UNVERIFIED (no automated allowlist) | LOW / MEDIUM |
 | `ProtectionState.Protected` unreachable | Tests at both construction sites (**VERIFIED**); UI wiring code review; human-reported | PARTIALLY VERIFIED | LOW / MEDIUM (TG-08) |
-| Truthful stop on invalidation (tunnel closed, proxy not RUNNING, `Error` state) | Controller, facts and invalidation tests (**VERIFIED**); service application code review only | PARTIALLY VERIFIED | MEDIUM / HIGH (TG-06) |
+| Truthful stop on invalidation (tunnel closed, proxy not RUNNING, `Error` state) | Controller, facts and invalidation tests (**VERIFIED**); the service's application of them has no automated test, and was HUMAN-REPORTED on `fd55932` (guided P screenshots: truthful stop, DNS resolves again after the stop) | PARTIALLY VERIFIED · HUMAN-VERIFIED ONLY (device) | MEDIUM / HIGH (TG-06) |
 | Local DoS through the single worker (a slow upstream delays all DNS by up to 2 s) | Documented limitation (D11) | UNVERIFIED (characterization only) | LOW / MEDIUM |
 
 ---
@@ -486,12 +497,13 @@ Recommendation only. Keep them **in place at a tag**, not by porting them.
 Preservation facts:
 
 - There is **no tag on `origin` today** (RUN).
-- Two distinct commits carry evidence:
+- Two distinct Android trees carry evidence:
   - **`1492c108`**: the M1-06 device build under test, with its own CI run per DOC. This audit did
     not re-read that run.
-  - **Any `main` commit from `4137653` to `6e3349b`**: the `android/` tree is identical to
-    `5382a6c`, which passed CI run #2.
-- A tag on one does not preserve the other.
+  - **The current tree**: identical in `5382a6c` (CI run #2), in **`fd55932`** (the M1-07 Samsung
+    close-out build, CI run #5) and in every `main` commit from `4137653` to `e689bcb`.
+- A tag on one tree does not preserve the other. Tagging `fd55932` would tie the close-out evidence
+  to the exact commit that was built and tested.
 
 ---
 
@@ -504,7 +516,7 @@ need a refactor (a seam) or a new test dependency, which requires approval.
 
 | P | Test | Closes | Needs |
 |---|---|---|---|
-| 1 | **Device re-run on the exact `main` build**: M-1 rows L5, L6, L8, Start/block/allow, and the Private DNS stop path, as M1-07 §11 already defines. Artifacts must be preserved (screenshots, counters, logcat without hostnames). | TG-01 | Tech Lead device time; nothing else |
+| 1 | **Restore the M1-07 close-out record in the repository.** This is a documentation task, not a test: build `fd55932`, rows P / M / S / R / PD / X with their results, and the guided P screenshots or a reference to where they are kept. | TG-01 | A docs task directed by the Tech Lead; no device time |
 | 2 | **Tunnel-spec test**: extract the `Builder` inputs into a pure value (addresses, routes, DNS servers, families). Assert exactly one `/32` route to the virtual DNS server, no `0.0.0.0/0` or `::/0`, and `AF_INET6` allowed. A thin adapter applies the value. | TG-03 | Small refactor under an M3 contract |
 | 3 | **Upstream exchange tests** with seams for `protect` / `bindSocket` and a loopback UDP fake server. `protect` = false → zero datagrams sent. Mismatched responses discarded until the deadline. `cancel` → CANCELLED. Private DNS active → no socket created. | TG-04 | Seam refactor |
 | 4 | **DNS worker tests** with an injectable clock and an fd/poll abstraction (socketpair or pipe). An external stop is never reported. A self-stop is reported exactly once. Health-check cadence. Stop latency bound. Errno classification. | TG-05, R3, R11 | Seam refactor |
@@ -547,9 +559,10 @@ need a refactor (a seam) or a new test dependency, which requires approval.
   tag exists and a contract authorizes the removal.
 - **Do not treat the scratch JVM harness result as a substitute for AGP `testDebugUnitTest` or
   `lintDebug`.** The authoritative real-toolchain evidence remains the CI runs (§8.1).
-- **Do not mark M-1 as done, and do not close M1,** on the strength of CI alone (TG-01).
-- **Do not re-run M1-06 device rows mechanically.** Re-run only what M1-07 §11 lists as invalidated
-  by the M-1 change.
+- **Do not reconstruct the M1-07 close-out evidence from this audit.** The repository record should
+  come from the Tech Lead's own material (TG-01).
+- **Do not re-run M1-06 device rows mechanically.** The M1-07 close-out on `fd55932` was the device
+  run for the M-1 change (HUMAN-REPORTED).
 - **Do not change `filteringOperational`, `ProtectionState.Protected` or the evaluator** to
   "improve testability". D8 and H7 govern them.
 - **Do not "fix" the `NormalizedHostname` quirks (TG-14) now.** They are unreachable from the DNS
@@ -581,9 +594,10 @@ through a policy proxy.
 | 9 | Same harness + JaCoCo 0.8.12 (`jacocoTestReport`, repository tests only) | Lines 519/538 (96.5%), branches 294/306 (96.1%). Per-class figures are in §4.1. |
 | 10 | Scratch probe test in the harness (not in the repository; excluded from the coverage in #9) | `NormalizedHostname.of("Kexample.test")` → `kexample.test`, Blocked by a `kexample.test` rule. `"İexample.test"` → null. A 383-character, 6-label name was accepted. A 64-character label was rejected. `xn--` and numeric labels were accepted. |
 | 11 | `git fetch origin 5382a6c…`; `git diff --quiet 5382a6c HEAD -- projects/04-…/android .github/workflows`; same for `4137653` | **Identical** trees |
-| 12 | GitHub API: list workflow runs for `project-04-m1-07-verification.yml`; list open PRs | 12 runs, all `pull_request`. #1 failure (`06b9a9c`); #2–#12 success (#2 = `5382a6c`). Open PRs: #55, #56 (docs, draft). |
+| 12 | GitHub API: list workflow runs for `project-04-m1-07-verification.yml`; list open PRs | 12 runs, all `pull_request`. #1 failure (`06b9a9c`); #2–#12 success (#2 = `5382a6c`; #5 = `fd55932`, the M1-07 close-out build). Open PRs at audit time: #55, #56 (docs, draft). |
 | 13 | `git ls-remote --tags origin` | No tags |
 | 14 | `grep` checks over `app/src` | `setUnderlyingNetworks` / `setMetered` absent on `main`. No `filteringOperational = true`. `ProtectionSignals(` constructed in exactly 2 production places. 15 `Log.*` call sites (all reviewed). No `Thread` / `sleep` / clock / executor use in tests. 4 `timeout = 10_000`. No lint, detekt, ktlint, Dependabot or CodeQL config. No `lint` in Gradle files. |
+| 15 | After the PR #58 review: `git fetch origin main`; `git fetch origin fd55932…`; `git diff --quiet fd55932 HEAD` and `git diff --quiet fd55932 origin/main` over `android/` + workflows; `git diff --stat fd55932 origin/main`; `git show 9e11791:…/m1-07-evidence-synthesis.md` | **Identical** Android trees. `fd55932` differs from current `main` (`e689bcb`) only in `m2-02-architecture-options.md` and `m2-03-architecture-adr.md`. The PR #36 version of M1-07 records the close-out: build, row meanings, PASS results and guided P evidence. |
 
 **Harness definition (for reproducibility).**
 
@@ -632,6 +646,7 @@ sources. For the full gate on this exact tree, the authoritative evidence is CI 
   an ASSUMPTION.
 - **Branch protection.** Branch protection and required-check settings, and repository-level GitHub
   security features, are not visible from the checkout. They are UNKNOWN.
-- **Device evidence.** No device was available. Every device statement is quoted from repository
-  documents.
+- **Device evidence.** No device was available. Device statements are quoted from repository
+  documents. For the M1-07 close-out on `fd55932`, they come from the Tech Lead's review comment on
+  PR #58 and the reverted PR #36 text. This audit did not see the guided P screenshots.
 - **Line counts** are physical lines, including comments and KDoc.
