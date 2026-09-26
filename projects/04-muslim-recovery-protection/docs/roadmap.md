@@ -17,34 +17,31 @@ The project must continue to preserve the public product framing in `problem.md`
 opt-in self-protection tool for consenting adults on their own devices. It is not a surveillance,
 parental-control, or third-party-monitoring system.
 
-## 2. Current source of truth — 2026-09-25
+## 2. Current source of truth — 2026-09-26
 
-### Merged on `main`
+### M1 status
 
-- M1-01 — project scaffolding.
-- M1-02 — truthful protection-state domain model.
-- M1-03 — deterministic block-rules-only hostname matching engine.
-- M1-04 — Android VPN lifecycle foundation with no filtering.
+M1 is closed. The final evidence package is in
+[`docs/m1-07-evidence-synthesis.md`](m1-07-evidence-synthesis.md).
 
-### Open work
+Key close-out facts:
 
-- **PR #11 — M1-05 DNS-only filtering experiment**
-  - Draft / open / not merged.
-  - PR head: `feat/04-m1-05-dns-filtering`.
-  - A separate branch, `feat/04-m1-05-mobile-fixes`, is currently one commit ahead of the PR head.
-  - The extra commit must not be treated as part of PR #11 until it is deliberately reviewed and
-    integrated by the Tech Lead.
+- PR #11 merged the M1-05 DNS experiment.
+- PR #12 merged the M1-06 validation runbook.
+- M1-06 execution was completed on the physical Samsung device; recoverable rows are preserved and
+  unreconstructable branches remain explicitly INCONCLUSIVE.
+- PR #32 merged the narrow M-1 stale-underlying-network fix.
+- GitHub Actions built commit `fd55932` and passed
+  `clean assembleDebug testDebugUnitTest lintDebug --no-daemon`.
+- The Tech Lead then reported the Samsung P / M / S / R / PD / X close-out matrix as PASS.
+- Automatic network handover remains unsupported; the M1 behavior is a truthful stop followed by a
+  later manual Start.
+- The historical PR #11 / `1492c108` provenance limitation remains documented rather than erased.
 
-- **PR #12 — M1-06 DNS coverage and bypass validation gate**
-  - Draft / open / documentation only / not executed.
-  - It must not execute until the M1-05 build under test is fixed to one exact reviewed commit and
-    M1-05's own build, lint, and device acceptance gates pass.
+### M2 status
 
-### Source-of-truth rule
-
-Before M1-06 execution, record exactly one M1-05 build commit as the build under test.
-The GitHub PR, local checkout, installed APK, M1-06 runbook, and evidence report must all refer to
-that same reviewed commit. A branch name alone is not sufficient evidence.
+M2-01 and M2-02 are merged. M2-03 remains a human decision gate. No M3 implementation is
+authorized until the M2 ADR, scope/non-goals and verification strategy are accepted by the Tech Lead.
 
 ## 3. Delivery model
 
@@ -103,8 +100,8 @@ Preferred convention:
 
 | Milestone | Outcome | Status | Human gate |
 |---|---|---|---|
-| M1 | Establish real evidence for the DNS-only feasibility hypothesis and its bypass limits | ACTIVE | Decide what the evidence permits us to claim and whether the project continues |
-| M2 | Make an explicit architecture + truthful product-claim decision from M1 evidence | PLANNED | Approve one path, narrow scope, investigate further, or stop |
+| M1 | Establish real evidence for the DNS-only feasibility hypothesis and its bypass limits | **CLOSED — PASS** | Tech Lead chose to continue to M2; no production architecture was approved by M1 |
+| M2 | Make an explicit architecture + truthful product-claim decision from M1 evidence | **ACTIVE — M2-01/M2-02 merged; M2-03 pending** | Approve one path, narrow scope, investigate further, or stop |
 | M3 | Implement and verify the **approved** Protection Core V1 | CONDITIONAL | Approve verified protection semantics before productization |
 | M4 | Build the MVP user experience around the verified protection core | CONDITIONAL | Approve product usability and truthful user-facing states |
 | M5 | Security, quality, compatibility, and release engineering hardening | CONDITIONAL | Approve release candidate |
@@ -122,7 +119,10 @@ Close the DNS-only hypothesis with reproducible evidence rather than implementat
 
 ## Entry state
 
-M1-01 through M1-04 merged. M1-05 and M1-06 are open draft work.
+Historical entry state: M1-01 through M1-04 were merged before the M1-05/M1-06 experiment work began.
+
+**Current status:** M1 is closed. This section remains as the historical work breakdown and evidence
+contract.
 
 ## Required work
 
@@ -185,14 +185,15 @@ Produce one final M1 evidence report that:
 
 ## Exit criteria
 
-M1 is closed only when:
+**Status: COMPLETE.**
 
-- PR #11's reviewed build has passed its required verification;
-- M1-06 has an approved, fixed test scope;
-- required M1-06 cases have evidence or are explicitly classified unavailable/inconclusive;
-- the evidence report is complete;
-- any stop condition is visible;
-- the Tech Lead has made the M1 → M2 continuation decision.
+- M1-05 verification evidence is preserved, including the historical build-provenance limitation.
+- M1-06 scope and execution classifications are preserved.
+- PR #32 merged the M-1 fix.
+- The required Gradle gate passed for the final APK build.
+- The Tech Lead completed the physical Samsung close-out and reported P / M / S / R / PD / X PASS.
+- The final evidence report is complete and keeps unsupported/unknown cases visible.
+- The Tech Lead recorded the decision to continue to M2.
 
 ---
 
@@ -216,6 +217,9 @@ Define:
 
 Deliverable: reviewed threat-model / product-claim document.
 
+Status: approved by the Tech Lead and merged (PR #33):
+[`m2-01-approved-threat-model.md`](m2-01-approved-threat-model.md).
+
 ## M2-02 — Architecture options assessment
 
 Compare only options justified by M1 evidence.
@@ -235,6 +239,10 @@ For every candidate evaluate:
 
 Potential alternatives are research inputs, not pre-approved implementations.
 
+Status: final architecture baseline merged (PR #34):
+[`m2-02-architecture-options.md`](m2-02-architecture-options.md). It selects no production
+architecture.
+
 ## M2-03 — Human ADR and M3 task contract
 
 The Tech Lead records one explicit decision:
@@ -246,6 +254,9 @@ The Tech Lead records one explicit decision:
 - stop the approach.
 
 Only after that decision is accepted may M3 implementation tasks be decomposed.
+
+Status: pending Tech Lead decision. The decision package is prepared in PR #35:
+[`m2-03-architecture-adr.md`](m2-03-architecture-adr.md).
 
 ## Exit criteria
 
