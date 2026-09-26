@@ -29,9 +29,10 @@ import java.util.concurrent.atomic.AtomicBoolean
  *   notices a stop within that bound (plus at most one in-flight upstream exchange).
  *
  * Every [HEALTH_CHECK_INTERVAL_MS] the worker also re-checks the upstream precondition (Private DNS
- * still inactive, underlying network and DNS server still present) and stops itself if it no longer
- * holds — so the experimental status never keeps claiming "running" after Private DNS was enabled,
- * even if no allowed query happened to be forwarded in the meantime.
+ * still inactive; underlying network still present, validated and usable; DNS server still present)
+ * and stops itself if it no longer holds — so the experimental status never keeps claiming "running"
+ * after Private DNS was enabled, even if no allowed query happened to be forwarded in the meantime.
+ * (M1-07: [UnderlyingNetworkMonitor] reports the same conditions sooner, from network callbacks.)
  *
  * [stop] is idempotent, never blocks, and is safe from any thread, including the worker itself.
  * [Listener.onRuntimeStopped] is invoked (on the worker thread) only when the runtime stops ITSELF

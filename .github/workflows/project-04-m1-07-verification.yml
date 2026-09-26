@@ -1,0 +1,55 @@
+name: Project 04 M1-07 Verification Gate
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "projects/04-muslim-recovery-protection/**"
+      - ".github/workflows/project-04-m1-07-verification.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-m1-07:
+    name: Verify M1-07 and build debug APK
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: projects/04-muslim-recovery-protection/android
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools"
+
+      - name: Install Android API 36
+        run: sdkmanager "platforms;android-36"
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Verify M1-07 and build debug APK
+        run: ./gradlew clean assembleDebug testDebugUnitTest lintDebug --no-daemon
+
+      - name: Upload M1-07 debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: muslim-recovery-protection-m1-07-debug-apk
+          path: projects/04-muslim-recovery-protection/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7

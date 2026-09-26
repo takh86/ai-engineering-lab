@@ -1,6 +1,7 @@
 package com.muslimrecovery.protection.vpn
 
 import android.net.ConnectivityManager
+import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.VpnService
@@ -9,7 +10,9 @@ import android.os.SystemClock
 import com.muslimrecovery.protection.dns.DnsMessageCodec
 import com.muslimrecovery.protection.dns.DnsQuery
 import com.muslimrecovery.protection.dns.DnsRuntimeStopReason
+import com.muslimrecovery.protection.dns.UnderlyingNetworkCapabilityFacts
 import com.muslimrecovery.protection.dns.UnderlyingNetworkDnsFacts
+import com.muslimrecovery.protection.dns.UnderlyingNetworkLinkFacts
 import com.muslimrecovery.protection.dns.UpstreamDnsExchange
 import com.muslimrecovery.protection.dns.UpstreamDnsResult
 import com.muslimrecovery.protection.dns.UpstreamDnsSelection
@@ -33,7 +36,10 @@ internal class UnderlyingNetworkInspector(private val connectivityManager: Conne
     /**
      * The app's current default network. Only meaningful BEFORE this app's VPN is established: the
      * VPN applies to this app's own uid too (that is what lets the harness's lookups exercise the
-     * proxy), so afterwards the default network would be the VPN itself.
+     * proxy), and the app's default network "may be a physical network or a virtual network, such
+     * as a VPN that applies to the application" (`registerDefaultNetworkCallback` docs). So
+     * afterwards it is never used to re-identify the underlying network; the session keeps the
+     * Network captured here (see [UnderlyingNetworkMonitor]).
      */
     fun currentDefaultNetwork(): Network? = try {
         connectivityManager.activeNetwork
@@ -41,23 +47,58 @@ internal class UnderlyingNetworkInspector(private val connectivityManager: Conne
         null
     }
 
-    /** Null when [network] is null or no longer connected. */
+    /**
+     * Null when [network] is null or no longer connected (`getNetworkCapabilities` "returns null if
+     * the network is unknown"). Synchronous: never call it from a NetworkCallback, whose docs warn
+     * these getters may return outdated or null objects there. [UnderlyingNetworkMonitor] uses the
+     * callback payloads instead. Blocked status has no per-network synchronous getter, so it is
+     * reported false here. At startup a blocked default network is already excluded, because
+     * `getActiveNetwork()` "will return null ... when the default network is blocked". During a
+     * session only the monitor's callback observes it; the worker's 2 s re-check cannot.
+     */
     fun factsFor(network: Network?): UnderlyingNetworkDnsFacts? {
         if (network == null) return null
         return try {
             val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return null
             val linkProperties = connectivityManager.getLinkProperties(network) ?: return null
             UnderlyingNetworkDnsFacts(
-                isVpn = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN) ||
-                    !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN),
-                hasInternet = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET),
-                // Private DNS does not exist below API 28 (Android 9), so it cannot be active there.
-                privateDnsActive = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && linkProperties.isPrivateDnsActive,
-                dnsServers = linkProperties.dnsServers,
+                capabilities = capabilityFacts(capabilities),
+                link = linkFacts(linkProperties),
+                isBlockedForApp = false,
             )
         } catch (e: RuntimeException) {
             null
         }
+    }
+
+    companion object {
+        fun capabilityFacts(capabilities: NetworkCapabilities): UnderlyingNetworkCapabilityFacts {
+            // FOREGROUND and NOT_SUSPENDED are public only from API 28. Below that neither state is
+            // observable, so the network is treated as foreground and not suspended (the other
+            // checks still apply).
+            return UnderlyingNetworkCapabilityFacts(
+                isVpn = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN) ||
+                    !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN),
+                hasInternet = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET),
+                isValidated = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED),
+                isForeground = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_FOREGROUND)
+                } else {
+                    true
+                },
+                isSuspended = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_SUSPENDED)
+                } else {
+                    false
+                },
+            )
+        }
+
+        fun linkFacts(linkProperties: LinkProperties): UnderlyingNetworkLinkFacts = UnderlyingNetworkLinkFacts(
+            // Private DNS does not exist below API 28 (Android 9), so it cannot be active there.
+            privateDnsActive = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && linkProperties.isPrivateDnsActive,
+            dnsServers = linkProperties.dnsServers,
+        )
     }
 }
 
@@ -157,8 +198,8 @@ internal class ProtectedUpstreamDnsExchange(
     /**
      * Re-checks, without sending anything, that plaintext forwarding is still allowed and possible:
      * null if so, otherwise why the runtime must stop (Private DNS became active, or the underlying
-     * network / its DNS server is gone). Lets the runtime notice such changes even when no allowed
-     * query happens to be forwarded.
+     * network is gone, no longer validated or usable, or lost its DNS server). Lets the runtime
+     * notice such changes even when no allowed query happens to be forwarded.
      */
     fun checkUpstreamHealth(): DnsRuntimeStopReason? =
         when (val selection = UpstreamDnsSelector.select(inspector.factsFor(network), excludedAddresses)) {
