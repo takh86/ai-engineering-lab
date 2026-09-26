@@ -309,6 +309,16 @@ Decision package: [`m2-03-architecture-adr.md`](m2-03-architecture-adr.md). A8 i
 production, no production architecture is selected, and M3 stays blocked until #42 records the final
 ADR.
 
+### Later product-scope decision — voluntary app blocking
+
+On 2026-09-26 the Owner approved the bounded direction in
+[`app-blocking-architecture-decision.md`](app-blocking-architecture-decision.md): selected-app
+interruption plus local recovery help, separately from DNS. A physical-device permission and
+latency spike must choose between the Usage Access/overlay and narrow Accessibility candidates;
+Play review and truthful claims are required before release. This does not amend A8's AC/RJ
+criteria or unblock the final production ADR. An app-blocking task contract must be approved
+separately before code, without silently treating the historical M1 exclusions as current scope.
+
 ## Exit criteria
 
 - Threat model approved.
@@ -334,7 +344,8 @@ No M3 issue may assume:
 - TLS interception;
 - browser modification;
 - Device Owner;
-- AccessibilityService;
+- AccessibilityService beyond the bounded package-level candidate in
+  [`app-blocking-architecture-decision.md`](app-blocking-architecture-decision.md);
 - root;
 - backend;
 - production rule distribution;

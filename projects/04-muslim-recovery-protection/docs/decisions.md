@@ -257,6 +257,25 @@ match differ from the captured network, which would stop every session right aft
 `ProtectionState.Protected` stays unreachable. No new permission or route is introduced. The
 monitor is a session-scoped reporter under the existing lifecycle authority (`VpnLifecycleController`).
 
+## D13 — Voluntary app blocking is an approved, bounded product direction
+
+**Status:** Accepted as a product/architecture boundary (2026-09-26); enforcement method and
+production claim pending a device and Play-policy gate.
+
+**Decision:** The Owner approved an opt-in local blocker for user-selected apps with a rapid
+interruption and direct access to recovery help. The [app-blocking decision](app-blocking-architecture-decision.md)
+records AB1–AB7, its data and permission boundaries, and its rejection tests. Usage Access plus
+overlay and narrow package-only Accessibility are candidates to compare, not implemented features.
+
+**Why:** The M2-02 DNS candidate cannot interrupt use of an entire selected app. This is a new,
+complementary product requirement, explicitly approved after the M2-02 baseline. It satisfies D1's
+requirement for new review and human approval before considering AccessibilityService outside M1.
+
+**Consequences:** H5 and H8 still exclude OS locks; H9 still excludes browsing/hostname histories
+and backend surveillance. A7b/H16 excluded Accessibility **URL detection**, not this narrower
+package-level experiment. A8 remains verification-only; M3 implementation and Play distribution
+need their own evidence and gate. No M1 non-goal or historical evidence is retroactively changed.
+
 ## AI contribution
 
 This document, the surrounding scaffolding, and the initial project structure were AI-implemented under explicit Tech Lead constraints (see the M1-01 authorization). The Tech Lead owns the decisions themselves; AI recorded them as directed and did not originate the architecture direction. D11's implementation details (address pair, `allowFamily(AF_INET6)`, REFUSED for `InvalidInput`, the periodic Private DNS re-check, tearing the VPN down on runtime failure) were chosen by AI within the approved contract and are flagged for human review in the M1-05 PR.

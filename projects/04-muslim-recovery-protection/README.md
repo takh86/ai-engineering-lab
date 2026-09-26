@@ -10,6 +10,11 @@ Snapshot: 2026-09-26. GitHub milestones and issues are the live tracker; [`docs/
 - **M2 — Architecture & Truthful Product Claim: ACTIVE.** M2-01 ([threat model](docs/m2-01-approved-threat-model.md), PR #33) and M2-02 ([architecture baseline](docs/m2-02-architecture-options.md), PR #34) are complete. M2-03 is pending human-gate and verification work: #39 (M2-03A human gate / G0) → #40 (M2-03B A8 verification V0–V13) → #41 (M2-03C T2 friction validation) → #42 (M2-03D evidence synthesis + final ADR); see [`docs/m2-03-architecture-adr.md`](docs/m2-03-architecture-adr.md). G0 decisions are not recorded and no A8 verification has run. A8 is a **verification candidate only**; no production architecture is selected.
 - **M3 onward: BLOCKED** until the Tech Lead records the final M2 ADR (#42).
 
+The Owner also approved a **bounded, voluntary app-blocking direction** after the DNS baseline:
+selected-app interruption and private recovery help. The mechanism, permission choice and coverage
+claim still require a [separate device and Play-policy gate](docs/app-blocking-architecture-decision.md).
+No app blocker exists in the current Android build; this decision does not approve A8 for production.
+
 `ProtectionState.Protected` remains unreachable at runtime by construction: `filteringOperational` is hardcoded `false` (D8, D11). Nothing in the app is verified protection.
 
 ## Why this project exists

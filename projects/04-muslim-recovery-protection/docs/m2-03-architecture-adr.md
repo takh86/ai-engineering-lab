@@ -15,6 +15,12 @@ This record selects A8 as the verification candidate, but G0 is not yet complete
 select a production architecture or authorize M3 work. Where it and its sources differ,
 [M2-01][m2-01] and [M2-02][m2-02] win.
 
+**Later product-scope addendum (2026-09-26):** The Owner separately approved a voluntary,
+package-level [app-blocking architecture boundary](app-blocking-architecture-decision.md).
+This does not change this ADR's A8 verification criteria, G0 decisions, or production status.
+The H16/A7b exclusion of Accessibility for URL inspection is not a decision about the new
+package-level candidate. The new permission and coverage gate remains conditional.
+
 ---
 
 ## 1. Inputs
