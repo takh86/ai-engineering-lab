@@ -1,6 +1,6 @@
 # M2-03B — A8 Verification Runbook (V0–V13)
 
-> **Status: PREPARED — NOT EXECUTED. G0 and the §2.5 result/privacy/Q-reading decisions are frozen; execution still waits for the remaining named runbook choices and final review.**
+> **Status: PREPARED — NOT EXECUTED. G0, result/privacy mappings, Q-readings and C-choice rules are frozen; execution still waits for final review and row-specific environment evidence.**
 >
 > **Project:** Muslim Recovery Protection\
 > **Milestone:** M2 — Architecture & Truthful Product Claim\
@@ -118,22 +118,23 @@ These are not decisions. They are conditions to check and record.
 
 ### 2.4 Tech Lead choices M2-02 leaves open (not G0)
 
-M2-02 names these actions but not their exact subject. The runbook proposes a default for each and
-records no choice. Each is recorded before the row that needs it, and never after that row's
-result.
+M2-02 names these actions but not their exact subject. The Tech Lead approved the remaining
+selection rules on 2026-09-26 before execution. Where a concrete environment/app cannot be known
+until the row is prepared (C4, C6), the approved rule below governs the selection and the exact
+subject is recorded before that row begins, never after its result.
 
 | ID | Choice | Needed before | M2-02 wording | Runbook proposal (not a decision) | Tech Lead record |
 |---|---|---|---|---|---|
-| C1 | Browser for V7, and for "part of V3" in V8, V9 and V11 | V7 | Not named | Chrome, normal mode, at its V3 T1 (default) DNS setting. Precedent: M1-06 row L2. | |
-| C2 | V4 Chrome provider | V4 | "a chosen non-filtering provider" | Any non-filtering provider from Chrome's own list. That provider receives Chrome's DNS during V4, and **H18 does not cover it**. | |
-| C3 | V5 "another host" | V5 | "another host" | A non-filtering public DoT hostname. That operator receives the device's DNS during V5-OTHER, and **H18 does not cover it**. | |
-| C4 | V10 networks: router access for a TCP 853 rule; a captive-portal location | V10 | "if available" | The N-W router, if it supports an outbound rule; any captive-portal network the Tech Lead may use | |
-| C5 | V11 VPN app | V11 | "a common VPN app that has its own DNS" | Tech Lead's choice. Its operator receives the device's traffic during V11, and **H18 does not cover it**. Decide whether to uninstall it afterwards. | |
-| C6 | V12 apps: one that opens links in Custom Tabs, one with a WebView in-app browser, and how the URL reaches them | V12 | "A Custom Tabs flow and a WebView in-app browser" | Apps already installed. Avoid sending the test URL through a third-party messaging service; if one is used, record it. | |
-| C7 | V13 browser | V13 | "for example Edge or Brave" | A fresh store install, so the as-found setting is the installed default (Q22). Decide whether to uninstall it afterwards. | |
-| C8 | Clearing browsing data in the browser reset (§6.3 BR) | V3 | Not in M2-02 | Not used: it deletes personal history, and H21's consent covers DNS settings only. Force-stop is used instead. | |
-| C9 | Accept or amend the runbook readings Q1–Q23 (§15) | Before each affected row | — | — | |
-| C10 | Desktop tool for V0 if `dig` is unavailable | V0 | "`dig A`" | `dig` preferred. `nslookup -type=A <name> <server>` as a substitute, recorded as a deviation. It shows the answer and NXDOMAIN, but not the full response header. | |
+| C1 | Browser for V7, and for "part of V3" in V8, V9 and V11 | V7 | Not named | Chrome, normal mode, at its V3 T1 (default) DNS setting. Precedent: M1-06 row L2. | **APPROVED AS PROPOSED — 2026-09-26** |
+| C2 | V4 Chrome provider | V4 | "a chosen non-filtering provider" | Cloudflare standard non-filtering Secure DNS, verification only; short window; harmless registered names/controls only; no personal browsing; restore Chrome's as-found Secure DNS setting. | **APPROVED — 2026-09-26** |
+| C3 | V5 "another host" | V5 | "another host" | `one.one.one.one` (Cloudflare standard non-filtering DoT), verification only; short window; harmless registered names/controls only; no personal browsing/unrelated app use; restore the required Private DNS state afterwards. | **APPROVED — 2026-09-26** |
+| C4 | V10 networks: router access for a TCP 853 rule; a captive-portal location | V10 | "if available" | Use the available test router only if it can apply an outbound TCP/853 block, and use a lawful captive-portal network available to the Tech Lead. Record the exact environments before V10. If one is unavailable, mark that sub-row NOT RUN; AC7 remains INCOMPLETE under the frozen V10 mapping. | **APPROVED AS PROPOSED — 2026-09-26** |
+| C5 | V11 VPN app | V11 | "a common VPN app that has its own DNS" | Proton VPN Free, verification only; short window; harmless registered names/controls only; no personal browsing; record app version and server/country; disconnect and verify restore afterwards; remove if installed only for V11. | **APPROVED — 2026-09-26** |
+| C6 | V12 apps: one that opens links in Custom Tabs, one with a WebView in-app browser, and how the URL reaches them | V12 | "A Custom Tabs flow and a WebView in-app browser" | Prefer apps already installed on the test device: one confirmed Custom Tabs path and one confirmed WebView path. Record the exact apps/versions and confirm the UI/path before V12. Do not transmit the test URL through WhatsApp, Telegram, email or another third-party messaging service. If suitable installed paths are unavailable, pause rather than silently install/select a replacement. | **APPROVED AS PROPOSED — 2026-09-26** |
+| C7 | V13 browser | V13 | "for example Edge or Brave" | Microsoft Edge, fresh store install, Normal mode, default settings, characterization only. Do not sign in, sync or browse personally. Record version/default evidence and remove after V13 if installed only for this test. | **APPROVED AS PROPOSED — 2026-09-26** |
+| C8 | Clearing browsing data in the browser reset (§6.3 BR) | V3 | Not in M2-02 | Do not clear browsing data. Use the runbook's force-stop/reset procedure instead; avoid deleting personal history. | **APPROVED AS PROPOSED — 2026-09-26** |
+| C9 | Accept or amend the runbook readings Q1–Q23 (§15) | Before each affected row | — | See §15.1: decision-critical readings approved as written; procedural-only defaults retained; Q18/Q20 resolved by frozen mappings. | **COMPLETE — 2026-09-26** |
+| C10 | Desktop tool for V0 if `dig` is unavailable | V0 | "`dig A`" | `dig` preferred. If unavailable, use `nslookup -type=A <name> <server>` as a recorded deviation; it shows the answer/NXDOMAIN but not the full response header. | **APPROVED AS PROPOSED — 2026-09-26** |
 
 ### 2.5 Pre-execution freeze required after review
 
