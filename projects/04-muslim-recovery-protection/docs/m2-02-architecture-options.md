@@ -1,11 +1,15 @@
-# M2-02 — Protection Architecture: Revised Candidate
+# M2-02 — Protection Architecture Baseline
 
 > **Project:** Muslim Recovery Protection  
 > **Milestone:** M2 — Architecture & Truthful Product Claim  
-> **Task:** M2-02 — Architecture options assessment ([issue #21](https://github.com/takh86/ai-engineering-lab/issues/21))  
-> **Status:** **REVISED CANDIDATE — for final verification review before the Architecture Gate (M2-03). Nothing in this document is approved.**  
+> **Task:** M2-02 — Architecture options assessment ([issue #21](https://github.com/takh86/ai-engineering-lab/issues/21)); input to the M2-03 ADR  
+> **Status:** **ARCHITECTURE BASELINE — PROPOSED for the Architecture Gate (M2-03). Not approved.**
+> No device test may start until the Tech Lead records gate G0: H18 (verification scope), H19 and
+> H21 (§E.1).  
 > **Date:** 2026-09-26  
-> **Baseline:** M2-01 decisions H4–H12, approved by the Tech Lead
+> **Revision:** baseline revision after the final verification review of `df69d43` (status BLOCK).
+> Every blocking item is resolved in §B.2.  
+> **Approved inputs:** M2-01 decisions H4–H12, approved by the Tech Lead
 > ([`m2-01-approved-threat-model.md` @ `5291383`][m2-01], not yet on `main`). They are not reopened here.  
 > **Supersedes:** the A1–A8 proposal (uploaded 2026-09-26, not in the repository) and the O1–O9 draft
 > previously in this file (commit `e9f0e09`). See §B.  
@@ -55,13 +59,14 @@ apps → Android system resolver → DoT (strict Private DNS) → provider's fil
    the user sets Android Private DNS to a filtering resolver they choose. The provider under
    verification is Cloudflare 1.1.1.1 for Families, DoT host `family.cloudflare-dns.com`.
    Production selection requires three things: the §I acceptance criteria, the privacy decision
-   (§G, H18) and the Architecture Gate.
+   (§G, H18) and the Architecture Gate. No device test starts before gate G0 (§E.1).
 3. **Platform scope.** Private DNS exists from API 28. On API 24–27 the filter layer shows
    Unsupported and recovery is unaffected; minSdk stays 24.
 4. **A2 is a deferred investigation, not an alternative that can be estimated now** (§D.4, §J Q4).
 5. **A4 is split into two modes.**
-   - **A4a Always-on** is a required companion of any VPN-based filter (reboot, row L4). It does
-     not apply to A8.
+   - **A4a Always-on** is needed only if a VPN-based filter claims coverage after reboot (row L4).
+     That claim would then need a lifecycle test when A2 is reopened; without it, reboot is
+     DISCLOSED for that filter. It does not apply to A8.
    - **A4b Lockdown** is out of the MVP and needs its own connectivity matrix and decision.
 6. **A1** stays the M1 experiment and evidence baseline, with no production path.
 7. **A3, A5 and A6 are deferred. A7 is split into two parts.**
@@ -70,6 +75,9 @@ apps → Android system resolver → DoT (strict Private DNS) → provider's fil
      judged on H9, D1 and Play policy, not on H5.
 8. **Nothing is implemented.** `filteringOperational` stays `false`, and no M1 code is removed by
    this document (§H).
+9. **T1 scope and test gate.** The T1 browser set is registered before testing (H21, §I.1). No
+   device test runs before gate G0: H18 (verification scope), H19 and H21 (§E.1). The outcomes of
+   verification are decided in advance (§I.3).
 
 ### A.3 Recommendation
 
@@ -80,7 +88,8 @@ This section is kept separate from the neutral comparison in §D.
 - It has the lowest complexity and maintenance cost.
 - It satisfies H11 by construction, because it *is* Private DNS.
 - It is expected to survive reboot, app kill and network changes, because the app is not in the
-  DNS path. This covers M1 gaps L3b, L4, L5 and L6 (EXPECTATION, rows V6 and V8).
+  DNS path. This covers M1 gaps L3b, L4, L5 and L6 (EXPECTATION: rows V6 and V8; app kill with
+  the prototype, V14).
 - It needs no VpnService, so there is no VpnService Play declaration and it does not take the
   device's single VPN slot.
 - It has no packet-parsing surface.
@@ -100,6 +109,8 @@ options.
 ---
 
 ## B. Changes Made From Previous Version
+
+### B.1 First revision (`df69d43`): independent review of the A1–A8 proposal
 
 | # | Review item | Change | Where |
 |---|---|---|---|
@@ -150,6 +161,24 @@ options.
 | O8 | A8 (third-party resolver) and A5 (own resolver) |
 | O9 | A6 |
 
+### B.2 Baseline revision: final verification review of `df69d43` (status BLOCK)
+
+| # | Review finding | Resolution | Where |
+|---|---|---|---|
+| 1 | Filter Active evidence had no time limit, so Active could stay on screen for hours after a provider failure (blocking) | Check evidence expires after `CHECK_TTL` = 10 minutes, and also on a network change, a Private DNS change or a process restart. Expired evidence lowers every check-derived state to Degraded until a new check runs. The UI applies the expiry by itself, without any network activity. | §F.4, §F.2, §L H15 |
+| 2 | Browser coverage was shown without the configuration it was tested in | Every coverage entry records browser, mode, version, DNS setting, OS, device, date and evidence. Texts say "tested with …" and state that the app cannot see browser settings. Coverage is re-verified before each release. | §F.3, §F.6 |
+| 3 | The T1 browser set was only proposed, and Firefox could fail at default settings while A8 still passed (contradiction with H4; blocking) | New decision H21 pre-registers the T1 set before any device row: Chrome, Samsung Internet and Firefox, each in normal and private mode, at default settings. AC4 requires every one of these rows. | §I.1, §I.2, §L H21 |
+| 4 | RJ3 mixed "the candidate failed" with "the scope was narrowed" (blocking) | RJ3 now means the candidate failed for the registered scope. Narrowing the scope is a separate, recorded Tech Lead decision followed by re-evaluation, and is never a pass. | §I.3 |
+| 5 | Oracle validity in V0 depended on the informational malware name (blocking) | Validity now rests on the required category name only. The malware name is recorded but never affects validity. | §E.4 V0 |
+| 6 | No outcome was defined if browser navigation is not approved (blocking) | Deterministic outcome: A8 is NOT VERIFIABLE for the T1 claim and is not accepted, and no device row runs. Each follow-up is its own decision. | §E.1, §I.3 |
+| 7 | H18 was pending, yet device tests could start | Gate G0: H18 (verification scope), H19 and H21 must be recorded before V1. V0 needs H19a only. | §E.1, §L |
+| 8 | H16 made Always-on an absolute rule (new risk) | A4a is conditional: only for a VPN-based filter that claims coverage after reboot, and only with a lifecycle test | §A.2, §D.2, §D.4, §L H16 |
+| 9 | No named T2 register and no way to measure steps and time (gap against H4) | Register B1–B12, each with an expected class, the signal the app can use and the row that measures it. A friction protocol measures steps and time. No numeric threshold is set. | §E.6, §I.2 AC6 |
+| 10 | H20 must not become an implementation precondition | Stated in H20 | §L |
+| 11 | Found in self-review: the friction protocol assumed an app showing Filter Active, but no A8 app exists during verification | The start state uses the V2 method. The app side of detection moves to V14–V15, and AC6 is split to match. | §E.6, §I.2 |
+| 12 | Found in self-review: V6 force-stopped an app that does not exist during verification | V6 is now reboot only. Force-stop and uninstall are checked with the prototype (V14). | §E.4, §E.6, §I.2 AC5 |
+| 13 | Found in self-review: no state existed for "no active network", so being offline would read as Stopped | New first-match row "Unavailable (offline)" | §F.2 |
+
 ---
 
 ## C. M1 Traceability Matrix
@@ -168,7 +197,7 @@ strict Private DNS host takes precedence), not results.
 | P5 | INCONCLUSIVE | Private DNS switched on mid-session | Analogue: the user changes Private DNS → DETECTED at the next observation | Must stop or adapt truthfully | V5, V15 |
 | G9-C, G9-F, L2 | INCONCLUSIVE | Already-running browsers, open tabs, cached answers or connections | Same risk right after enabling | Same | V7 |
 | L1, L3a, L7 | PASS (HUMAN-REPORTED) | VPN start/stop, swipe from Recents, 30-min idle | Not applicable: no app runtime in the DNS path | Relevant | — |
-| L3b, L4 | UNSUPPORTED | Force-stop and reboot end the VPN | EXPECTATION: unaffected, because the system setting persists. Uninstalling the app also leaves the setting in place (EXPECTATION). | Reboot needs A4a; force-stop stays outside the guarantee (H5) | V6 |
+| L3b, L4 | UNSUPPORTED | Force-stop and reboot end the VPN | EXPECTATION: unaffected, because the system setting persists. Uninstalling the app also leaves the setting in place (EXPECTATION). | Reboot coverage needs A4a; force-stop stays outside the guarantee (H5) | V6 (reboot); V14 (force-stop, uninstall) |
 | L5, L6, L8 | UNSUPPORTED; L8 INCONCLUSIVE | A network change stops the session (no handover; M-1) | EXPECTATION: Private DNS applies "on all networks — including cellular" (Cloudflare's Android page). New risk: networks that block DoT. | Needs a handover design | V8, V10 |
 | N1 | PASS (HUMAN-REPORTED) | IPv6-capable network usable | DoT over IPv6 and the blocked AAAA answer are UNKNOWN | Relevant | V9 |
 | M1-06 "not measured": other browsers, in-app browsers, apps' own DoH, another VPN, deliberate disabling | UNKNOWN | — | Each must be classified COVERED, DETECTED or DISCLOSED | Same | V5, V11–V13 |
@@ -198,7 +227,7 @@ A2 is assessed as its minimal definition in §D.4.
 | Implementation complexity | Low: guidance, observation, on-demand check, pure evaluator | Medium to high: compliant encrypted upstream, Always-on lifecycle, handover, rule management | Exists as an experiment; production hardening means A2 |
 | Testability | DNS-level oracle with a harmless provider test name and controls. State logic is JVM-testable. Browser coverage needs a device matrix. Provider behavior is external and must be re-verified at each release. | Pipeline is JVM-testable (M1 suite). Device matrix at M1-06 scale. | M1 suite exists |
 | Performance / battery | Negligible: the app is not in the data path; checks run only on foreground or user request | Low to moderate: every DNS query passes through the app, plus TLS upstream | Low (L7 idle soak passed; not measured) |
-| Lifecycle behavior | The system setting persists across reboot, app kill, updates and network changes (EXPECTATION: V6, V8). The app observes only while it runs (H5: "next available opportunity"). | VPN service lifecycle. Reboot needs A4a. Force-stop ends it (outside the guarantee, H5). A network change needs handover; today it stops (D12). | No boot start; stops on network change |
+| Lifecycle behavior | The system setting persists across reboot, app kill, updates and network changes (EXPECTATION: V6, V8; app kill with the prototype, V14). The app observes only while it runs (H5: "next available opportunity"). | VPN service lifecycle. Reboot needs A4a. Force-stop ends it (outside the guarantee, H5). A network change needs handover; today it stops (D12). | No boot start; stops on network change |
 | Maintainability | Little code. Depends on the provider's hostnames, test names and policies (external change risk). | Protocol, rule-list and lifecycle upkeep | Experiment code; not maintained for production |
 | Residual bypass surface | Browser or app DoH. Private DNS switched off or changed in Settings (a few taps; outside the guarantee; DETECTED). Another VPN (UNKNOWN, V11). Pre-existing connections (V7). Content inside allowed domains. Provider misclassification. | Browser or app DoH. System VPN disconnect or another VPN (H5). Apps' own DNS. Strict Private DNS (probably Unavailable). | As A2, plus refusal under active Private DNS |
 | Fit with H4–H12 | H5 ✓. H8: friction only in in-app flows; the off switch is Android Settings. H9 ✓ for app data; the third-party flow needs H18. H10 ✓ via §E. H11 ✓ by construction. H12 ✓. | H5 ✓. H8 ✓ (friction on the in-app Stop). H9: rule distribution open. H10 needs an M1-06-scale matrix. H11 only with a compliant upstream. H12 ✓. | H11 ✓ (it refuses rather than downgrading); no production path |
@@ -210,7 +239,7 @@ The status column is screening against H4–H12. It is not a ranking.
 | Option | What it adds | Main costs and risks | Fit | Status |
 |---|---|---|---|---|
 | A3 full-tunnel VPN (metadata only) | Blocking of known DoH/DoT endpoints and hard-coded resolvers | No guarantee against unknown DoH or ECH (RFC 9849). Parses all traffic. Very high complexity and battery cost. Likely a native dependency. | Allowed by H5; crosses the D1/D11 boundary | Deferred |
-| A4a Always-on (user setting; mode) | Starts a VPN filter at boot | A system-start path; revisits D10 | ✓ (the user can switch it off) | Required with any VPN filter; N/A to A8 |
+| A4a Always-on (user setting; mode) | Starts a VPN filter at boot | A system-start path; revisits D10 | ✓ (the user can switch it off) | Needed only if a VPN-based filter claims coverage after reboot, backed by a lifecycle test when A2 is reopened; N/A to A8 |
 | A4b Lockdown (user setting; mode) | Blocks traffic when the VPN is down | Connectivity risk with a split tunnel (UNKNOWN); captive portals; recovery path | Allowed (user setting); high user-facing risk | Out of the MVP; separate decision and matrix |
 | A5 own resolver via Private DNS | Our own classification | A backend; the project would hold DNS data; operations | Conflicts with H9 ("no backend required for the MVP") | Deferred (outside the MVP) |
 | A6 browser-scoped | URL-level decisions inside our own browsing surface | Browser engineering; every other browser uncovered | ✓ | Deferred |
@@ -234,7 +263,8 @@ that were evaluated.
    - in strict mode, encrypt to the named host with certificate validation, or show a truthful
      Unavailable state if queries do not reach the VPN;
    - never send plaintext while Private DNS is active (H11).
-3. A4a Always-on support. No Lockdown.
+3. A4a Always-on support if A2 claims coverage after reboot, backed by a lifecycle test (reboot,
+   force-stop, update); otherwise reboot is DISCLOSED. No Lockdown.
 4. A local rule list with recorded provenance, licence, signed updates and rollback. Its source is
    decided separately; no backend is assumed.
 5. A §F-equivalent state model.
@@ -260,21 +290,30 @@ The purpose is to produce the evidence §I needs. It is **not** implementation.
 The Tech Lead runs it on the physical Samsung device, as in M1-06. Settings are changed by hand, and
 `adb` is used only for read-only commands and name-resolution checks.
 
-### E.1 Gate V0 — before any device row
+### E.1 Gate G0 — decisions recorded before any test
 
-1. **Test names (H19, extends D3).** Designate the following as harmless test names:
-   - `nudity.testcategory.com`: Cloudflare says it "tests whether adult content and malware domains
-     are blocked";
-   - `malware.testcategory.com`: the malware tier;
-   - controls `example.org` and `example.com` (IANA). The provider does not block them. M1's local
-     list blocked `example.com`; A8 does not.
-2. **Browser navigation to the test name.** The only evidence that the page is harmless is a search
-   result title, "This is a test website provided by Cloudflare Gateway" (†).
-   - The Tech Lead confirms this once before any browser row.
-   - If navigation is not approved, rows V3, V4, V7 and V11–V13 fall back to weaker evidence
-     (settings screenshots only) and cannot produce COVERED.
-3. **Provider:** Cloudflare Families `family.cloudflare-dns.com`, documented for Android 9+ Private
-   DNS.
+| Decision | Needed before | Content |
+|---|---|---|
+| H19a — test names (extends D3) | V0 | Harmless test names: `nudity.testcategory.com` (the **category name**: Cloudflare says it "tests whether adult content and malware domains are blocked") and `malware.testcategory.com` (informational only). Controls: `example.org` and `example.com` (IANA). The provider does not block the controls; M1's local list blocked `example.com`, A8 does not. |
+| H19b — browser navigation | V3, V4, V7, V11–V13 and the browser-level friction runs (§E.6) | Whether browsers may open the category test page. The only evidence that the page is harmless is a search-result title, "This is a test website provided by Cloudflare Gateway" (†). The Tech Lead checks it once before deciding. |
+| H18 — verification scope | V1 and every later device row | Accept that the test device's DNS goes to the provider while the tests run (§G). |
+| H21 — T1 browser set | V1 | The browsers and modes the T1 claim will cover, registered before any result exists (§I.1). |
+
+Provider: Cloudflare Families `family.cloudflare-dns.com`, documented for Android 9+ Private DNS.
+
+**If H19b is not approved, the outcome is fixed in advance:**
+
+- No validated alternative currently gives equivalent browser evidence. A resolver-diagnostic page
+  (for example Cloudflare's `1.1.1.1/help`) is an unvalidated candidate (U15). It counts as
+  equivalent only after it has been validated and the Tech Lead records that decision.
+- Until then, V3 cannot produce COVERED, so AC4 cannot be met. **No device row runs**, and A8's
+  outcome is **NOT VERIFIABLE for the T1 claim — not accepted** (§I.3).
+- Each follow-up is a separate decision:
+  - approve navigation later;
+  - validate and approve the alternative;
+  - reopen A2, whose browser evidence can use the IANA example domains through local rules, as M1
+    did;
+  - amend H4 to drop browser claims, which would be a product-scope change to M2-01.
 
 ### E.2 The oracle (DNS level)
 
@@ -289,7 +328,7 @@ answer for the adult tier. The blocked AAAA answer is UNKNOWN (V9).
 | Control fails | Environment failure → INCONCLUSIVE, never PASS |
 | Test name NXDOMAIN or other error | Not the provider's documented signal → INCONCLUSIVE |
 
-The oracle never needs page content. With V0 approval, a browser BYPASS shows only Cloudflare's
+The oracle never needs page content. With H19b approval, a browser BYPASS shows only Cloudflare's
 test page.
 
 ### E.3 Safety rules
@@ -309,20 +348,20 @@ The "Was" column gives the matching row ID from the A1–A8 proposal.
 
 | ID | Was | Setup | Action | Expected (basis) | Result classes |
 |---|---|---|---|---|---|
-| V0 | T12 | Desktop, no device | `dig` the test names at `1.1.1.3` and at `1.1.1.1`; `dig` the controls at `1.1.1.3` | Test names `0.0.0.0` at `1.1.1.3` and a real address at `1.1.1.1`; controls real at both (Cloudflare docs). The malware name is informational only (†: a community report says the malware-only tier may not block it). | Oracle VALID / INVALID |
+| V0 | T12 | Desktop, no device; after H19a | `dig` A and AAAA for the category name and the controls at `1.1.1.3` and at `1.1.1.1`; record `malware.testcategory.com` the same way | **Validity rests on the category name only.** It gets `0.0.0.0` at `1.1.1.3` and a real address at `1.1.1.1`, and the controls get real addresses at both (Cloudflare docs). The malware name's result is recorded but never affects validity (†: a community report says the malware-only tier may not block it). | Oracle VALID / INVALID |
 | V1 | T03 | Device: Wi-Fi, then cellular; Private DNS = provider host | Settings screenshot; `dumpsys connectivity` Private DNS lines; `dumpsys dnsresolver` validation | Strict mode active with the provider host | PASS / FAIL |
 | V2 | T03 | As V1, plus a baseline with Private DNS Off | `adb shell ping -c 1 <name>`; read only the resolved address | Host set: test name `0.0.0.0`, controls real. Private DNS Off: test name real. | PASS / FAIL / INCONCLUSIVE |
-| V3 | T01 | Host set; browser DNS settings as found (recorded) | Chrome normal and Incognito, Samsung Internet normal and Secret, Firefox normal and Private: open the test name (V0-gated), then a control | Error page with no content; control loads. Chrome EXPECTATION: its DoH upgrade list maps `family.cloudflare-dns.com` to Cloudflare's family DoH endpoint, but that entry is disabled by default, so Chrome should use Android's resolver; if it were enabled, Chrome would still stay on the family tier. | COVERED / BYPASS / INCONCLUSIVE |
+| V3 | T01 | Host set; browser DNS settings as found (recorded) | Every H21 row (§I.1): Chrome normal and Incognito, Samsung Internet normal and Secret, Firefox normal and Private. Open the category name (H19b), then a control; two runs per row. | Error page with no content; control loads. Chrome EXPECTATION: its DoH upgrade list maps `family.cloudflare-dns.com` to Cloudflare's family DoH endpoint, but that entry is disabled by default, so Chrome should use Android's resolver; if it were enabled, Chrome would still stay on the family tier. | COVERED / BYPASS / INCONCLUSIVE |
 | V4 | T02 | Host set | Chrome Secure DNS with a chosen non-filtering provider; Firefox DoH Increased and Max | BYPASS expected (the browser's own DoH); Cloudflare's test page shows | DISCLOSED (with evidence) / COVERED |
-| V5 | T03 | Host set | Switch Private DNS to Automatic, to Off, and to another host; repeat V2 each time | Test name resolves, so filtering is off | DETECTED on the app side later (V15) |
-| V6 | T07 | Host set | Reboot without opening the app, then V2. Force-stop the app, then V2. | Still blocked (EXPECTATION: the app is not in the DNS path) | PASS / FAIL |
-| V7 | T08 | Private DNS Off; the browser loads the test name (V0-gated) and stays open | Set the host; reload at +0 s, +60 s and +5 min; then a cold start | A short window from cached answers or connections is possible; record it | DISCLOSED window / PASS |
+| V5 | T03 | Host set | Switch Private DNS to Automatic, to Off, and to another host; repeat V2 and `dumpsys connectivity` each time | The test name resolves, so filtering is off, and `dumpsys` shows the changed mode or host. That is the Android signal a DETECTED class relies on. | Signal PASS / FAIL; the app side is checked later (V15) |
+| V6 | T07 | Host set | Reboot, then V2 before opening any app | Still blocked (EXPECTATION: no app is in the DNS path; during verification no A8 app exists). Force-stop and uninstall of the app are checked with the prototype (V14). | PASS / FAIL |
+| V7 | T08 | Private DNS Off; the browser loads the category name (H19b) and stays open | Set the host; reload at +0 s, +60 s and +5 min; then a cold start | A short window from cached answers or connections is possible; record it | DISCLOSED window / PASS |
 | V8 | T04 | Host set | Wi-Fi → cellular → Wi-Fi; V2 and part of V3 on each | Blocked on every network | PASS / FAIL |
 | V9 | T08 | Host set; IPv6-capable network | AAAA lookups (`ping6`) for the test name and a control; part of V3 | Test name AAAA `::` or none; control usable | PASS / FAIL / NOT RUN (no IPv6) |
 | V10 | T05 | Host set | A network that blocks TCP 853 (router rule), and a captive-portal network, if available | DNS fails on that network. Record the system message and a recovery path: set Automatic, connect or log in, restore the host. | DISCLOSED with recovery documented / FAIL (no clear recovery) |
 | V11 | T06 | Host set | Start a common VPN app that has its own DNS; V2 and part of V3 | UNKNOWN. The DevicePolicyManager note says the resolver "must be reachable both from within and outside the VPN". | COVERED / DISCLOSED |
 | V12 | new | Host set | A Custom Tabs flow and a WebView in-app browser | UNKNOWN | COVERED / DISCLOSED |
-| V13 | new | Host set | One more browser at default settings (for example Edge or Brave) | UNKNOWN | COVERED / DISCLOSED |
+| V13 | new | Host set | One more browser at default settings (for example Edge or Brave), characterized outside the H21 set | UNKNOWN | COVERED / DISCLOSED (characterization only; never part of the T1 claim) |
 
 **Later rows.** These depend on an app and need a separate, approved prototype task. They are not
 executed under this plan.
@@ -354,7 +393,52 @@ Classifications map to H4:
   app side needs V14 and V15.
 - **DISCLOSED** means the path is neither prevented nor detected, and it is named in the claim's
   limitations.
-- A row that is INCONCLUSIVE twice counts as not passed.
+- Runs, repeats and INCONCLUSIVE handling follow §I.1.
+
+### E.6 T2 register and friction measurement (H4)
+
+H4 asks for a named list of casual bypass actions (T2), each classified COVERED, DETECTED or
+DISCLOSED. It measures success by the steps and time added between an urge and access. The classes
+below are EXPECTATIONS until the listed row runs.
+
+| ID | T2 action | Expected class | Signal the app can use | Measured in |
+|---|---|---|---|---|
+| B1 | Set Android Private DNS to Off or Automatic | DETECTED at the next foreground (Stopped) | `LinkProperties` host | V5 (app side V15) |
+| B2 | Replace the provider host with a non-filtering host | DETECTED: the host no longer matches (Stopped) | `LinkProperties` host | V5 (app side V15) |
+| B3 | Turn on a browser's own secure DNS: Chrome Secure DNS with a chosen provider, or Firefox DoH Increased or Max | DISCLOSED: the app cannot see browser settings | none | V4 |
+| B4 | Use a browser outside the H21 set, or one with built-in DoH or a built-in VPN | DISCLOSED unless characterized COVERED | none | V13 |
+| B5 | Use private mode in an H21 browser | COVERED if the H21 rows pass | — | V3 |
+| B6 | Start another VPN app | DETECTED if the next check fails (Error, with F-vpn); otherwise per V11 | check, `NetworkCapabilities` | V11 (app side V14) |
+| B7 | Open the page in an in-app browser (Custom Tabs, WebView) | COVERED or DISCLOSED, per V12 | none | V12 |
+| B8 | Reuse a page or connection opened before filtering was turned on | DISCLOSED, with the measured window | none | V7 |
+| B9 | On a network that blocks DoT, turn Private DNS off "to get online" | The outage is Unavailable; the switch is DETECTED as B1 | `LinkProperties`, check | V10 |
+| B10 | Use the app's own "turn off filtering" flow | DETECTED; H8 friction applies (a delay the user configured) | app | V15 (later) |
+| B11 | Force-stop the app or clear its data | Not a bypass by construction: the app is not in the DNS path (EXPECTATION); the app reports again when reopened | — | V14 (later) |
+| B12 | Uninstall the app | Not a bypass by construction: Private DNS stays set (EXPECTATION); the app no longer reports | — | V14 (later) |
+
+Outside T2, with no guarantee (H5, T3): factory reset, another user or profile, ADB and root.
+
+**Friction measurement protocol.** At the gate it applies to B1–B4 and B6–B9. B10 needs the app
+and is measured with the prototype (V15). B5 is a coverage row; B11 and B12 are recorded as "not a
+bypass".
+
+- **Start:** device unlocked on the home screen; Private DNS set to the provider host, with the
+  category name blocked (V2 method); an H21 browser open on a blank tab. No A8 app is needed.
+- **End:** the category name gets a real address on the path under test. For system-level actions
+  this uses the V2 method; for browser-level actions (B3, B4, B7), the browser opens the test page,
+  which needs H19b.
+- **Steps:** every discrete interaction on the shortest path the Tech Lead finds (tap, toggle, text
+  entry, confirmation). The path is written down.
+- **Time:** seconds from start to end, median of three runs by the same practiced user, including
+  system waits.
+- **Detection:** for DETECTED actions, the gate records the Android signal (V5, V10, V11). Whether
+  the app shows the narrower state when reopened, and how long that takes, is measured with the
+  prototype (V14, V15).
+- **Report:** per action, with the device, Android and One UI versions, and browser versions.
+- **Bypass cost:** the configuration's bypass cost is its cheapest measured action. Without
+  filtering, access needs zero extra steps, so the bypass cost is the friction the product adds.
+- **No numeric threshold is set now.** Results feed the claim wording (H10) and the H8 design.
+  DISCLOSED actions are reported as disclosure only, never as protection.
 
 ---
 
@@ -368,7 +452,7 @@ Classifications map to H4:
 | F-net: an active network exists | `ConnectivityManager` | memory |
 | F-pdns: `isPrivateDnsActive()` | `LinkProperties` of the active network | memory |
 | F-host: `getPrivateDnsServerName()` equals the provider host (exact match, case-insensitive) | same | memory |
-| F-check: the last check on this network: test name → provider block answer, control → real address | system resolver | memory only, never persisted |
+| F-check: the last check and its time (monotonic clock): category name → provider block answer, control → real address | system resolver | memory only, never persisted |
 | F-vpn: the active network is a VPN | `NetworkCapabilities` | memory |
 | Setup intent: the user completed setup | local preference | persisted. Used only for wording, never for Filter Active (D8 principle). |
 
@@ -379,33 +463,62 @@ The first matching rule wins.
 | State | Condition | User meaning |
 |---|---|---|
 | Unsupported | not F-api | Filtering needs Android 9+ |
+| Unavailable (offline) | not F-net | No network, so nothing can be observed; never read as Stopped |
 | Not set up | no setup intent and not F-host | Neutral onboarding state |
 | Stopped | not F-host (Private DNS Off, Automatic or another host) | Filtering is off. If setup intent exists: "changed in Android settings" (DETECTED). |
-| Unavailable | F-host but not F-pdns; or the last check failed with the control also failing | The resolver or network is unreachable |
-| Error | the last check contradicts the configuration: the test name got a real address while F-host and F-pdns hold (this path is not filtered, e.g. another VPN) | Never Active |
-| Degraded | F-host and F-pdns, but no fresh passing check (§F.4) | Set up, not verified on this network |
-| **Filter Active** | F-api, F-pdns, F-host, and a fresh passing check | All conditions of the approved boundary are observed (H7) |
+| Unavailable | F-host but not F-pdns; or a fresh check (§F.4) failed with the control also failing | The resolver or network is unreachable |
+| Error | a fresh check contradicts the configuration: the category name got a real address while F-host and F-pdns hold (this path is not filtered, e.g. another VPN) | Never Active |
+| Degraded | F-host and F-pdns, but no fresh passing check: never checked here, or the evidence expired (§F.4) | Set up, not verified on this network recently |
+| **Filter Active** | F-api, F-pdns, F-host, and a passing check that is fresh under §F.4, so younger than `CHECK_TTL` | All conditions of the approved boundary are observed (H7) |
 
 ### F.3 Coverage
 
-Coverage is a statement built only from the committed §E results. For each browser and mode it
-says: covered (tested PASS), not covered (DISCLOSED) or not tested.
+Coverage is a record built only from the committed §E results. It is never a live check.
 
+Each coverage entry records:
+
+- the browser and mode;
+- the browser version and its DNS setting as tested;
+- the Android and One UI versions and the device model;
+- the test date and the V-row with its evidence reference;
+- the result: COVERED, DISCLOSED or not tested.
+
+Rules for showing it:
+
+- The app cannot see a browser's settings or know whether they changed, and the texts say so
+  (§F.6).
+- The texts name the tested configuration, for example "tested with Chrome 1xx, Secure DNS:
+  automatic, Sep 2026". They never say that the user's browser *is* covered.
+- Coverage is re-verified on current browser versions before each release. This is a release
+  checklist item (M5); H10 requires re-review whenever the evidence changes.
 - Runtime facts can narrow coverage but never widen it. Example: another VPN is active (F-vpn) and
   V11 was not COVERED, so the text becomes "coverage not verified with another VPN".
 - Filter Active never implies any browser row.
 
 ### F.4 Observation freshness
 
-- A check is fresh only for the network it ran on, and only within the current app process.
-- It expires on:
-  - a network change or a Private DNS change (callbacks while the process lives);
-  - a process restart.
-- Checks run when the app comes to the foreground with a stale state, and when the user taps
-  "Check now".
-- There is **no** background service, scheduler or periodic job.
-- The UI shows the check time. A time-based expiry can be added by the spec, but it may only shorten
-  freshness.
+A check result is fresh only while **all** of these hold:
+
+- it is younger than **`CHECK_TTL` = 10 minutes**. This is the baseline value (H15), measured
+  with a monotonic clock. The spec may shorten it; lengthening it needs a new decision.
+- the active network is the one it ran on;
+- Private DNS has not changed since (callbacks while the process lives);
+- the app process has not restarted.
+
+When any of these stops holding, every state that came from a check (Filter Active, Error, and
+Unavailable from a failed check) drops to **Degraded — not verified recently** until a new check
+runs; that check's result then sets the state. The UI applies the expiry by itself, with no network activity, so Filter Active is never
+shown on evidence older than 10 minutes. States read directly from `LinkProperties` (Stopped, and
+Unavailable without a check) are re-read whenever the state is evaluated.
+
+- New checks run only when the app comes to the foreground with stale evidence, or when the user
+  taps "Check now". There is **no** automatic periodic re-check, background service, scheduler or
+  job.
+- The UI always shows the check time.
+- A8 shows its state only inside the app. No notification claims Filter Active.
+
+Why 10 minutes: it bounds how stale a displayed Filter Active can be, while a check costs only a
+few lookups and runs only while the user is in the app.
 
 ### F.5 Check constraints (H9)
 
@@ -419,9 +532,10 @@ says: covered (tested PASS), not covered (DISCLOSED) or not tested.
 
 | State | Draft |
 |---|---|
-| Filter Active | "Filter active on this network (checked 10:42). Covers apps that use Android's DNS. Tested browsers: Chrome, Samsung Internet. Browsers or apps using their own secure DNS are not covered." |
-| System check passes, browser not tested | "System DNS filter: active (checked just now). Firefox: not tested — it may use its own secure DNS." |
-| Degraded | "Set up, not yet checked on this network. [Check now]" |
+| Filter Active | "Filter active on this network (checked 10:42). Covers apps that use Android's DNS. Tested with Chrome 1xx, Samsung Internet 2x and Firefox 1xx at default settings (Sep 2026). This app can't see your browser's settings; if you changed them, this may not apply. Browsers or apps using their own secure DNS are not covered." |
+| System check passes, browser not tested | "System DNS filter: active (checked just now). [Browser]: not tested — it may use its own secure DNS." |
+| Degraded (never checked here) | "Set up, not yet checked on this network. [Check now]" |
+| Degraded (evidence expired) | "Last verified 10:42 — not verified recently. [Check now]" |
 | Stopped (after a change) | "Filtering is off: Android Private DNS was changed. Recovery tools still work." |
 | Unavailable | "The filtering DNS can't be reached on this network. Android may have no internet here. [How to reconnect]" |
 | Error | "The check failed: a test name wasn't blocked. Filtering may not be working on this network." |
@@ -453,7 +567,8 @@ Proposed decision H18 — PENDING.
 
 **Options:**
 
-- accept for verification only (the Tech Lead's own device during §E);
+- accept for verification only (the Tech Lead's own device during §E); required before V1 (gate
+  G0, §E.1);
 - accept for production (after §I);
 - reject: A8 stops, and either A2 is reopened (§D.4) or the product ships recovery-only (H12).
 
@@ -565,41 +680,72 @@ production. The removal work would then become an M3 task under its own contract
 
 ## I. Acceptance & Rejection Criteria
 
-**Required browser set** (proposed; the Tech Lead confirms, §J Q2): the target device's default
-browsers, Chrome (normal and Incognito) and Samsung Internet (normal and Secret), with browser DNS
-settings as found.
+### I.1 Pre-registered T1 scope (H21)
 
-### I.1 Accept A8 as the production filter architecture only if all of these hold
+The T1 scope is recorded before V1, so no result can change it silently. In H4's wording, these are
+the "tested browsers".
+
+| Browser | Modes | Settings |
+|---|---|---|
+| Chrome | normal, Incognito | DNS settings as found (defaults); current store version at test time |
+| Samsung Internet | normal, Secret | same |
+| Firefox | normal, Private | same |
+
+- This matches the gating scope approved in M1-06 (H2: rows G1–G4, G7, G8).
+- The device is the Tech Lead's target Samsung phone; its model and One UI version are recorded.
+- Browsers tested in V13 are **characterized**. They are not "tested browsers" in H4's sense, and
+  they are never claimed.
+
+**Run rules for T1 rows:**
+
+- Each T1 row runs twice. A row is COVERED only if both runs are COVERED.
+- A BYPASS in either run makes the row BYPASS, whether reproduced or intermittent, as in M1-06.
+- An INCONCLUSIVE run allows one extra run, recorded before it happens. A row that is still not
+  COVERED after that is NOT MET.
+
+### I.2 Accept A8 as the production filter architecture only if all of these hold
 
 | ID | Criterion | Rows |
 |---|---|---|
-| AC1 | The oracle is valid | V0 |
+| AC1 | The oracle is valid, judged on the category name only | V0 |
 | AC2 | The mechanism is active on Wi-Fi and on cellular | V1 |
 | AC3 | The system path is blocked on Wi-Fi and cellular, and the controls resolve | V2 |
-| AC4 | Every required browser row is COVERED and reproduced once | V3 |
-| AC5 | Blocking persists after a reboot and after an app force-stop, without opening the app, and across Wi-Fi ↔ cellular | V6, V8 |
-| AC6 | Every other row is classified COVERED, DETECTED or DISCLOSED with evidence; NOT RUN only with a stated reason | V4, V5, V7, V9–V13 |
+| AC4 | Every H21 row is COVERED under the §I.1 run rules | V3 |
+| AC5 | Blocking persists after a reboot with no app running, and across Wi-Fi ↔ cellular | V6, V8 |
+| AC6 | Every T2 register action (§E.6) that can be measured without the app is classified with evidence, and its steps and time are recorded. For DETECTED actions, the evidence is the Android signal; the app side (B10, B11, B12 and the app's reaction) is verified in V14–V15 as M3 acceptance. Every other row is classified COVERED, DETECTED or DISCLOSED; NOT RUN only with a stated reason. | V4, V5, V7, V9–V13 |
 | AC7 | Behavior when the resolver is unreachable or behind a captive portal is documented, with a working recovery path through standard Settings | V10 |
-| AC8 | H18 is accepted | — |
-| AC9 | H19 is accepted before any row | — |
+| AC8 | H18 is accepted for production | — |
+| AC9 | Gate G0 (H18 verification scope, H19, H21) was recorded before the first device row | — |
 
-### I.2 Reject A8 if any of these holds
+### I.3 Outcomes, decided in advance
 
-| ID | Criterion | Consequence |
+| Outcome | When | Result |
 |---|---|---|
-| RJ1 | Oracle invalid: the test name is not blocked by the family tier, or is also blocked by the unfiltered resolver (V0) | Stop. Retry V0 with another provider that meets §G.6, or reopen A2. |
-| RJ2 | The mechanism or the system path fails on the target device on normal networks (V1, V2) | Stop A8; reopen A2 (§D.4) |
-| RJ3 | A required browser row BYPASSes reproducibly at default settings (V3) | A2 would have the same browser-level gap, so reopening A2 does not help. The Tech Lead chooses between narrowing the claim to the browsers that pass and making no filter claim. |
-| RJ4 | Blocking does not survive a reboot (V6) | Stop A8; reopen A2 |
-| RJ5 | V10 shows the user can be left without connectivity and without a clear standard recovery path | Stop A8, or narrow the supported networks (Tech Lead) |
-| RJ6 | H18 is rejected | Stop A8; A2 or recovery-only |
+| **PASS** | AC1–AC9 all hold | A8 is accepted as the production filter architecture. The ADR can be accepted, and M3 task contracts follow. |
+| **FAIL — candidate** | Any of RJ1–RJ6 | A8 is not accepted for the registered scope. The follow-up comes from the RJ row below. |
+| **NOT VERIFIABLE** | H19b not approved and no validated equivalent exists (§E.1) | A8 is not accepted, and no device row runs |
 
-### I.3 Handling other results
+| ID | Rejection condition | Follow-up (each a separate decision) |
+|---|---|---|
+| RJ1 | Oracle invalid: the category name is not blocked by the family tier, or is also blocked by the unfiltered resolver (V0) | A new V0 with another provider that meets §G.6, or reopen A2 (§D.4) |
+| RJ2 | The mechanism or the system path fails on the target device on normal networks (V1, V2) | Reopen A2 |
+| RJ3 | Any H21 row is BYPASS (V3) | Reopening A2 does not help, because A2 has the same browser-level gap. A scope change is possible (below). |
+| RJ4 | Blocking does not survive a reboot (V6) | Reopen A2 |
+| RJ5 | V10 shows the user can be left without connectivity and without a clear standard recovery path | Reopen A2, or narrow the supported networks through a scope change |
+| RJ6 | H18 is rejected for production | A2 or recovery-only (H12) |
 
-- **Not decisive but recorded:** Firefox and other browsers must be classified COVERED or DISCLOSED.
-  The claim covers only the COVERED rows (H10); DISCLOSED rows become its limitations.
-- **INCONCLUSIVE:** a required row that is INCONCLUSIVE twice counts as not passed. The Tech Lead
-  decides between another re-run and rejection.
+**A scope change is not a pass.**
+
+- After a FAIL, the Tech Lead may record a separate decision that changes the product scope. For
+  example, it can remove a browser from H21, so that the claim explicitly excludes it, or narrow
+  the supported networks.
+- A8 is then re-evaluated against the new scope, using the recorded evidence and re-running only
+  the rows the change affects.
+- The record shows three things in order: the FAIL on the original scope, the scope decision, and
+  the re-evaluation result.
+
+After a PASS, the claim covers only COVERED rows (H10), and DISCLOSED rows become its stated
+limitations.
 
 ---
 
@@ -610,28 +756,34 @@ settings as found.
    Filter Active holds only when all of the following are true:
    - the device runs API 28+;
    - Private DNS is active in strict mode with the provider host on the active network;
-   - a check on this network, in this app session, got the provider's block answer for the test
-     name while the control resolved.
+   - a check on this network, in this app session, got the provider's block answer for the
+     category name while the control resolved, and that check is younger than `CHECK_TTL`
+     (10 minutes).
 
    Nothing else produces Active: not the saved setup, not the host alone, not a check from another
-   network. When the system check passes and a browser is untested, the app shows: "System DNS
-   filter: active (checked just now). [Browser]: not tested — it may use its own secure DNS."
-   (§F.2, §F.6)
+   network, and not an expired check. When the evidence expires, the state drops to Degraded until
+   a new check runs.
+
+   When the system check passes and a browser is untested, the app shows: "System DNS filter:
+   active (checked just now). [Browser]: not tested — it may use its own secure DNS." Browser lines
+   name the configuration that was tested; the app never claims to see a browser's current
+   settings. (§F.2–§F.4, §F.6)
 
 2. **Which T1 rows must pass before A8 is accepted, and what result stops it?**
-   - **Must pass:** V3 COVERED for Chrome (normal, Incognito) and Samsung Internet (normal,
-     Secret) at default settings, plus V1, V2, V6 and V8.
-   - **Stops A8:** any of RJ1–RJ6. RJ3, a reproducible default-settings BYPASS in a required
-     browser, leads to narrowing the claim or making no filter claim, because A2 shares that gap.
-   - **Other browsers:** Firefox and the rest do not block acceptance. They must be classified, and
-     the claim excludes them if they are DISCLOSED. (§I)
+   - **Must pass:** every H21 row, registered before testing: Chrome, Samsung Internet and Firefox,
+     each in normal and private mode, at default settings. Each must be COVERED in both runs. V1,
+     V2, V6 and V8 must also pass.
+   - **Stops A8:** any of RJ1–RJ6 is a candidate FAIL for the registered scope. Narrowing the claim,
+     for example by dropping a browser from H21, is a separate scope decision followed by
+     re-evaluation, never a pass. If browser navigation (H19b) is not approved, the outcome is NOT
+     VERIFIABLE. (§I.1–§I.3, §E.1)
 
 3. **Does the Tech Lead accept sending DNS queries to the chosen provider, and how is it explained to
    the user?**
-   This is not decided. H18 is pending and belongs to the Tech Lead. Running §E already sends the
-   test device's DNS to Cloudflare, so the first sub-decision is to accept it "for verification".
-   The user explanation in §G.4 appears before setup, with a way to decline, and recovery works
-   either way.
+   This is not decided. H18 is pending and belongs to the Tech Lead. Running §E sends the test
+   device's DNS to Cloudflare, so the "for verification" part of H18 is part of gate G0, and no
+   device row runs before it (§E.1). The user explanation in §G.4 appears before setup, with a way
+   to decline, and recovery works either way.
 
 4. **Can A2 be estimated now, or is it a deferred investigation?**
    It is a deferred investigation. Four things are unknown or open:
@@ -659,9 +811,9 @@ settings as found.
 
 | ID | Unknown | Resolved by | Affects |
 |---|---|---|---|
-| U1 | Whether `nudity.testcategory.com` is safe to open in a browser; only a search-result title says it is a Cloudflare test site | V0 gate (Tech Lead) | V3, V4, V7, V11–V13 |
+| U1 | Whether `nudity.testcategory.com` is safe to open in a browser; only a search-result title says it is a Cloudflare test site | H19b (Tech Lead, gate G0) | V3, V4, V7, V11–V13; NOT VERIFIABLE path (§E.1) |
 | U2 | The AAAA answer for blocked names | V9 | Oracle |
-| U3 | Whether Firefox uses its own DoH by default in the tested region while Private DNS is strict | V3 | Claim scope |
+| U3 | Whether Firefox uses its own DoH by default in the tested region while Private DNS is strict | V3 | AC4 (Firefox is in H21) |
 | U4 | Samsung Internet's own DNS behavior | V3 | AC4 |
 | U5 | Another VPN running together with A8 | V11 | T4 coverage |
 | U6 | In-app browsers and WebView | V12 | Claim scope |
@@ -673,15 +825,17 @@ settings as found.
 | U12 | Whether the malware test name separates the two Families tiers (†) | V0 | Use the nudity name as the family oracle |
 | U13 | Whether the recovery layer is valuable enough on its own | Product research in M4/M6 with a privacy plan; not an architecture gate | Product |
 | U14 | Whether A2 works under Android's default Private DNS | Only if A2 is reopened | A2 |
+| U15 | Whether a resolver-diagnostic page (for example `1.1.1.1/help`) can give browser-path evidence equivalent to opening the category page | Validation, then a recorded Tech Lead decision | The NOT VERIFIABLE path (§E.1) |
+| U16 | Whether a 10-minute `CHECK_TTL` suits real use | V14 (later) | §F.4; it may only be shortened without a new decision |
 
 ---
 
-## L. Updated ADR / Architecture Baseline Candidate
+## L. Updated ADR / Architecture Baseline
 
 ### ADR-M2-02 — Filter layer: verify guided Private DNS (A8) first
 
-**Status:** Proposed. It goes to final verification review, then to the Architecture Gate (M2-03).
-It is not accepted.
+**Status:** Proposed architecture baseline for the Architecture Gate (M2-03). It is not accepted.
+Accepting the baseline does not accept A8 for production; that happens only on a §I PASS.
 
 **Context:** In M1, a DNS-only VpnService filter:
 
@@ -700,7 +854,7 @@ M2-01 approved:
 
 **Options considered:** A1–A8 (§D).
 
-**Decision (proposed):** H13–H20 below.
+**Decision (proposed):** H13–H21 below.
 
 **Why:** §A.3.
 
@@ -724,28 +878,44 @@ The Tech Lead owns the decision.
 |---|---|---|
 | H13 | Recovery/filter boundary: the recovery layer never depends on the filter layer's presence, state, code paths or data. Filter absence, failure, an unsupported platform or the user's choice never changes recovery behavior. | Its H13, rewritten as a boundary |
 | H14 | A8 is the filter layer's verification candidate. The user sets Android Private DNS (strict) to a filtering provider; the provider under verification is Cloudflare Families `family.cloudflare-dns.com`. The filter layer is API 28+, shown Unsupported below that, with minSdk unchanged. Production selection only after §I acceptance, H18 and the gate. | Its H14 |
-| H15 | Mechanism state, coverage and freshness are separate. Filter Active only under the §F.2 conditions. Coverage comes only from committed verification results. Checks run only on foreground or user request; no background probes. | Its H15, made precise |
-| H16 | A4a Always-on is required with any VPN-based filter (N/A to A8). A4b Lockdown is out of the MVP pending its own matrix. A3, A5 and A6 are deferred. A7a is excluded (H5). A7b is out of scope; if reopened it is judged on H9, D1 and Play. A2 is a deferred investigation with the §D.4 triggers. | Its H16, split |
-| H17 | Next step: the Tech Lead runs §E rows V0–V13 on the target device after H19, and the results are committed as a classified report. No implementation. V14–V17 need a separate, approved prototype task. | Its H17, made concrete |
-| H18 | Privacy and trust: accept or reject the third-party DNS data flow for A8, for verification and for production (§G) | New |
-| H19 | Test names (extends D3): `nudity.testcategory.com` and `malware.testcategory.com` for DNS-level checks; browser navigation to them only after the Tech Lead confirms they are harmless test pages; controls `example.org` and `example.com` | New |
-| H20 | Optional, derived from H9 (local-first), not from H12: recovery also works without internet | New; corrects the H12 attribution |
+| H15 | Mechanism state, coverage and freshness are separate. Filter Active only under the §F.2 conditions, on check evidence younger than `CHECK_TTL` = 10 minutes and never on saved intent (§F.4). Expired evidence drops the state to Degraded until a new check runs. Coverage comes only from committed results and names the tested configuration (§F.3). Checks run only on foreground or user request; no automatic re-checks and no background probes. | Its H15, made precise and time-bounded |
+| H16 | A4a Always-on is needed only if a VPN-based filter claims coverage after reboot, backed by a lifecycle test when A2 is reopened; otherwise reboot is DISCLOSED for that filter. N/A to A8. A4b Lockdown is out of the MVP pending its own matrix. A3, A5 and A6 are deferred. A7a is excluded (H5). A7b is out of scope; if reopened it is judged on H9, D1 and Play. A2 is a deferred investigation with the §D.4 triggers. | Its H16, split; Always-on made conditional |
+| H17 | Next step after baseline approval: the Tech Lead records gate G0 (H18 verification scope, H19, H21), then runs §E rows V0–V13 and the §E.6 friction runs, and commits a classified report. The A8 production decision then follows §I.3. No implementation. V14–V17 need a separate, approved prototype task. | Its H17, made concrete |
+| H18 | Privacy and trust: accept or reject the third-party DNS data flow for A8, in two parts: for verification (part of G0, before V1) and for production (AC8) (§G) | New |
+| H19 | (a) Test names, extending D3: the category name `nudity.testcategory.com` and the informational `malware.testcategory.com` for DNS-level checks; controls `example.org` and `example.com`. (b) Whether browsers may open the category page; if not, the §E.1 NOT VERIFIABLE outcome applies. | New |
+| H20 | Optional, derived from H9 (local-first), not from H12: recovery also works without internet. It is not an implementation precondition unless approved. | New; corrects the H12 attribution |
+| H21 | T1 browser set, registered before V1: Chrome, Samsung Internet and Firefox, each in normal and private mode, at default DNS settings and current store versions, on the target device (§I.1). Changing it after results is a separate scope decision followed by re-evaluation, never a pass. | New |
 
 ### Pre-gate actions (Tech Lead)
 
 1. Merge `docs/04-m2-01-approved-decisions` (`5291383`) into `main`, so that H4–H12 are in the formal
    reference before M2-03.
-2. Decide H19, and at least the "for verification" part of H18; then run §E.
-3. Separate docs task: M1-07 status after PR #32, README status, roadmap update (§H.3).
+2. Separate docs task: M1-07 status after PR #32, README status, roadmap update (§H.3).
 
-### Architecture baseline candidate
+### What approving this baseline means
 
-If §I passes, the gate would approve:
+Approving it at the gate approves:
 
 - the §A.1 structure;
-- the §F state model;
-- the §G decision;
-- the §H dispositions.
+- the §F state model, including `CHECK_TTL`;
+- the §E verification protocol, including gate G0, the oracle and the §E.6 T2 register and
+  friction protocol;
+- the §I outcomes, decided in advance;
+- the §H dispositions, which take effect only after a PASS;
+- decision items H13–H17, H20 as optional, and H21.
+
+H18 and H19 are recorded as the Tech Lead decides them. Approval does **not** accept A8 for
+production.
+
+### Sequence
+
+1. **Gate (M2-03):** approve the baseline; record G0 (H18 verification scope, H19a, H19b, H21).
+2. **Verification:** V0, then V1–V13 and the §E.6 friction runs, by the Tech Lead, followed by a
+   committed, classified report. If H19b is refused, stop here as NOT VERIFIABLE.
+3. **Decision:** the outcome per §I.3. On a PASS, together with H18 for production, the ADR is
+   accepted and M3 task contracts follow: the observation core and state evaluator, the removal of
+   the experiment code, and the docs updates.
+4. **Acceptance tests:** V14–V17 become acceptance tests for M3 and M4.
 
 ### Sources
 
