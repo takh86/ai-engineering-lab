@@ -300,7 +300,7 @@ Status (2026-09-26): pending. Parent issue #22 is split into four steps, in orde
 
 | Issue | Step | State |
 |---|---|---|
-| #39 | M2-03A — human gate / G0 | The Tech Lead recorded "M2-03A = APPROVE" in a comment on #39: M2-01 + M2-02 are the M2 decision baseline and A8 is a verification candidate only. G0 (H18, H19a, H19b, H21) is **not recorded**. Transcribing M2-03A into the decision package and preparing the G0 wording are proposed in draft PR #55, which is not merged at the time of writing. |
+| #39 | M2-03A — human gate / G0 | The Tech Lead recorded "M2-03A = APPROVE": M2-01 + M2-02 are the M2 decision baseline and A8 is a verification candidate only. PR #55 is merged and carries that decision package on `main`. G0 remains **incomplete**: H18, H19a, H19b and H21 are still pending Tech Lead decisions. No device verification is authorized until G0 is complete. |
 | #40 | M2-03B — A8 verification V0–V13 | Blocked by M2-03A / G0. Not executed. |
 | #41 | M2-03C — T2 friction validation | Blocked by M2-03A / G0. Not executed. |
 | #42 | M2-03D — evidence synthesis + final architecture ADR | Blocked by #40 and #41. |
