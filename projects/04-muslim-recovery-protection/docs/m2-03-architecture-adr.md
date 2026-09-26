@@ -1,17 +1,19 @@
 # M2-03 — Architecture ADR: Verification Gate Record
 
-> **Status: M2-03A AND G0 RECORDED; A8 VERIFICATION PENDING**
+> **Status: M2-03A RECORDED; G0 READY FOR TECH LEAD SIGN-OFF**
 >
 > **Project:** Muslim Recovery Protection\
 > **Milestone:** M2 — Architecture & Truthful Product Claim ([issue #19](https://github.com/takh86/ai-engineering-lab/issues/19))\
 > **Task:** M2-03 — Human architecture ADR ([issue #22](https://github.com/takh86/ai-engineering-lab/issues/22)); this file prepares step M2-03A only\
 > **Date prepared:** 2026-09-26\
-> **Decision provenance:** the Tech Lead directed adoption of the final baseline and then approved
-> proceeding with the bounded verification sequence in the project conversation on 2026-09-26.
-> Codex transcribed that instruction into the checkboxes below. No device result is implied.
+> **Decision provenance:** the Tech Lead directed adoption of the final baseline and expressed
+> support for H18 verification-only in the project conversation on 2026-09-26. Codex prepared
+> the exact G0 choices below for human review. Their checkboxes remain empty until the Tech Lead
+> confirms each item. No device result is implied.
 
-This record selects A8 for verification only. It does not select a production architecture or
-authorize M3 work. Where it and its sources differ, [M2-01][m2-01] and [M2-02][m2-02] win.
+This record selects A8 as the verification candidate, but G0 is not yet complete. It does not
+select a production architecture or authorize M3 work. Where it and its sources differ,
+[M2-01][m2-01] and [M2-02][m2-02] win.
 
 ---
 
@@ -89,14 +91,15 @@ H18, H19 and H21 are not part of M2-03A. They are gate G0 decisions (§3).
 
 ---
 
-## 3. G0 — recorded verification decisions
+## 3. G0 — decisions prepared for Tech Lead sign-off
 
-Source: M2-02 §E.1, §G and §L. Recorded from the Tech Lead's direction to proceed with the
-previously presented verification sequence; the named scope below is frozen before results.
+Source: M2-02 §E.1, §G and §L. The exact items below require separate recorded decisions
+before the named scope is frozen or any device row begins. The broader direction to proceed
+does not substitute for these checks.
 
 ### H18 — Verification privacy consent
 
-- [x] APPROVE
+- [ ] APPROVE
 - [ ] REJECT
 
 **Question:** For the verification phase only, do I approve routing the test device's DNS queries
@@ -106,7 +109,8 @@ through the filtering provider under test (Cloudflare Families / `family.cloudfl
 - **This is NOT production approval.** Production privacy acceptance is a separate decision, made
   through AC8 (§I.2). Rejecting it for production is RJ6 (§I.3).
 - **Data flow and provider facts:** M2-02 §G.1–§G.3.
-- **Verification boundary:** use a dedicated, limited test window; avoid personal browsing.
+- **Proposed verification boundary, consistent with the Tech Lead's expressed intent:** use a
+  dedicated, limited test window; avoid personal browsing.
   Other installed apps may still generate DNS queries. Record the as-found Private DNS setting,
   restore it immediately after the window, and verify the restored setting and connectivity.
   Never interpret this approval as consent to ongoing routing or production deployment.
@@ -116,7 +120,7 @@ through the filtering provider under test (Cloudflare Families / `family.cloudfl
 
 ### H19a — Test names
 
-- [x] APPROVE
+- [ ] APPROVE
 - [ ] REJECT
 
 Policy exactly as defined in M2-02 §E.1 and §L H19(a), extending D3:
@@ -134,7 +138,7 @@ Policy exactly as defined in M2-02 §E.1 and §L H19(a), extending D3:
 
 ### H19b — Browser test-page access
 
-- [x] APPROVE
+- [ ] APPROVE
 - [ ] REJECT
 
 **Question:** May the approved test browsers open the provider's documented harmless test-category
@@ -157,7 +161,7 @@ page where the verification protocol requires it?
 
 ### H21 — Browser verification scope
 
-- [x] APPROVE
+- [ ] APPROVE
 - [ ] MODIFY
 - [ ] REJECT
 
@@ -194,9 +198,9 @@ the outcome is INCOMPLETE (§I.1 step 3). The claim is scoped to the tested regi
 - **If rejected:** M2-02 defines no separate outcome. Without a recorded H21, gate G0 is incomplete,
   so V1 cannot start (§E.1) and AC9 cannot hold (§I.2).
 
-**G0 recorded from:** Tech Lead's project-conversation decision to proceed, 2026-09-26;
-transcribed by Codex. Scope: H18 verification only, H19a/H19b and H21 as written above.
-No device setting has been changed by this record.
+**G0 status:** PENDING human sign-off on H18, H19a, H19b and H21 as written above.
+No device setting has been changed by this draft. The Tech Lead's expressed support for
+verification-only H18 must be recorded explicitly here together with the other G0 items.
 
 ---
 
@@ -221,9 +225,9 @@ M2 production architecture decision
 - V0 needs H19a only; V1 and every later device row need all of G0 (§E.1).
 - The rows, oracle, safety rules and evidence rules are in M2-02 §E.2–§E.6. They are not restated.
 - V14–V17 are not part of this phase. They need a separate, approved prototype task (§E.4, H17).
-- **Status:** G0 is recorded; no V-row and no friction run has been executed. No A8 device
-  evidence exists. The next executable step is V0, followed by the device rows on the named
-  Samsung test device and the friction protocol. Results belong in issue #40/#41's evidence report.
+- **Status:** G0 is pending; no V-row and no friction run has been executed. No A8 device evidence
+  exists. After G0 sign-off, V0 is first, followed by device rows on the named Samsung test device
+  and the friction protocol. Results belong in issue #40/#41's evidence report.
 
 Possible outcomes are exactly those defined in M2-02 §I.3; they are not redefined here:
 
@@ -282,9 +286,9 @@ non-goals, verification strategy before code) remain open.
 ## AI contribution
 
 AI (Claude) prepared the original package from the merged M2-01 and M2-02 documents. Codex
-transcribed the Tech Lead's later project-conversation approval for M2-03A and G0 and checked the
-test URL's currently served page against Cloudflare's documentation. The Tech Lead owns these
-decisions; AI has made no production choice, run no device test, and changed no device setting.
+transcribed the existing M2-03A decision, prepared the G0 wording and checked the test URL's
+currently served page against Cloudflare's documentation. The Tech Lead owns each G0 choice;
+AI has checked none of its boxes, run no device test, and changed no device setting.
 
 [m2-01]: m2-01-approved-threat-model.md
 [m2-02]: m2-02-architecture-options.md
