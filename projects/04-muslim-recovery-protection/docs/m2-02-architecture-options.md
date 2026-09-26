@@ -880,7 +880,7 @@ limitations.
 
 | ID | Unknown | Resolved by | Affects |
 |---|---|---|---|
-| U1 | The test page was checked directly on 2026-09-26 and H19b is recorded in M2-03; whether it remains the same at the device run is unknown | Re-check the page before V3 and preserve the observed content description | V3, V4, V7, V11–V13 |
+| U1 | The test page was checked directly on 2026-09-26; H19b is pending in M2-03, and whether the page remains the same at the device run is unknown | Tech Lead signs H19b; re-check the page before V3 and preserve the observed content description | V3, V4, V7, V11–V13 |
 | U2 | The AAAA answer for blocked names | V9 | Oracle |
 | U3 | Whether Firefox uses its own DoH by default in the tested region while Private DNS is strict | V3 | AC4 (Firefox is in H21) |
 | U4 | Samsung Internet's own DNS behavior | V3 | AC4 |
