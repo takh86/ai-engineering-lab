@@ -313,8 +313,8 @@ The Tech Lead runs it on the physical Samsung device, as in M1-06. Settings are 
 | Decision | Needed before | Content |
 |---|---|---|
 | H19a — test names (extends D3) | V0 | Harmless test names: `nudity.testcategory.com` (the **category name**: Cloudflare says it "tests whether adult content and malware domains are blocked") and `malware.testcategory.com` (informational only). Controls: `example.org` and `example.com` (IANA). The provider does not block the controls; M1's local list blocked `example.com`, A8 does not. |
-| H19b — browser navigation | V3, V4, V7, V11–V13 and the browser-level friction runs (§E.6) | Whether browsers may open the category test page. The only evidence that the page is harmless is a search-result title, "This is a test website provided by Cloudflare Gateway" (†). The Tech Lead checks it once before deciding. |
-| H18 — verification scope | V1 and every later device row | Accept that the test device's DNS goes to the provider while the tests run (§G). |
+| H19b — browser navigation | V3, V4, V7, V11–V13 and the browser-level friction runs (§E.6) | Whether browsers may open the category test page. Cloudflare documents it in the Families [setup page][cf-setup]. Its [served page](https://nudity.testcategory.com/) was opened read-only on 2026-09-26 and displayed a Cloudflare Gateway test notice with no adult-content text. Re-check before the device run because page contents can change. The Tech Lead records the decision in M2-03. |
+| H18 — verification scope | V1 and every later device row | Accept that the test device's DNS goes to the provider while tests run (§G). Use a dedicated window without personal browsing; other apps may still send DNS. Record and restore the original Private DNS setting and verify connectivity immediately afterwards. This does not approve production use. |
 | H21 — T1 browser set | V1 | The browsers and modes the T1 claim will cover, each at its default DNS setting, registered before any result exists (§I.1). It includes consent to switch a browser's DNS setting to its default for the test and to restore the as-found setting afterwards. |
 
 Provider: Cloudflare Families `family.cloudflare-dns.com`, documented for Android 9+ Private DNS.
@@ -880,7 +880,7 @@ limitations.
 
 | ID | Unknown | Resolved by | Affects |
 |---|---|---|---|
-| U1 | Whether `nudity.testcategory.com` is safe to open in a browser; only a search-result title says it is a Cloudflare test site | H19b (Tech Lead, gate G0) | V3, V4, V7, V11–V13; NOT VERIFIABLE path (§E.1) |
+| U1 | The test page was checked directly on 2026-09-26; H19b is pending in M2-03, and whether the page remains the same at the device run is unknown | Tech Lead signs H19b; re-check the page before V3 and preserve the observed content description | V3, V4, V7, V11–V13 |
 | U2 | The AAAA answer for blocked names | V9 | Oracle |
 | U3 | Whether Firefox uses its own DoH by default in the tested region while Private DNS is strict | V3 | AC4 (Firefox is in H21) |
 | U4 | Samsung Internet's own DNS behavior | V3 | AC4 |
@@ -1021,7 +1021,6 @@ Cloudflare documentation source, `production` branch on GitHub (FACT), and the p
 
 † Search excerpts, not verified:
 
-- the `nudity.testcategory.com` page title;
 - a Cloudflare community thread on the malware-only tier;
 - the Play VpnService and sensitive-permissions policies ([VpnService][play-vpn],
   [sensitive permissions][play-perms]).
