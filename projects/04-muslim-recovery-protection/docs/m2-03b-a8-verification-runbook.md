@@ -1,6 +1,6 @@
 # M2-03B — A8 Verification Runbook (V0–V13)
 
-> **Status: PREPARED — NOT EXECUTED. Execution is blocked until gate G0 is recorded.**
+> **Status: PREPARED — NOT EXECUTED. Execution is blocked until gate G0 is recorded and the §2.5 result/privacy rules are frozen.**
 >
 > **Project:** Muslim Recovery Protection\
 > **Milestone:** M2 — Architecture & Truthful Product Claim\
@@ -134,6 +134,57 @@ result.
 | C8 | Clearing browsing data in the browser reset (§6.3 BR) | V3 | Not in M2-02 | Not used: it deletes personal history, and H21's consent covers DNS settings only. Force-stop is used instead. | |
 | C9 | Accept or amend the runbook readings Q1–Q23 (§15) | Before each affected row | — | — | |
 | C10 | Desktop tool for V0 if `dig` is unavailable | V0 | "`dig A`" | `dig` preferred. `nslookup -type=A <name> <server>` as a substitute, recorded as a deviation. It shows the answer and NXDOMAIN, but not the full response header. | |
+
+### 2.5 Pre-execution freeze required after review
+
+The runbook is **not execution-ready** until the following result-affecting points are frozen in the
+authoritative M2 decision record. They are not decided by this runbook.
+
+#### Outcome / classification semantics
+
+Before any affected row runs, the Tech Lead must record the rule for:
+
+1. **V7 failure semantics** — whether a cold-start/persistence miss makes AC6 not met → INCOMPLETE,
+   or has another predefined consequence.
+2. **V8 failure semantics** — the exact mapping from each V8 result to AC5 and the overall outcome.
+3. **V9 mapping** — how the row's PASS / FAIL observations map to the M2-02 AC6 classes
+   COVERED / DISCLOSED / NOT RUN.
+4. **"Part of V3" in V8 / V9 / V11** — whether a browser BYPASS there is treated as RJ3,
+   an AC6 contradiction/reclassification, or another predefined outcome.
+5. **V10 partial availability** — how AC7 is judged when only one of the optional network sub-rows
+   can be executed.
+
+These rules must be recorded **before** the first affected result is observed. The runbook must not
+invent or select a favorable rule afterwards.
+
+#### Privacy / trust scope outside H18
+
+H18 verification consent covers only the provider under verification unless the Tech Lead records a
+broader decision. The following proposed rows can introduce additional third-party data flows:
+
+- **V4** — the selected non-filtering Chrome DoH provider;
+- **V5-OTHER** — the selected alternative public Private-DNS host;
+- **V11** — the selected VPN provider/operator.
+
+Before those rows run, one of the following must be recorded for each external provider/data flow:
+
+- explicit Tech Lead consent for the named provider and test purpose;
+- a redesigned procedure that avoids the unapproved third party; or
+- NOT RUN / deferred, with the consequence evaluated under the authoritative M2 decision rules.
+
+**H18 must not be treated as blanket consent for unrelated DNS or VPN providers.**
+
+#### Q-readings: decision-critical vs procedural
+
+The Q1–Q23 readings are proposals, not twenty-three automatic human gates. Before execution, the
+Tech Lead (or the authoritative M2 amendment) must classify each reading as one of:
+
+- **DECISION-CRITICAL** — can change PASS / FAIL / coverage / privacy / claim scope. Freeze it
+  before the affected result is observed.
+- **PROCEDURAL-ONLY** — evidence handling or restoration mechanics that cannot improve a result,
+  suppress a bypass, or widen a claim. It may remain a documented runbook default.
+
+When there is doubt, treat the reading as DECISION-CRITICAL. The split itself is recorded before V0.
 
 ---
 
@@ -1662,6 +1713,8 @@ limitations.
 
 - This runbook does not approve A8 for production, and it does not record G0, H18, H19, H21 or
   any other decision.
+- No V-row starts until G0 is complete **and** the §2.5 decision-critical outcome/privacy rules are
+  frozen in the authoritative M2 record.
 - No outcome exists until the rows are executed and the Tech Lead applies §13 to a committed,
   classified report.
 - Even then, only an M2-02 §I.3 PASS, together with H18 accepted for production and the Tech
@@ -1673,8 +1726,16 @@ limitations.
 ## 15. Ambiguities found in M2-02 and the runbook readings
 
 M2-02 leaves these points open. Each reading is the runbook's proposal, chosen so that it can never
-yield a PASS or COVERED that M2-02's own wording would not yield. The Tech Lead accepts or amends
-each one before the affected row (choice C9). None of them changes an acceptance criterion.
+yield a PASS or COVERED that M2-02's own wording would not yield.
+
+**Review rule added after independent review:** the table below is not a list of twenty-three
+automatic human gates. Before V0, each Q-reading must be marked **DECISION-CRITICAL** or
+**PROCEDURAL-ONLY** under §2.5. Decision-critical readings are frozen before the affected result is
+observed. Procedural-only readings may remain runbook defaults only when they cannot improve a
+result, suppress a bypass, change privacy exposure, or widen the claim.
+
+The five outcome-mapping questions and the three extra-provider privacy flows in §2.5 remain
+explicit execution blockers until their authoritative decision record exists.
 
 | Q | Where | Gap in M2-02 | Runbook reading | Tech Lead |
 |---|---|---|---|---|
