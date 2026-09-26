@@ -85,7 +85,7 @@ class UpstreamDnsSelectorTest {
     }
 
     @Test
-    fun `Private DNS is reported ahead of every other network problem, never downgraded`() {
+    fun `Private DNS is reported ahead of the validation, usability and DNS-server checks`() {
         val broken = facts(
             privateDnsActive = true,
             isValidated = false,

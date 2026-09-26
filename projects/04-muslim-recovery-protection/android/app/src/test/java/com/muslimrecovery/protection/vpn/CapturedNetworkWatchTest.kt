@@ -149,16 +149,17 @@ class CapturedNetworkWatchTest {
     }
 
     @Test
-    fun `capability and link reports are each judged with the latest value of the other`() = bothModes { watch ->
-        // A benign change (a different, still usable DNS server) keeps the network valid...
-        assertNull(watch.onLinkPropertiesChanged(WIFI, healthyLink.copy(dnsServers = listOf(v4(192, 168, 1, 53)))))
-        assertNull(watch.onCapabilitiesChanged(WIFI, healthyCapabilities))
-        // ...and a later capability loss is judged against that latest link state.
-        assertEquals(
-            UpstreamRefusalReason.UNDERLYING_NETWORK_NOT_VALIDATED,
-            watch.onCapabilitiesChanged(WIFI, healthyCapabilities.copy(isValidated = false)),
-        )
-    }
+    fun `a benign link change keeps the network valid and a later capability loss still invalidates it`() =
+        bothModes { watch ->
+            // A benign change (a different, still usable DNS server) keeps the network valid...
+            assertNull(watch.onLinkPropertiesChanged(WIFI, healthyLink.copy(dnsServers = listOf(v4(192, 168, 1, 53)))))
+            assertNull(watch.onCapabilitiesChanged(WIFI, healthyCapabilities))
+            // ...and a later capability loss still invalidates it.
+            assertEquals(
+                UpstreamRefusalReason.UNDERLYING_NETWORK_NOT_VALIDATED,
+                watch.onCapabilitiesChanged(WIFI, healthyCapabilities.copy(isValidated = false)),
+            )
+        }
 
     @Test
     fun `duplicate and racing invalidations produce exactly one stop request`() {
@@ -217,7 +218,6 @@ class CapturedNetworkWatchTest {
                 newSession.onCapabilitiesChanged(WIFI, healthyCapabilities.copy(isValidated = false)),
                 newSession.onBlockedStatusChanged(WIFI, true),
             )
-            for (reason in lateReports) controller.onRuntimeFailed("unexpected stop: $reason")
 
             assertEquals(emptyList<UpstreamRefusalReason>(), lateReports)
             assertEquals(ServiceLifecycleState.RUNNING, controller.signals(true).serviceLifecycleState)

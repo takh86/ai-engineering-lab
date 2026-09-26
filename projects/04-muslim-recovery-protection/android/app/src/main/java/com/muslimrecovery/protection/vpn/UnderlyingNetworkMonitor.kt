@@ -21,8 +21,10 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * It registers one NetworkCallback for physical Internet networks (`INTERNET` + `NOT_VPN`):
  * - API 31+: `registerBestMatchingNetworkCallback`. Another network becoming the best match means
- *   the captured one is no longer the preferred physical path. `onAvailable` is also delivered at
- *   registration, so a change between capture and registration is caught too.
+ *   the captured one is no longer the preferred physical path. The current best network is
+ *   delivered at registration, so a different best network is caught immediately.
+ *   Limit (all API levels): if the captured network is already gone at registration and nothing
+ *   else matches, no callback arrives. The DNS worker's 2 s re-check then stops the session.
  * - API 24–30: `registerNetworkCallback`, which reports every matching network. Only the captured
  *   network's events matter there, and a change of preferred network is not observable directly.
  *   It is caught when the old network is lost or loses FOREGROUND (API 28+), VALIDATED or INTERNET.
@@ -87,9 +89,10 @@ internal class UnderlyingNetworkMonitor(
     }
 
     /**
-     * Idempotent and safe from any thread. Once it returns, the watch accepts no further reports.
-     * The service drops a report already in flight on the callback thread, because this monitor is
-     * no longer its current one.
+     * Idempotent. [start] and [stop] are both called under the service's lifecycle lock, so they
+     * never interleave. Once it returns, the watch accepts no further reports. The service drops a
+     * report already in flight on the callback thread, because this monitor is no longer its
+     * current one.
      */
     fun stop() {
         watch.close()

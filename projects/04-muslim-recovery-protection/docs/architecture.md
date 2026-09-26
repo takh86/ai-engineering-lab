@@ -153,8 +153,8 @@ UDP only, one query at a time (a slow upstream delays others by up to 2 s, which
 exploit to degrade DNS for all apps), only the question name is filtered (a CNAME into a blocked
 domain is not caught), no TCP DNS (truncated responses fail), no IPv6 DNS transport on the TUN,
 DoH/DoT/Private DNS/browser Secure DNS not handled, and an underlying-network change stops the
-experiment instead of handing over (made reliable by the M1-07 M-1 fix below; automatic handover is
-not implemented).
+experiment instead of handing over (addressed by the M1-07 M-1 fix below, pending device
+verification; automatic handover is not implemented).
 
 ## Current state (M1-07) — M-1: stale underlying network stops the experiment
 
@@ -180,8 +180,10 @@ handover is not implemented.** After conditions stabilise, the user starts again
   invalidation per session, using the same `UpstreamDnsSelector` policy as startup. The captured
   network must still exist, have INTERNET and VALIDATED, and be usable by this app (FOREGROUND and
   NOT_SUSPENDED on API 28+, not blocked on API 29+). It must also have a usable DNS server and no
-  Private DNS; Private DNS is still reported first and is never downgraded. Events for other
-  networks, and any event after the session stopped, are ignored.
+  Private DNS. Within one snapshot, Private DNS is reported ahead of the validation, usability and
+  DNS-server checks. Across separate events, the first failing report decides the stop message.
+  Private DNS is never downgraded. Events for other networks, and any event after the session
+  stopped, are ignored.
 - The monitor only reports. `LocalProtectionVpnService` ignores reports from any monitor that is not
   its current one, then uses the existing runtime-failure path (`VpnLifecycleController.onRuntimeFailed`),
   shared with the DNS worker's self-stop. Result: the tunnel is closed, the DNS runtime stopped, the
@@ -191,11 +193,28 @@ handover is not implemented.** After conditions stabilise, the user starts again
   the same (now stricter) policy. The startup preflight also uses it, so Start is refused on a
   network that is not validated or not usable.
 
-Limitations: no automatic handover and no debounce, so a transient loss of VALIDATED stops the
-session. Below API 31 a change of preferred network is only noticed once the old network is lost or
-loses FOREGROUND (API 28+), VALIDATED or INTERNET. Below API 28 FOREGROUND / NOT_SUSPENDED are not
-observable. Repeated upstream timeouts on a network the platform still reports healthy are not
-treated as invalidation. On-device behaviour needs human verification.
+Limitations:
+
+- There is no automatic handover and no debounce. A transient loss of VALIDATED, or a suspended
+  cellular network (e.g. during a non-VoLTE call), stops the session.
+- Start is now refused on a network that is not validated or not usable.
+- Below API 31 a change of preferred network is only noticed once the old network is lost or loses
+  FOREGROUND (API 28+), VALIDATED or INTERNET.
+- On API 24–27 FOREGROUND / NOT_SUSPENDED are not observable. A captured cellular network kept only
+  in the background (e.g. "mobile data always active" after Wi-Fi becomes default) is therefore not
+  detected until it is lost. There, allowed queries can still fail while the proxy shows `running`.
+- A network lost before the callback is registered produces no callback on any API level. The
+  worker's 2 s re-check stops the session instead.
+- Two detectors, the callback and the worker's re-check, can race. Either may set the stop
+  message; the resulting state is equally truthful.
+- Repeated upstream timeouts on a network the platform still reports healthy are not treated as
+  invalidation.
+- Pre-existing and unchanged: a check-then-send window of about a millisecond remains between the
+  per-forward Private DNS check and the send.
+- Pre-existing and unchanged: a stop that lands just after a new Start can undo that Start (the
+  result is still stopped and truthful).
+- The Android glue (monitor registration, the service's identity guard and teardown order) is not
+  unit tested (no Robolectric or mocking dependency). On-device behaviour needs human verification.
 
 ## Planned technical direction for M1 (not yet implemented)
 

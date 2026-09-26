@@ -19,8 +19,10 @@ import java.net.InetAddress
  * - events about other networks are ignored, except that with [tracksBestNetwork] (API 31+
  *   best-matching callback) another network becoming the best match invalidates the captured one;
  * - [UpstreamDnsSelector] decides validity from the latest capabilities, link properties and
- *   blocked status of the captured network. That is the same policy startup used, so Private DNS
- *   still wins over every other reason and is never downgraded;
+ *   blocked status of the captured network. That is the same policy startup used, so within one
+ *   snapshot Private DNS is reported ahead of the validation, usability and DNS-server checks.
+ *   Across separate events, the first failing report decides the stop reason; the session stops
+ *   either way, and nothing is ever downgraded;
  * - at most ONE invalidation is ever returned, and nothing after [close]. Duplicate or racing
  *   reports (lost + capability loss + Private DNS) produce a single stop request, and a callback
  *   that arrives after its session was stopped is ignored.

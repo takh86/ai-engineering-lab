@@ -249,8 +249,10 @@ the ConnectivityManager docs say the app's default network may be a VPN that app
 loss of `VALIDATED` stops the session. Start is also refused on a network that is not validated
 or not usable. Below API 31 a change of preferred network is noticed only when the old network is
 lost or loses `FOREGROUND`/`VALIDATED`/`INTERNET`. `filteringOperational` stays false and
-`ProtectionState.Protected` stays unreachable. No new permission, route, or architecture component
-is introduced.
+`ProtectionState.Protected` stays unreachable. No new permission or route is introduced. The
+monitor is a session-scoped reporter under the existing lifecycle authority (`VpnLifecycleController`).
+On API 24–27 a network kept only in the background is not observable, so that stale-network case is
+not detected there until the network is lost.
 
 ## AI contribution
 
