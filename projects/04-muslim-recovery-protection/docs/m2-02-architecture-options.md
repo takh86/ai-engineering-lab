@@ -1,735 +1,812 @@
-# M2-02 — Protection Architecture Options
+# M2-02 — Protection Architecture: Revised Candidate
 
 > **Project:** Muslim Recovery Protection  
 > **Milestone:** M2 — Architecture & Truthful Product Claim  
 > **Task:** M2-02 — Architecture options assessment ([issue #21](https://github.com/takh86/ai-engineering-lab/issues/21))  
-> **Status:** **DRAFT FOR TECH LEAD REVIEW — NO OPTION SELECTED**  
+> **Status:** **REVISED CANDIDATE — for final verification review before the Architecture Gate (M2-03). Nothing in this document is approved.**  
 > **Date:** 2026-09-26  
-> **Purpose:** Compare, one by one, the protection architectures that M1 evidence justifies, and give
-> the Tech Lead a decision matrix for the M2-03 ADR. This document does not rank, choose, approve or
-> implement any option.
+> **Baseline:** M2-01 decisions H4–H12, approved by the Tech Lead
+> ([`m2-01-approved-threat-model.md` @ `5291383`][m2-01], not yet on `main`). They are not reopened here.  
+> **Supersedes:** the A1–A8 proposal (uploaded 2026-09-26, not in the repository) and the O1–O9 draft
+> previously in this file (commit `e9f0e09`). See §B.  
+> **Scope:** architecture and verification design only. No implementation, no production code, and no
+> device, service or repository setting was changed.
 
-## 1. Summary for the decision
+Evidence classes, as in [M1-06](m1-06-coverage-gate.md) and [M1-07](m1-07-evidence-synthesis.md):
 
-M1 showed that a DNS-only `VpnService` filter blocks controlled test domains on the standard
-plaintext-DNS path (E1). The same filter is bypassed by browser encrypted DNS that the user switches
-on (E3), and it cannot run at all while the user has set a Private DNS hostname (E4). Whether it runs
-under Android's **default** Private DNS mode is still unresolved (E2).
+- **FACT** — read directly on 2026-09-26 from Android reference documentation, Chromium source, or
+  Cloudflare's documentation source (§L sources).
+- **HUMAN-REPORTED** — an M1 result reported by the Tech Lead
+  ([M1-06 results](m1-06-execution-results.md)); M1 device evidence belongs to build `1492c108`.
+- **EXPECTATION** — inferred from a FACT; must be confirmed on the device.
+- **†** — known only from a search-engine excerpt or secondary reporting; re-read before relying on it.
+- **ASSUMPTION**, **UNKNOWN** — as in M1. Complexity, performance and maintenance ratings are AI
+  estimates; nothing was measured.
 
-Comparing the options against that evidence gives three structural findings. They describe the
-options; they are not a recommendation.
-
-1. **Of the three DNS-path gaps M1 found (E2, E3, E4), only E2 can be closed inside the DNS layer
-   without changing the product's scope.** O2 (encrypted upstream) targets E2. User-configured
-   encrypted DNS takes lookups off the path an on-device DNS filter sees (E3 observed; E4 follows
-   from D11's refusal rule and R10). Inside the DNS layer it can only be turned from a silent bypass
-   into a visible failure (O3). Otherwise the decision has to move off the device's DNS path (O4
-   proxy, O5 full tunnel, O6 Accessibility, O9 browser), or the settings have to be locked by owner
-   policy (O7). O8 covers E4 by becoming the Private DNS resolver, but not E3.
-2. **Every non-privileged option leaves a platform-provided off switch.** For VPN-based options, the
-   system dialog's disconnect button and starting another VPN app end protection (R1); for every
-   option, so do Settings and uninstalling. Only O7 (Device Owner) restricts these through
-   platform-supported means. It costs a factory reset at onboarding, a device-wide failure blast
-   radius, and a consent-and-exit design problem. O6 could technically interfere with the Settings
-   screens, but the Play policy as reported (R20 †) forbids that outside parental-control and
-   enterprise apps. Lifecycle gaps (E5, E6) are engineering work shared by every VPN-based option
-   (CC1, CC2), not a difference between them.
-3. **The decisive input is therefore M2-01's answer on deliberate self-bypass (T1).** If it is out of
-   scope, the viable set narrows to O1 + O2 (or O8). If casual self-bypass is in scope, O3, O4 and O5
-   enter, and O6 for supported browsers. If determined self-bypass is in scope, only O7 reaches it,
-   and even O7 leaves a factory-reset exit; blocking that exit would conflict with K1 (§8).
-
-The evidence gap with the largest effect on this comparison is **E2**: all five gating rows for
-Android's default Private DNS are INCONCLUSIVE, so it is unknown whether O1 can make any claim about
-Android's default configuration. Re-running them (I1) needs no code.
+"Row D2" and similar are M1-06 rows. D1–D12 on their own are entries in [`decisions.md`](decisions.md).
 
 ---
 
-## 2. Entry state and scope
+## A. Revised Architecture Decision
 
-| Item | State on 2026-09-26 | Consequence for this document |
-|---|---|---|
-| `main` | `4137653`, which includes PR #32 (the M-1 fix) | Architecture statements refer to current `main` unless stated otherwise |
-| M-1 verification | The CI check `Verify M1-07 and build debug APK` (assemble, unit tests, lint) passed on PR #32's head `5382a6c`. The Samsung device procedure in PR #32 is not recorded in the repository. | E6 is "stops truthfully by design; device evidence not recorded" |
-| M1-07 | Still reads DRAFT / INCOMPLETE because of M-1. The Tech Lead's M1 → M2 decision is not recorded (M1-07 §13). | This assessment is an M2 input. It does not close M1 and does not edit M1-07. |
-| M2-01 | The threat model and product claim are not written yet | M2-01 decisions are carried as explicit open inputs T1–T5 (§5) |
-| Device evidence | M1-05/M1-06 evidence is attached to build `1492c108`, not to current `main` (E11) | Evidence is cited with its build |
-
-**In scope:** options tied to at least one M1 observation; their facts, assumptions, unknowns,
-trade-offs and evidence gaps.
-
-**Out of scope:** choosing an option (M2-03), final UI wording (M2-01), implementation, mitigations,
-a production ruleset, telemetry.
-
-Options that narrow the product's scope are labelled as such (O1, O8, O9). None is presented as an
-engineering fix.
-
-### 2.1 Evidence classes
-
-The vocabulary of [M1-06](m1-06-coverage-gate.md) and [M1-07](m1-07-evidence-synthesis.md) is kept:
-
-- **FACT** — read directly from the cited official documentation or source code on 2026-09-26.
-- **FACT ‡** — classified from an official page by the Tech Lead during M1-06.
-- **HUMAN-REPORTED** — an M1 execution result reported by the Tech Lead
-  ([M1-06 results](m1-06-execution-results.md)).
-- **†** — known only from a search-engine excerpt or secondary reporting. The AI sandbox could not
-  reach the primary page (`support.google.com`, `developers.google.com`, `support.mozilla.org` and
-  `chromium.googlesource.com` were blocked). Re-read before relying on it.
-- **ASSUMPTION** — inferred, not verified. **UNKNOWN** — must be measured or researched.
-- Complexity, performance and maintainability statements are **AI estimates**. Nothing was measured
-  for this document.
-
-Row IDs (G, D, P, L, N) are M1-06 rows. "D1"–"D12" on their own are entries in
-[`decisions.md`](decisions.md); M1-06 rows are always written as "row D2" and so on.
-
----
-
-## 3. Inputs
-
-### 3.1 What M1 observed (E1–E11)
-
-| ID | Observation | M1 rows | Class |
-|---|---|---|---|
-| E1 | Standard plaintext DNS through the VPN is filtered in Chrome, Firefox and Samsung Internet, in normal and private modes, with Private DNS Off and browser DNS settings as found | G1–G4, G7, G8, rows D1 and D3, N1; lifecycle L1, L3a, L7 | PASS (G7 detailed, the others HUMAN-REPORTED) |
-| E2 | Under Android's default Private DNS mode (Automatic) it is unresolved whether the filter runs or truthfully refuses. By design (D11) it refuses whenever the underlying network reports Private DNS active, that is, wherever the network's resolver validates DoT. | G5-W, G5-M, G6, G10, G11 | INCONCLUSIVE; stop condition S2 cannot be evaluated |
-| E3 | Browser encrypted DNS switched on by the user bypasses the filter | Row D2 (Chrome Secure DNS, chosen provider); rows D4, D5 (Firefox DoH Increased, Max) | BYPASS (characterization), HUMAN-REPORTED |
-| E4 | With a Private DNS hostname set by the user, the filter truthfully refuses, so nothing is filtered while it is set. Switching it on mid-session is unresolved. | P1–P4; P5 | UNSUPPORTED; P5 INCONCLUSIVE |
-| E5 | Force-stop and reboot end protection, truthfully. Always-on is opted out (D10). | L3b, L4 | UNSUPPORTED |
-| E6 | A network change stops the session; there is no handover. The M-1 fix (PR #32) makes every invalidation a truthful stop. | L5, L6; L8 | UNSUPPORTED; L8 INCONCLUSIVE; M-1 device run not recorded |
-| E7 | The effect of browsers already running, and of pre-existing connections or caches, is unresolved | G9-C, G9-F, L2 | INCONCLUSIVE |
-| E8 | Not measured: deliberate disabling (Stop, the system VPN disconnect, uninstall, another VPN app); non-browser apps with their own DoH or hard-coded resolvers; in-app browsers (WebView, Custom Tabs); other browsers, including browsers with a built-in VPN or proxy; Always-on and lockdown | M1-06 "Not measured" list | UNKNOWN |
-| E9 | Deliberate D11 limits: IPv4/UDP DNS only (no TCP DNS, no IPv6 DNS transport); only the question name is filtered (CNAME targets are not); one worker, so a local app can delay every app's DNS by up to 2 s per query; no caching | D11 | FACT (design) |
-| E10 | Truthful state held: no false `Protected`; `filteringOperational` is hard-coded false | all rows | HUMAN-REPORTED + FACT (code) |
-| E11 | Device and CI evidence is attached to `1492c108`. Current `main` lacks that build's `setUnderlyingNetworks`/`setMetered` and adds the M-1 monitor. | M1-07 §3 | FACT |
-
-### 3.2 Platform and policy facts (R1–R24)
-
-M1-06's findings keep their IDs and classes (A1–A12, C1–C9, F1–F7, SI1–SI2). Those used below are
-A6/A7 (Private DNS modes), C1 ‡ (Chrome Secure DNS: default automatic mode; a chosen provider has no
-plaintext fallback; unavailable on managed devices), C2–C5 (Chrome's automatic-upgrade rules), F1/F2 ‡
-(Firefox DoH levels) and F5 † (Firefox canary domain). New findings:
-
-| ID | Finding | Class | Source |
-|---|---|---|---|
-| R1 | Only one VPN runs at a time; a new one deactivates the existing one. A system-managed dialog shows the current VPN and "provides a button to disconnect". The network is restored when the VPN's descriptor is closed, including when the app "is crashed or killed by the system". | FACT | [VpnService][vpnservice] |
-| R2 | Always-on VPN (API 24+): Android "can start a VPN service when the device boots and keep it running". Apps opt out with `SUPPORTS_ALWAYS_ON=false` (effective from API 27), which this app declares (D10). | FACT | [VPN guide][vpnguide], [VpnService][vpnservice] |
-| R3 | "Block connections without VPN" (lockdown) is a switch that the person using the device, or an IT admin, sets in Settings. Non-VPN traffic is then blocked. | FACT | [VPN guide][vpnguide] |
-| R4 | `isAlwaysOn()` and `isLockdownEnabled()` (API 29) let the service detect those modes. In lockdown, "apps aren't allowed to bypass the VPN". | FACT | [VpnService][vpnservice] |
-| R5 | Unless `allowBypass()` is called, apps cannot "side-step the VPN". | FACT (also A3) | [VpnService.Builder][builder] |
-| R6 | `setHttpProxy()` (API 29): the proxy "is only a recommendation and it is possible that some apps will ignore it"; "PAC proxies are not supported over VPNs"; "using a proxy with a split tunnel generally won't work as expected", because on routes the VPN does not handle the proxy may be unreachable. | FACT | [VpnService.Builder][builder] |
-| R7 | `excludeRoute()` exists from API 33. | FACT | [VpnService.Builder][builder] |
-| R8 | Private DNS contract (API 28). In strict mode, apps doing their own DNS must encrypt every query to the named host, and send only if that host's certificate is valid. In opportunistic mode, they must encrypt to a server from `getDnsServers()`. "System DNS will handle each of these cases correctly, but applications implementing their own DNS lookups must make sure to follow these requirements." | FACT | [LinkProperties][linkprops] |
-| R9 | `DnsResolver.rawQuery(Network, byte[], …)` (API 29) sends a raw DNS query on a chosen network through the system resolver. Its documentation does not say whether Private DNS is applied to such queries. | FACT; Private DNS behavior UNKNOWN | [DnsResolver][dnsresolver] |
-| R10 | The device-owner method `setGlobalPrivateDnsModeSpecifiedHost()` (API 29) warns that with a VPN the Private DNS resolver "must be reachable both from within and outside the VPN", because otherwise "system traffic to the resolver may not go through the VPN". | FACT | [DevicePolicyManager][dpm] |
-| R11 | `setAlwaysOnVpnPackage()` (API 24; device or profile owner) configures an always-on VPN that is "persisted after a reboot", optionally with lockdown. Lockdown "carries the risk that any failure of the VPN provider could break networking for all apps". | FACT | [DevicePolicyManager][dpm] |
-| R12 | `DISALLOW_CONFIG_PRIVATE_DNS` (API 29; set by a device owner, or by the profile owner of an organization-owned profile) stops the user changing Private DNS. `DISALLOW_CONFIG_VPN` stops the user configuring or starting VPNs, while the system still starts the owner's always-on VPN. `setUninstallBlocked()` (device or profile owner) blocks uninstalling a package. | FACT | [UserManager][usermanager], [DevicePolicyManager][dpm] |
-| R13 | Device-owner provisioning (`ACTION_PROVISION_MANAGED_DEVICE`) "can be sent only on an unprovisioned device"; "If provisioning fails, the device is factory reset." | FACT | [DevicePolicyManager][dpm] |
-| R14 | Apps targeting API 24+ trust only system CAs by default. User-added CAs are trusted by default only by apps targeting API 23 and lower. | FACT | [Network security configuration][nsc] |
-| R15 | `AccessibilityServiceInfo.isAccessibilityTool()` (API 31) marks a service that is "used to assist users with disabilities". | FACT | [AccessibilityServiceInfo][a11yinfo] |
-| R16 | Chrome on Android forces Secure DNS off when it detects a device-owner or profile-owner app, unless the DoH mode is set by enterprise policy. The source notes that "Android policies can only be loaded with owner apps". Parental-control detection exists only on Windows. | FACT (Chromium source) | [`stub_resolver_config_reader.cc`][cr-stub], [`EnterpriseInfo.java`][cr-ei] |
-| R17 | Chrome enterprise policies supported on Android: `DnsOverHttpsMode` (Chrome 85+), `IncognitoModeAvailability` (30+), `URLBlocklist` (86+, also Android WebView 86+), `ForceGoogleSafeSearch` (41+) and `SafeSitesFilterBehavior` (116+). The last "uses the Google Safe Search API to classify URLs as pornographic or not" and is tagged `google-sharing`. | FACT (policy definitions) | [Chromium policy definitions][cr-policies] |
-| R18 | Chrome enables Encrypted Client Hello by default (pref default `true`, controllable by policy). It queries DNS HTTPS/SVCB records by default and does not require that response to come over secure DNS (`UseDnsHttpsSvcbEnforceSecureResponse` defaults to false). | FACT (Chromium source) | [`ssl_config_service_manager.cc`][cr-ssl], [`net/base/features.cc`][cr-features] |
-| R19 | Play: every app using `VpnService` must file a declaration, document the use in its listing, "encrypt all data from the device to the VPN tunnel endpoint", and must not collect personal or sensitive data without prominent disclosure and consent. Tunnels to a remote server are limited to VPN-core apps plus named exceptions: parental control, enterprise management, app usage tracking, device security (including firewalls), network tools, web browsers and operator apps. How these rules apply to a tunnel that ends on the device is UNKNOWN. | † | [Play: VpnService policy][play-vpn] (search excerpt) |
-| R20 | Play Accessibility API policy: it must not be used to change settings without permission, or to "prevent the ability for users to disable or uninstall any app or service", unless authorized by a parent or guardian through a parental-control app or by enterprise administrators. Apps not eligible for `isAccessibilityTool` need prominent disclosure and consent. | † | [Play: sensitive permissions and APIs][play-perms] (search excerpt) |
-| R21 | Android 13+ "restricted settings": accessibility access for apps sideloaded from APK files is blocked by default until the user allows it in App info. App-store installs are not affected. | † | [Esper][esper-13] (secondary reporting) |
-| R22 | Android 17 Advanced Protection Mode blocks and revokes AccessibilityService access for apps that are not flagged as accessibility tools. | † | [The Hacker News][thn-17] (secondary reporting of Android 17 beta) |
-| R23 | Google no longer accepts new custom-DPC registrations with Android Enterprise and directs vendors to the Android Management API, which uses Google's own device policy client. | † | [Android Management API: DPC migration][amapi-migration], [Nomid MDM][nomid-dpc] (search excerpts, secondary reporting) |
-| R24 | Firefox for Android has had an open extension ecosystem since 2023-12-14. Samsung Internet offers a content-blocker API to third-party apps. Chrome for Android has no public extension channel (ASSUMPTION). | † / ASSUMPTION | [Mozilla Add-ons blog][moz-ext], [Samsung Internet docs][sbrowser-cb] (search excerpts) |
-
----
-
-## 4. Constraints and approval boundaries
-
-| ID | Constraint | Source | Changeable by |
-|---|---|---|---|
-| K1 | Privacy-first, opt-in self-protection for consenting adults on their own devices. Not surveillance, parental control or third-party monitoring. | [`problem.md`](problem.md) | Tech Lead (product framing) |
-| K2 | `Protected` only from verified runtime facts; every unsupported path is shown truthfully | D8 | Tech Lead |
-| K3 | Tests use harmless controlled domains only | D3 | Tech Lead |
-| K4 | No backend without a demonstrated need and approval. No existing decision covers third-party data flows; T3 asks. | D5, project `CLAUDE.md` | Tech Lead |
-| K5 | Packet-level filtering, TLS interception, AccessibilityService, Device Owner, root and `QUERY_ALL_PACKAGES` need a new review and explicit approval. D11 allows only the DNS `/32` route and DNS framing. | D1, D11, [`requirements.md`](requirements.md) | Tech Lead |
-| K6 | Always-on stays opted out until a milestone implements and verifies it | D10 | Tech Lead |
-| K7 | No new Gradle modules or dependencies without approval | project and root `CLAUDE.md` | Tech Lead |
-
----
-
-## 5. Open M2-01 inputs that change the answer (T1–T5)
-
-| ID | Question (owned by M2-01) | Why it changes the comparison | Most affected |
-|---|---|---|---|
-| T1 | Is deliberate self-bypass in scope? (a) no; (b) casual or impulsive bypass only; (c) determined bypass too | Decides whether E3, E4 and the E8 disable paths are requirements or documented limits | all (§8) |
-| T2 | Distribution target: Google Play, another store, or sideloading? | Accessibility (R20–R22) and Device Owner (R13, R23) feasibility depend on it | O6, O7 |
-| T3 | Is any off-device data flow acceptable: a third-party resolver, Google Safe Search classification, a project backend? | K1, K4 | O2b, O7 (SafeSites), O8, rule distribution (CC5) |
-| T4 | Which Android versions must the claim cover? (minSdk is 24.) | Private DNS exists only from API 28 (D11). Several mechanisms need API 29+ (R4, R6, R9, R12) or API 33+ (R7). | O2, O4, O7, O8, CC4 |
-| T5 | Which browsers must the claim cover? | Browser-specific mechanisms cover only named browsers | O4, O6, O9 |
-
----
-
-## 6. Candidate options
-
-### 6.1 Where each option decides
+### A.1 Candidate architecture
 
 ```text
-Where the filter decides                  Options
-----------------------------------------  ---------------------------------------------
-Device policy: who may change settings    O7  Device Owner
-Browser UI or URL                         O6  AccessibilityService, O9 browser-scoped
-Connection: hostname, SNI, destination    O4  local HTTP proxy, O5 full-tunnel VPN
-DNS lookup on the device                  O1, O2, O3  DNS-only VPN, as in M1
-DNS resolver off the device               O8  filtering Private DNS resolver
+One Android app — single artifact, no backend, no provider framework
+├─ Recovery layer      independent: never depends on the filter layer's presence,
+│                      state, code paths or data (H6, H12)
+└─ Filter layer (A8)   optional; Android 9+ (API 28+); the app is NOT in the DNS path
+    ├─ Guidance         explains the trade-off; the user sets Android Private DNS to the
+    │                   provider host by hand (the app cannot and does not change it)
+    ├─ Observation      LinkProperties of the active network:
+    │                   isPrivateDnsActive(), getPrivateDnsServerName()
+    ├─ On-demand check  provider test name vs neutral control, through the system
+    │                   resolver, only on app foreground or "Check now"
+    └─ State evaluator  pure logic: mechanism state + coverage + freshness (§F)
+
+DNS path, outside the app:
+apps → Android system resolver → DoT (strict Private DNS) → provider's filtering tier
 ```
 
-M1's encrypted-DNS gaps take lookups off the on-device DNS path (E3 observed; E4 follows from D11's
-refusal rule and R10). Options that decide on another layer are not affected by that path, but each
-has its own way around it (see "Residual bypass" in each card).
+### A.2 Proposed decisions (all PENDING; wording in §L)
 
-### 6.2 Screening
+1. **Recovery/filter boundary (H13).** The recovery layer never depends on the filter layer.
+2. **A8 is the filter layer's verification candidate, not a production decision (H14).** Under A8,
+   the user sets Android Private DNS to a filtering resolver they choose. The provider under
+   verification is Cloudflare 1.1.1.1 for Families, DoT host `family.cloudflare-dns.com`.
+   Production selection requires three things: the §I acceptance criteria, the privacy decision
+   (§G, H18) and the Architecture Gate.
+3. **Platform scope.** Private DNS exists from API 28. On API 24–27 the filter layer shows
+   Unsupported and recovery is unaffected; minSdk stays 24.
+4. **A2 is a deferred investigation, not an alternative that can be estimated now** (§D.4, §J Q4).
+5. **A4 is split into two modes.**
+   - **A4a Always-on** is a required companion of any VPN-based filter (reboot, row L4). It does
+     not apply to A8.
+   - **A4b Lockdown** is out of the MVP and needs its own connectivity matrix and decision.
+6. **A1** stays the M1 experiment and evidence baseline, with no production path.
+7. **A3, A5 and A6 are deferred. A7 is split into two parts.**
+   - **A7a** Device Owner and legacy Device Admin are excluded by H5.
+   - **A7b** AccessibilityService used as a URL detector is out of scope. If it is reopened, it is
+     judged on H9, D1 and Play policy, not on H5.
+8. **Nothing is implemented.** `filteringOperational` stays `false`, and no M1 code is removed by
+   this document (§H).
 
-| Candidate | Tied to | Result |
-|---|---|---|
-| O1–O9 | see the cards | **Assessed** |
-| X1 TLS interception (local MITM with a user-installed CA) | E3, E4 | **Screened out by AI; kept visible so the Tech Lead can override.** It decrypts all traffic, including banking and messaging, which conflicts with K1 at its core. It is also weak on current Android, because apps targeting API 24+ do not trust user-installed CAs by default (R14). K5 requires a new review. |
-| X2 Root-based filtering | E3–E5, E8 | **Screened out.** Needs an unlocked bootloader or root; not a path for ordinary users; K5. |
-| X3 OEM enterprise SDKs (for example Samsung Knox) | E4, E5, E8 | **Not assessed.** A possible O7 variant on the target device family; licensing and distribution need separate research. |
-| X4 OS parental controls (for example Family Link) | E8 | **Not assessed.** Built around a supervising parent account (ASSUMPTION), which conflicts with K1's self-directed adult framing. |
-| X5 Search-level enforcement (SafeSearch through DNS rewriting) | none in M1 | **Outside M2-02.** Not tied to an M1 observation; it could become a later feature of any DNS option. |
+### A.3 Recommendation
 
-### 6.3 Option cards
+This section is kept separate from the neutral comparison in §D.
 
-Each card states what the option is, which M1 observations it addresses or leaves, and an assessment
-per criterion. "Core" means the DNS filter an option is layered on (O1 or O2).
+**Verify A8 first.** Taken from §D, the reasons are:
 
-#### O1 — DNS-only VPN with a deliberately narrow claim (D11 baseline, hardened)
+- It has the lowest complexity and maintenance cost.
+- It satisfies H11 by construction, because it *is* Private DNS.
+- It is expected to survive reboot, app kill and network changes, because the app is not in the
+  DNS path. This covers M1 gaps L3b, L4, L5 and L6 (EXPECTATION, rows V6 and V8).
+- It needs no VpnService, so there is no VpnService Play declaration and it does not take the
+  device's single VPN slot.
+- It has no packet-parsing surface.
+- Its category blocking can be checked with a harmless test name that the provider documents (§E).
 
-**What it is.** Keep D11 as it is: the DNS-only split tunnel, plaintext forwarding to the underlying
-network's resolver, and a truthful refusal whenever Private DNS is active. Harden it with CC1–CC4
-(§6.4). The product claim is narrowed to what this path covers; that narrowing is a product-scope
-decision.
+**Costs**, all to be accepted explicitly through §G:
 
-**Addresses:** E1; E9 (with CC3); E5 and E6 (with CC1, CC2); E10. **Leaves:** E2 (refuses wherever
-DoT validates); E3; E4 (made visible by CC4); E8.
+- every DNS lookup goes to a third party;
+- H8 friction cannot reach the Android setting that turns the filter off;
+- browser and app DoH remain a gap, as they would for A2;
+- it works on Android 9+ only.
 
-| Criterion | Assessment |
-|---|---|
-| Coverage | Standard DNS lookups of covered apps (E1). Under Android's default mode it runs only on networks whose resolver does not validate DoT (A8, an M1-06 ASSUMPTION); how many target networks do is UNKNOWN (I1). |
-| APIs / permissions | Existing only: a service guarded by `BIND_VPN_SERVICE`; `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SYSTEM_EXEMPTED`, `POST_NOTIFICATIONS`, `INTERNET`, `ACCESS_NETWORK_STATE` (manifest; D10, D11). CC1 removes the D10 opt-out. CC4's mode detection needs API 29 (R4). |
-| Play / distribution | VpnService declaration and listing disclosure (R19 †). Which declared use case fits a self-protection filter is UNKNOWN (I8). |
-| Privacy | Sees the DNS question names of covered apps, in memory only; no logging, persistence or upload (D11). No off-device flow. |
-| Security | Small, fuzz-tested parsing surface (IPv4, UDP, DNS). A local app can slow every app's DNS (E9) until CC3 adds bounded concurrency. |
-| Complexity | Low to medium (AI estimate): CC1–CC4 are bounded additions to existing code. |
-| Testability | High: a pure-Kotlin pipeline covered by JVM unit tests; the M1-06 device rows can be reused. |
-| Performance / battery | Low (AI estimate): only DNS packets pass through the app. Not measured; L7 (30 min idle) passed without a battery reading. |
-| Lifecycle | Today no start at boot, and a stop on network change (E5, E6). CC1 and CC2 can add Always-on and handover. The user can still press Stop, disconnect in the system dialog, or start another VPN (R1). |
-| Maintainability | High: no dependencies, no reliance on browser internals. |
-| Residual bypass | E3; E4 (refusal); E2 on DoT-validating networks; another VPN app (R1); apps with their own DoH or hard-coded resolvers; IP-literal URLs; pre-existing connections (E7); Stop or uninstall. |
-| Truthful claim (draft) | "Blocks listed domains when apps look them up through Android's standard DNS on this device while protection is running. Browser Secure DNS, Android Private DNS and other VPNs are not covered and are shown as unsupported." Final wording belongs to M2-01. |
-| Approvals | None new for the base. CC1 revisits D10; each CC3 item needs the approval D11 deferred. |
+**Confidence:** moderate for the order of verification; low for product effectiveness until the
+§E results exist. This recommendation does **not** claim that A8 blocks better than the other
+options.
 
-#### O2 — DNS-only VPN with an encrypted upstream (compatible with Private DNS)
+---
 
-**What it is.** O1's tunnel, but allowed queries leave the device encrypted as the platform contract
-requires (R8), so the filter no longer has to refuse when Private DNS is active on the underlying
-network. Variants:
+## B. Changes Made From Previous Version
 
-- **O2a-sys** — forward the raw query with `DnsResolver.rawQuery()` on the underlying network
-  (API 29+, R9) and let the system resolver apply Private DNS. Whether it does is UNKNOWN (I2).
-- **O2a-own** — the app's own DoT client: to a resolver from the underlying network's
-  `getDnsServers()` in opportunistic mode, or to the strict host with certificate validation in
-  strict mode (R8). Also works on API 28.
-- **O2b** — encrypted forwarding to one fixed provider. Adds a third-party data flow (T3).
-
-**Addresses:** E2 (primary). E4 only if queries still reach the VPN in strict mode, which R10 makes
-doubtful (I2). **Leaves:** E3, E8; E5 and E6 as O1.
-
-Mechanism assumption: under Automatic, Android's DoT probe to the VPN's DNS server (TCP 853 to
-`10.111.222.1`, inside the `/32` route) fails, because the tunnel serves only UDP 53. Android then
-falls back to plaintext to the VPN, which is the path M1 already filters (ASSUMPTION; I1, I2).
-
-| Criterion | Assessment |
-|---|---|
-| Coverage | O1, plus networks whose resolver validates DoT under the Android default (ASSUMPTION above). |
-| APIs / permissions | No new permission. O2a-sys needs API 29+. O2a-own uses platform TLS (`javax.net.ssl`) and no new library (ASSUMPTION). |
-| Play / distribution | As O1. |
-| Privacy | O2a keeps the same resolver the device would use without the app, with no plaintext downgrade, as R8 requires. O2b gives a new third party every allowed query (T3). |
-| Security | O2a-sys adds no parsing. O2a-own adds a TLS client, strict-mode certificate validation and connection state. |
-| Complexity | Medium (AI estimate): DoT framing, connection reuse, timeouts, and a truthful state when the upstream fails. Lower for O2a-sys. |
-| Testability | Medium: framing is JVM-testable; TLS and system-resolver behavior need device or integration tests. |
-| Performance / battery | Slightly above O1 because of TCP and TLS; connection reuse limits it (AI estimate; not measured). |
-| Lifecycle | As O1. |
-| Maintainability | High: DoT is a stable IETF standard (RFC 7858), and O2a-sys delegates it to the platform. |
-| Residual bypass | As O1 without the E2 refusal. E4 is probably unchanged (R10). |
-| Truthful claim (draft) | O1's claim, extended with "also when Android's Private DNS is in its default automatic mode". |
-| Approvals | D11 deferred "DNS-over-TLS / Private DNS compatibility". O2b also needs T3. |
-
-#### O3 — Encrypted-DNS denial layer (fail closed), on an O1/O2 core
-
-**What it is.** Turn known encrypted-DNS paths from a silent bypass into a visible failure. The DNS
-core answers the bootstrap names of known DoH and DoT services with NXDOMAIN, and answers Firefox's
-canary domain so that Firefox's default mode turns DoH off (F5 †). A route variant also sends the
-addresses of dedicated encrypted-DNS services into the tunnel and drops them, which goes beyond D11.
-
-**Addresses:** E3 and E4 for **known** endpoints only, by failure rather than by filtering.
-**Leaves:** E2 (needs O2); unknown or self-hosted DoH endpoints; apps' own encrypted DNS to unlisted
-endpoints; the E8 disable paths.
-
-The expected outcomes are unverified (I3). Chrome with a chosen provider does not fall back to
-plaintext DNS (C1 ‡), so browsing would stop until the setting is reverted. Firefox's fallback after
-a failed bootstrap, per protection level, is UNKNOWN. If the name of a strict Private DNS host is
-denied, the whole device would be left without DNS (ASSUMPTION), and O1's refusal rule would have to
-change before the core could run under strict mode at all.
-
-| Criterion | Assessment |
-|---|---|
-| Coverage | Turns E3 and E4 into failures for known endpoints (ASSUMPTION). A browser that reaches DoH through built-in addresses is not affected by DNS denial (UNKNOWN per browser). |
-| APIs / permissions | DNS-only variant: nothing new. Route variant: routes beyond the DNS `/32`, and TCP handling (D11). |
-| Play / distribution | Deliberately breaking other apps' encrypted-DNS features may raise policy questions; not reviewed here (I8). |
-| Privacy | Overrides privacy settings the user chose (encrypted DNS). This tension with K1 must be weighed explicitly. O2 can restore encryption towards the network's resolver, not towards the user's chosen provider. |
-| Security | No new parsing in the DNS-only variant. |
-| Complexity | Low for the DNS-only variant, medium for the route variant (AI estimate). |
-| Testability | High for the rules; per-browser device tests (I3). |
-| Performance / battery | Negligible (AI estimate). |
-| Lifecycle | As core. |
-| Maintainability | Low to medium: endpoint lists and browser bootstrap behavior drift (an arms race). |
-| Residual bypass | Unknown or self-hosted DoH; hard-coded bootstrap addresses; DoH on shared CDN addresses (blocking those addresses would break unrelated sites); VPN or proxy browsers; another VPN app; Stop or uninstall. |
-| Truthful claim (draft) | "If a browser or Android is set to use a known encrypted-DNS service, browsing may stop working until that setting is turned off. Unknown encrypted-DNS services are not covered." |
-| Approvals | T1 must put user-configured encrypted DNS in scope; the privacy trade-off (K1); the route variant crosses D11. |
-
-#### O4 — VPN-advertised local HTTP proxy, on an O1/O2 core
-
-**What it is.** Keep DNS filtering, and also advertise a loopback HTTP proxy with
-`VpnService.Builder.setHttpProxy()` (API 29+). Apps that honour it send `CONNECT host:port`. The
-proxy checks the host with the existing RuleSet, refuses blocked hosts, resolves allowed hosts itself
-through the core's upstream path, and relays the bytes over protected sockets. Nothing is decrypted.
-
-**Addresses:** E3, and E4 for proxied requests, because a browser that uses a proxy sends the
-hostname to the proxy instead of resolving it (ASSUMPTION from HTTP `CONNECT` semantics; I4). For the
-same reason ECH does not hide the `CONNECT` hostname (ASSUMPTION). **Leaves:** apps that ignore the
-proxy (R6); API 24–28; the E8 disable paths.
-
-| Criterion | Assessment |
-|---|---|
-| Coverage | Per browser; whether Chrome, Samsung Internet and Firefox honour a VPN-advertised loopback proxy is UNKNOWN (I4). R6 says a proxy with a split tunnel "generally won't work as expected"; a loopback proxy may avoid that problem (ASSUMPTION, I4). That browsers fall back from QUIC to TCP when proxied is an ASSUMPTION (I4). |
-| APIs / permissions | `setHttpProxy()` (API 29+); no new permission. |
-| Play / distribution | As O1, plus disclosure that browser connections pass through an on-device proxy (R19 †). |
-| Privacy | Sees the host and port of every proxied connection, and relays encrypted bytes it cannot read. Must stay in memory, extending D11's privacy rules. |
-| Security | A new local listener that every app on the device can reach. It must bind to loopback only, never act as an open relay, parse untrusted request lines, and bound connections and buffers against local denial of service. |
-| Complexity | Medium to high (AI estimate): HTTP/1.1 proxying (`CONNECT` and absolute-form requests), keep-alive, timeouts, back-pressure, IPv6, error mapping. |
-| Testability | Medium: the proxy core is JVM-testable; browser adherence can only be tested on devices. |
-| Performance / battery | Medium to high (AI estimate): every proxied byte is copied through the app. Must be measured (I4). |
-| Lifecycle | Tied to the VPN: when the VPN ends, its proxy recommendation ends with it (ASSUMPTION). |
-| Maintainability | Medium: a standard protocol, but browsers' proxy behavior can change. |
-| Residual bypass | Apps and browsers that ignore the proxy; browsers with their own proxy or VPN; `CONNECT` to IP literals (a policy choice); non-HTTP protocols; another VPN app; Stop or uninstall. |
-| Truthful claim (draft) | "In browsers that use Android's VPN proxy setting (tested list), blocked sites are refused even with the browser's Secure DNS on. Browsers and apps that ignore the proxy are not covered." |
-| Approvals | D11 (HTTP parsing, a local listener); T4 (API 29+ only). |
-
-#### O5 — Full-tunnel local VPN with metadata-level filtering (no decryption)
-
-**What it is.** Route all IPv4 and IPv6 traffic into the tunnel and forward it through a user-space
-network stack over protected sockets. Filter on metadata only: DNS to any resolver on port 53, the
-destinations of known DoH, DoT and proxy services, and the TLS or QUIC server name (SNI) where it is
-visible. Nothing is decrypted.
-
-**Addresses:** E3 and E4 for known endpoints (ASSUMPTION); hard-coded plaintext resolvers (E8); E9
-(TCP DNS and IPv6 fall inside the tunnel). **Leaves:** encrypted DNS to unknown endpoints; hidden
-server names; the E8 disable paths.
-
-| Criterion | Assessment |
-|---|---|
-| Coverage | The broadest of the non-privileged options (ASSUMPTION). Limits: Chrome enables ECH by default and queries DNS HTTPS records — the records that carry ECH configurations — also over insecure DNS (R18). The DNS layer can withhold those records, but a browser using its own DoH still gets them and then hides the real server name (ASSUMPTION). R10 suggests that system Private DNS traffic may not pass through the VPN at all (UNKNOWN). |
-| APIs / permissions | Default routes; `excludeRoute()` from API 33 (R7); no new permission (ASSUMPTION). |
-| Play / distribution | The VpnService policy with much broader data handling; prominent disclosure and consent for traffic metadata (R19 †). |
-| Privacy | Sees the destination, timing and server name of all device traffic, a large step up from DNS names alone. |
-| Security | The largest parsing surface of the VPN options: every packet from every app, and every response. User-space stacks are commonly native code, with memory-safety risk (AI estimate). A crash sends all traffic back to the underlying network (R1), so it fails open unless lockdown is on (CC1). |
-| Complexity | Very high (AI estimate): TCP and UDP state, MTU and fragmentation, IPv6, QUIC, timeouts; most likely a third-party native stack (K7). |
-| Testability | Low to medium: needs extensive device and soak testing. |
-| Performance / battery | High (AI estimate): all traffic passes through user space. |
-| Lifecycle | As O1, but every defect affects all traffic. |
-| Maintainability | Low: protocol evolution (QUIC, ECH, HTTP/3), endpoint lists, a large code base. |
-| Residual bypass | ECH with DoH to unknown endpoints; in-app VPNs, proxies or Tor-like tunnels to unlisted endpoints; another VPN app; Stop or uninstall. |
-| Truthful claim (draft) | "Checks the destination of most apps' connections on the device. Encrypted DNS to unknown services, hidden server names (ECH) and apps' own VPNs can still bypass it." |
-| Approvals | D1 and D11 (packet-level filtering, a default route); K7 (dependency); a privacy review. |
-
-#### O6 — AccessibilityService URL detection
-
-**What it is.** An AccessibilityService reads supported browsers' UI (address bar, title) and
-interrupts navigation to blocked hosts.
-
-**Addresses:** E3, E4 and E7 in supported browsers, because it depends on neither DNS nor
-connections. **Leaves:** unsupported browsers and apps; the E8 disable paths (see Play below).
-
-| Criterion | Assessment |
-|---|---|
-| Coverage | Per browser and per version; breaks when a browser's UI changes (ASSUMPTION). |
-| APIs / permissions | AccessibilityService, a K5 exclusion. It is not an accessibility tool in the R15 sense. |
-| Play / distribution | Prominent disclosure and consent. It must not prevent disabling or uninstalling unless the app is a parental-control or enterprise app (R20 †), so an adult self-protection app cannot use it as an anti-uninstall lock on Play. Sideloaded installs need the user to allow restricted settings (R21 †). On Android 17 with Advanced Protection switched on, access is revoked (R22 †). |
-| Privacy | The highest exposure short of TLS interception: the on-screen content of monitored apps. |
-| Security | A common malware vector; a flaw in the service would expose screen content. |
-| Complexity | Medium per browser adapter, multiplied by browsers and versions (AI estimate). |
-| Testability | Low: device or instrumentation tests per browser version. |
-| Performance / battery | Medium (AI estimate): processing accessibility events. |
-| Lifecycle | Runs while enabled and is not bound to a network. The system rebinds an enabled service after a reboot (ASSUMPTION); behavior after a force-stop is UNKNOWN. The user can switch it off in Settings. |
-| Maintainability | Low: browser UIs drift. |
-| Residual bypass | Unsupported browsers and apps; UI changes; switching the service off; Advanced Protection. |
-| Truthful claim (draft) | "In supported browsers (named versions), opening a blocked site is interrupted. Other browsers and apps are not covered." |
-| Approvals | D1 (AccessibilityService); a privacy review; T2. |
-
-#### O7 — Device Owner "managed self-protection" mode
-
-**What it is.** An opt-in mode in which the app is provisioned as Device Owner on a freshly reset
-device (R13) and uses owner policies to hold protection in place: an owner always-on VPN with
-lockdown (R11), `DISALLOW_CONFIG_PRIVATE_DNS`, `DISALLOW_CONFIG_VPN`, a blocked uninstall (R12), and
-Chrome managed policies (R16, R17: DoH mode, Incognito, `URLBlocklist` or `SafeSitesFilterBehavior`).
-It does not filter by itself: the core is O1 or O2, or, for Chrome only, Chrome's own filters.
-
-**Addresses:** E3 in Chrome (R16, R17); E4 (R12); E5 (R11, R12); the E8 uninstall, other-VPN and
-settings paths (R12). **Leaves:** browsers that Chrome policies do not govern (Firefox and Samsung
-Internet: UNKNOWN); apps' own DoH; factory reset.
-
-| Criterion | Assessment |
-|---|---|
-| Coverage | The strongest against settings-level and uninstall bypass on stock Android (ASSUMPTION). |
-| APIs / permissions | Device Owner, a K5 exclusion. The Private DNS lock needs API 29 (R12); the always-on VPN, VPN-configuration and uninstall restrictions exist from API 24 or earlier (R11, R12). |
-| Play / distribution | Provisioning only on an unprovisioned device (R13), so onboarding starts with a factory reset. Google no longer registers new custom DPCs (R23 †). How a self-provisioned consumer Device Owner app would be distributed, and whether Play Protect would flag it, is UNKNOWN (I8). |
-| Privacy | Owner APIs are device-wide, so the app must limit itself. `SafeSitesFilterBehavior` sends URLs to Google for classification (R17, `google-sharing`). The device shows a managed state (ASSUMPTION). |
-| Security | A device-wide blast radius: a defect can lock the user out, and lockdown plus a VPN failure breaks networking for all apps (R11). |
-| Complexity | Very high (AI estimate): provisioning, policy management, recovery, OEM variance. |
-| Testability | Low: every test cycle needs a reset device or emulator. |
-| Performance / battery | Negligible beyond the core (AI estimate). |
-| Lifecycle | The strongest: a system-started always-on VPN and a blocked uninstall. |
-| Maintainability | Medium to low: enterprise APIs and Google's device-management policy keep changing (R23 †). |
-| Consent / exit | Conflicts with K1 unless an exit is designed. Factory reset remains an exit unless it is blocked, and blocking it would remove the consenting adult's way out. Designing the exit is a Tech Lead decision. |
-| Residual bypass | Factory reset; unmanaged browsers; apps' own DoH; defects. |
-| Truthful claim (draft) | "In managed self-protection mode, protection starts at boot and cannot be switched off from Settings. It ends through [the designed exit] or a factory reset." |
-| Approvals | D1 (Device Owner); the K1 consent-and-exit design; T2 (distribution); K4 if a cloud management service is used. |
-
-#### O8 — Delegate to Android Private DNS with a filtering resolver (no VPN)
-
-**What it is.** The app walks the user through setting Android Private DNS to a filtering DoT
-resolver, then checks the setting with `LinkProperties.getPrivateDnsServerName()` (R8). The filtering
-happens at the resolver: a third-party family-filter service, or a resolver the project runs (a
-backend). The app itself filters nothing. This is a product-direction change.
-
-**Addresses:** E2 and E4, by working with the mechanism that defeated the VPN rather than against it;
-E5 and E6, because Private DNS is a persistent system setting (ASSUMPTION). Chrome uses the OS
-resolver when the strict Private DNS host is not on its provider list (C2, C4). **Leaves:** E3
-(browser DoH); the user switching the setting back; apps' own DoH; devices below API 28, which have
-no Private DNS (D11).
-
-| Criterion | Assessment |
-|---|---|
-| Coverage | Every app that uses the system resolver, on API 28+ only (ASSUMPTION for the first part). |
-| APIs / permissions | Only reading network state. An ordinary app cannot change Private DNS; that is owner-only (R10). |
-| Play / distribution | The lowest exposure: no VpnService and no Accessibility. |
-| Privacy | Every DNS lookup leaves the device for the resolver operator (T3). With a project-run resolver, the project holds that data (K4). |
-| Security | A very small client. Trust moves to the resolver operator; DoT is authenticated in strict mode (R8). |
-| Complexity | Very low for the client; high if the project runs the resolver (AI estimate). |
-| Testability | High for the client; resolver behavior can be tested with controlled domains (K3). |
-| Performance / battery | The best: no app in the data path. |
-| Lifecycle | No runtime to kill; it survives reboot as a system setting (ASSUMPTION). On a network that blocks port 853, strict mode leaves the device without DNS (ASSUMPTION). |
-| Maintainability | High for the client; depends on the provider's list and availability. |
-| Residual bypass | E3; switching Private DNS off (as easy as pressing Stop); apps' own DoH. |
-| Truthful claim (draft) | "Your device's Private DNS is set to [provider]'s filtering service, and the app checks that it stays set. Browsers using their own Secure DNS are not covered." |
-| Approvals | T3 and K4 (off-device DNS); a product-direction change. |
-
-#### O9 — Browser-scoped filtering
-
-**What it is.** Narrow protection to a browsing surface the product controls: (a) a filtered in-app
-browser, or (b) integrations through browsers' add-on channels, namely Firefox for Android extensions
-and Samsung Internet content blockers (R24 †). Chrome for Android has no public extension channel
-(ASSUMPTION). This is a product-scope change.
-
-**Addresses:** E3, E4 and E7 inside the controlled surface, through URL-level decisions. **Leaves:**
-every other browser and app; switching browsers is the bypass.
-
-| Criterion | Assessment |
-|---|---|
-| Coverage | Only the controlled browser or the integrated browsers. |
-| APIs / permissions | No VpnService and no sensitive permission. |
-| Play / distribution | A browser app, or add-on review by Mozilla or Samsung for the integrations. |
-| Privacy | Full URLs are visible inside the surface, more detail than DNS names; they must stay in memory. |
-| Security | (a) owning a browsing surface and its security expectations; (b) sandboxed by the host browser. |
-| Complexity | (a) high; (b) medium per ecosystem (AI estimate). |
-| Testability | Good: URL decisions are JVM-testable; UI tests on top. |
-| Performance / battery | As any browser; add-ons negligible (AI estimate). |
-| Lifecycle | No background service and no network binding. |
-| Maintainability | Medium to low: browser feature expectations, or several add-on ecosystems. |
-| Residual bypass | Any other browser or app. |
-| Truthful claim (draft) | "Filters browsing inside [this app's browser / the supported browsers]. Other browsers and apps are not filtered." |
-| Approvals | A product-direction change. |
-
-### 6.4 Cross-cutting modules (any VPN-based option)
-
-| ID | Module | Addresses | Notes and approvals |
+| # | Review item | Change | Where |
 |---|---|---|---|
-| CC1 | Always-on support, with guidance to switch on "Block connections without VPN"; detection with `isAlwaysOn()` and `isLockdownEnabled()` (API 29+) | E5 reboot (R2); with lockdown on, traffic is blocked while the VPN is down (R3) | The user can still switch both off in Settings. Revisits D10 (K6). Behavior after a force-stop under Always-on is UNKNOWN (I6). |
-| CC2 | Automatic network handover | E6 | Replaces D12's stop-on-change. Matters for usability under lockdown. |
-| CC3 | DNS-layer gaps: TCP DNS, IPv6 DNS transport, answer and CNAME filtering, bounded concurrency | E9 | D11 deferred each item; each needs its own approval. |
-| CC4 | Truthful-state detection: Private DNS mode (R8), Always-on and lockdown (R4), revocation by another VPN (R1) | Makes E2, E4, E5 and parts of E8 visible | Needed by every option to keep K2. It turns silent gaps into visible Degraded or Unsupported states; it prevents nothing. Browser DoH (E3) stays invisible, because no platform API exposes another app's DNS setting (ASSUMPTION). |
-| CC5 | Rule source and distribution (the production ruleset) | — | A separate decision for every local-filter option (K3, K4). O7's `SafeSitesFilterBehavior` and O8 delegate classification to a third party instead. |
+| 1 | M1 traceability missing (MAJOR) | Every M1 row group is traced to A8 and A2. For A2, G5-W, G5-M, G6, G10 and G11 are UNKNOWN. | §C |
+| 2 | Issue #21 criteria incomplete (MAJOR) | All criteria are filled in for A8, A2 (minimal definition) and A1, and in compact form for the rest. The verdict column is removed from the matrix. | §D |
+| 3 | Third-party DNS trade-off not a decision (MAJOR) | New pending decision H18, plus provider selection criteria | §G, §L |
+| 4 | Impact on M1 and on D8–D12 undefined (MAJOR) | A disposition for `vpn/`, `dns/`, `domain/`, the manifest, the build and each decision | §H |
+| 5 | A2 undefined (MAJOR) | A2 is now a deferred investigation, with a minimal definition, reopening triggers and a no-code first step | §A, §D.4, §J |
+| 6 | A8 verifiability and claim limits (MAJOR; the review's F3 premise is corrected) | Cloudflare documents `nudity.testcategory.com`. A DNS check of it against controls verifies the category tier. Browser coverage is verified separately and never inferred from that check. | §E, §F, §I |
+| 7 | Filter Active conditions (MAJOR) | Explicit mechanism conditions, with coverage taken only from committed evidence. Draft user texts added. | §F |
+| 8 | Always-on and Lockdown deferred together (MINOR) | Split into A4a and A4b | §A, §D.2 |
+| 9 | No acceptance or rejection thresholds (MINOR) | AC1–AC9 and RJ1–RJ6, with the consequence of each rejection | §I |
+| 10 | Offline recovery attributed to H12 (MINOR) | Removed from H12. Proposed separately as H20, derived from H9 (local-first). | §L |
+| 11 | Probe privacy (MINOR) | Checks use only provider-documented names; no background scheduler | §F.5 |
+| 12 | A7 rationale (MINOR) | Split into A7a (H5) and A7b (H9, D1, Play) | §A, §D.2 |
+| 13 | A8's name implied a monopoly on recovery (MINOR) | Renamed "guided Private DNS filtering". Recovery is a baseline shared by every option. | throughout |
+| 14 | Evaluation mixed with recommendation (optional) | Neutral §D; the recommendation appears only in §A.3 | §A.3, §D |
+| 15 | Chrome source evidence (optional) | Recorded as an EXPECTATION until row V3 | §E.4 |
+| 16 | User research as a gate | Removed from the gates. Product-value research is left to M4/M6 with a privacy plan. | §K |
+| 17 | Build variants | None added: one artifact | §H |
+| 18 | Provider framework, background probes, parallel A2 work | None added | §F, §G, §H |
+| 19 | M2-01 exists only on a side branch | Pre-gate action: merge it into `main` | §L |
+| 20 | Source classes; Play links not verified | Classes are used throughout, and Play policy statements are marked † | §L |
 
-### 6.5 Decision outcomes that are not architectures
+**Kept unchanged:**
 
-- **N1 — Bounded investigation before choosing.** The investigations are listed in §10.
-- **N2 — Change direction or stop.** Both are allowed M2-03 outcomes ([roadmap](roadmap.md)). The M1
-  prototype stays as evidence, and no protection claim is made.
+- recovery is independent of filtering;
+- the three-dimension state model (mechanism, coverage, freshness);
+- A8 is a verification candidate, not a production choice;
+- A2 remains the local alternative, now defined as a deferred investigation;
+- A4 is a mode, not an architecture;
+- A3, A5 and A6 are deferred, and Device Owner is excluded;
+- no backend;
+- `filteringOperational=false`;
+- neither Private DNS nor an encrypted upstream is assumed to meet the user's needs by itself.
 
----
+**Mapping from the O1–O9 draft this file replaces:**
 
-## 7. Decision matrix
-
-### 7.1 Coverage of the paths M1 observed
-
-Legend: **Yes**; **Partial**; **Fails closed** — the path stops working (browsing or DNS fails)
-instead of bypassing; **Visible** — not prevented, but shown truthfully; **No**; **?** — unknown;
-**as core** — same as the O1/O2 core it is built on; **n/a** — the path does not arise;
-**(A)** — rests on an ASSUMPTION stated in the option's card.
-
-| M1 observation | O1 | O2 | O3 | O4 | O5 | O6 | O7 | O8 | O9 |
-|---|---|---|---|---|---|---|---|---|---|
-| E2 default Private DNS | No (refuses where DoT validates) | Yes (A) | as core | as core | as core (needs O2 semantics) | n/a | as core | Yes | n/a |
-| E3 browser DoH set by the user | No | No | Fails closed for known endpoints (A) | Yes in proxy-honouring browsers (A) | Partial: known endpoints (A) | Yes in supported browsers (A) | Chrome: Yes (R16, R17); others ? | No | Inside the surface only |
-| E4 Private DNS host set by the user | Visible (refuses) | ? (I2) | Fails closed (A), after O1's refusal rule is changed | Partial: proxied requests (A) | ? (R10) | Yes in supported browsers (A) | Yes: setting locked (R12) | n/a: the host is the product | Inside the surface only |
-| E5 force-stop, reboot | No; Partial with CC1 | as O1 | as core | as core | as core | Partial (A) | Yes (R11, R12) | Yes (A) | n/a |
-| E6 network change | Visible stop; handover with CC2 | as O1 | as core | as core | as core | Yes (A) | as core | Yes (A) | Yes |
-| E7 pre-existing browser state | ? | ? | ? | ? | ? | Yes (A) | as core | ? | Inside the surface only |
-
-### 7.2 Coverage of unmeasured paths and known limits
-
-| Path | O1 | O2 | O3 | O4 | O5 | O6 | O7 | O8 | O9 |
-|---|---|---|---|---|---|---|---|---|---|
-| Stop, system disconnect, another VPN (E8) | Visible (CC4) | Visible | Visible | Visible | Visible | Switching the service off: No (R20 †) | Prevented (R12) | Setting switched off: No, but detectable | n/a (switching browsers: row below) |
-| Uninstall (E8) | No | No | No | No | No | No (R20 †) | Prevented (R12) | No | No |
-| Apps' own DoH or hard-coded DNS (E8) | No | No | Partial: known endpoints | No | Partial: known endpoints, port 53 to any server | No | as core | No | No |
-| Other browsers and in-app browsers (E8) | ? (I5) | ? (I5) | ? | ? per browser | Mostly (A) | Per supported browser | Chrome and WebView policies (R17); others ? | As users of the system resolver (A) | No |
-| E9 DNS-layer limits | CC3 | CC3 | CC3 | Proxied requests unaffected (A) | Inside the tunnel | n/a | as core | The resolver's job | n/a |
-
-### 7.3 Criteria relative to O1
-
-O1 is the datum. `++` much better than O1, `+` better, `S` same, `−` worse, `−−` much worse, and `?`
-where the rating depends on an unknown. Every criterion is phrased so that `+` is better for the
-product (for example, "−" under Privacy means more exposure).
-
-These ratings are **AI-proposed judgments** drawn from the cards, not measurements. There are
-deliberately **no weights and no totals**: weighting is the Tech Lead's (§7.5), and any cell may be
-overwritten.
-
-| Criterion | O1 | O2 | O3 | O4 | O5 | O6 | O7 | O8 | O9 |
-|---|---|---|---|---|---|---|---|---|---|
-| Coverage of M1 bypasses (E2–E4, E7) | S | + | + | +? | ++? | +? | ++ | + | − |
-| Lifecycle (E5, E6) | S | S | S | S | S | S | ++ | + | + |
-| Residual bypass surface | S | S | + | +? | + | S | ++ | S | −− |
-| API / permission footprint | S | S | S | S | − | −− | −− | ++ | + |
-| Play / distribution risk | S | S | −? | S | − | −− | −− | ++ | + |
-| Privacy impact | S | S (O2b: −) | − | − | −− | −− | − | −− | − |
-| Security risk | S | S (sys) / − (own) | S | − | −− | −− | −− | + | − |
-| Implementation complexity | S | − | S | − | −− | − | −− | ++ (third party) / −− (own resolver) | − |
-| Testability | S | − | S | − | −− | −− | −− | + | S |
-| Performance / battery | S | S | S | − | −− | − | S | ++ | S |
-| Maintainability | S | S | − | − | −− | −− | − | + | − |
-| Consent and exit (K1) | S | S | S | S | S | S | −− | S | S |
-| Strength of the truthful claim it could support | S | + | + | +? | + | S | ++ | S | − |
-
-Notes on cells that are not obvious from the cards:
-
-- O8's `S` under "Consent and exit": the user can switch Private DNS back as easily as pressing Stop.
-- O9's `−` under "Coverage": inside the controlled surface E3, E4 and E7 are covered; the rating
-  reflects the device-wide coverage lost outside it.
-- O7's `−` under "Privacy": owner powers are device-wide even if unused; `SafeSitesFilterBehavior`
-  would add a Google data flow (R17).
-
-### 7.4 Approval boundaries each option crosses
-
-| Option | Needs explicit approval of |
+| Old | New |
 |---|---|
-| O1 | Nothing new for the base. CC1 revisits D10 (K6); each CC3 item needs the approval D11 deferred. |
-| O2 | D11's deferred "DNS-over-TLS / Private DNS compatibility". O2b also needs a third-party data flow (T3). |
-| O3 | A new, non-content rule category, and a product decision that user-configured encrypted DNS is in scope (T1). The privacy trade-off (K1). The route variant crosses D11 (routes beyond the `/32`, TCP handling). |
-| O4 | D11 (HTTP parsing and a local listener); API 29+ scope (T4). |
-| O5 | D1 and D11 (packet-level filtering, a default route); K7 (a user-space network stack, most likely native); a privacy review. |
-| O6 | D1 (AccessibilityService); a privacy review; the Play Accessibility declaration (R20 †); T2. |
-| O7 | D1 (Device Owner); the consent-and-exit design (K1); a distribution strategy (R23 †, T2); K4 if a cloud management service is used. |
-| O8 | K4 and T3 (off-device DNS, third party or own backend); a product-direction change. |
-| O9 | A product-direction change (from device level to browser level). |
-
-### 7.5 Tech Lead weighting sheet
-
-| Criterion | Weight (H / M / L) | Notes |
-|---|---|---|
-| Coverage of M1 bypasses | | |
-| Lifecycle | | |
-| Residual bypass surface | | |
-| API / permission footprint | | |
-| Play / distribution risk | | |
-| Privacy impact | | |
-| Security risk | | |
-| Implementation complexity | | |
-| Testability | | |
-| Performance / battery | | |
-| Maintainability | | |
-| Consent and exit | | |
-| Strength of the truthful claim | | |
+| O1 | A1 |
+| O2 | A2 (encrypted upstream) |
+| O3 (encrypted-DNS denial) | Not adopted: it breaks a security setting the user chose (H11 spirit) and would need its own decision (§D.4) |
+| O4 (VPN-advertised proxy) | Considered but not evaluated (§D.3) |
+| O5 | A3 |
+| O6 | A7b |
+| O7 | A7a |
+| O8 | A8 (third-party resolver) and A5 (own resolver) |
+| O9 | A6 |
 
 ---
 
-## 8. How the answer to T1 changes the viable set
+## C. M1 Traceability Matrix
 
-| T1 answer | What must then be covered | Options that can meet it | Options that exceed it (cost beyond the requirement) | Options that cannot meet it |
+No M1 device result is A8 evidence: M1 tested a different DNS path, on build `1492c108`.
+
+What carries over to A8 is **behavior classes** (browser DoH bypasses the device's DNS path; a
+strict Private DNS host takes precedence), not results.
+
+| M1 evidence | Class | What it showed | A8 | A2 | Verify (§E) |
+|---|---|---|---|---|---|
+| G1–G4, G7, G8; rows D1, D3 | PASS (G7 detailed, the rest HUMAN-REPORTED) | With browser DoH off or as found, Chrome, Firefox and Samsung Internet used the device's DNS path in normal and private modes | EXPECTATION: the same browsers and modes use Android's resolver, now through Private DNS | Directly relevant; re-run on current `main` | V3 |
+| Rows D2, D4, D5 | BYPASS (HUMAN-REPORTED) | Browser DoH switched on by the user goes around the device's DNS path | The same gap is expected → DISCLOSED | The same gap → DISCLOSED | V4 |
+| G5-W, G5-M, G6, G10, G11 | INCONCLUSIVE | Unknown whether the VPN runs or refuses under Android's default Private DNS (Automatic) | Not a failure mode: A8 replaces Automatic with the strict provider host. Automatic means "filter Stopped" (§F). | Viability UNKNOWN; these rows are the first step if A2 is reopened (§D.4) | V1, V5 |
+| P1–P4 | UNSUPPORTED (HUMAN-REPORTED) | A strict Private DNS host takes precedence over the app's DNS path | A8 builds on that precedence | Strict-mode behavior undefined; UNKNOWN whether queries even reach a VPN (DevicePolicyManager note, §L) | V1, V2 |
+| P5 | INCONCLUSIVE | Private DNS switched on mid-session | Analogue: the user changes Private DNS → DETECTED at the next observation | Must stop or adapt truthfully | V5, V15 |
+| G9-C, G9-F, L2 | INCONCLUSIVE | Already-running browsers, open tabs, cached answers or connections | Same risk right after enabling | Same | V7 |
+| L1, L3a, L7 | PASS (HUMAN-REPORTED) | VPN start/stop, swipe from Recents, 30-min idle | Not applicable: no app runtime in the DNS path | Relevant | — |
+| L3b, L4 | UNSUPPORTED | Force-stop and reboot end the VPN | EXPECTATION: unaffected, because the system setting persists. Uninstalling the app also leaves the setting in place (EXPECTATION). | Reboot needs A4a; force-stop stays outside the guarantee (H5) | V6 |
+| L5, L6, L8 | UNSUPPORTED; L8 INCONCLUSIVE | A network change stops the session (no handover; M-1) | EXPECTATION: Private DNS applies "on all networks — including cellular" (Cloudflare's Android page). New risk: networks that block DoT. | Needs a handover design | V8, V10 |
+| N1 | PASS (HUMAN-REPORTED) | IPv6-capable network usable | DoT over IPv6 and the blocked AAAA answer are UNKNOWN | Relevant | V9 |
+| M1-06 "not measured": other browsers, in-app browsers, apps' own DoH, another VPN, deliberate disabling | UNKNOWN | — | Each must be classified COVERED, DETECTED or DISCLOSED | Same | V5, V11–V13 |
+| D11 design limits: no TCP DNS, no IPv6 DNS transport, question name only, one worker | FACT (design) | Gaps in the local DNS pipeline | Not applicable: the system resolver and the provider handle transport. CNAME handling is on the provider side (ASSUMPTION). | Must be closed; each needs approval | V0 |
+| M-1 fix (PR #32) | CI PASS on `5382a6c`; device run not recorded | A stale network produces a truthful stop | Not applicable | Relevant | — |
+| Truthful state (no false `Protected`) | HUMAN-REPORTED + FACT | The invariant held | Must hold under §F | Must hold | V14 |
+| Provenance: evidence on `1492c108`, not `main` | FACT | — | All A8 claims need new evidence | Re-run on current code | all |
+
+---
+
+## D. Candidate Comparison Matrix
+
+This comparison is neutral: it has no verdict column and no weights. The recommendation is only in
+§A.3.
+
+### D.1 Serious candidates, all issue #21 criteria
+
+A2 is assessed as its minimal definition in §D.4.
+
+| Criterion | A8 — guided Private DNS filtering | A2 — improved DNS VPN (deferred) | A1 — M1 experiment (baseline) |
+|---|---|---|---|
+| Coverage against M1 bypasses | Browser DoH (rows D2, D4, D5): not covered → DISCLOSED. Strict host (P1–P4): it is the mechanism. Default Automatic (G5–G11 rows): replaced by the strict host through a user action. Lifecycle (L3b, L4, L5, L6): expected covered (V6, V8). Pre-existing state: V7. | Browser DoH: not covered. Default Automatic: UNKNOWN. Strict host: UNKNOWN. Lifecycle: needs A4a and handover. | Standard DNS path only. Refuses under active Private DNS. No reboot start, no handover. |
+| Android APIs and permissions | Normal permissions only: `INTERNET` (for checks) and `ACCESS_NETWORK_STATE`. API 28+ `LinkProperties` getters. The app cannot set Private DNS, which is owner-only. | VpnService consent; service guarded by `BIND_VPN_SERVICE`; `FOREGROUND_SERVICE(_SYSTEM_EXEMPTED)`, `POST_NOTIFICATIONS`, `INTERNET`, `ACCESS_NETWORK_STATE`. A4a removes the D10 opt-out; mode detection needs API 29. | As A2, today |
+| Play / distribution | No VpnService or Accessibility declaration. The listing discloses the third-party resolver; the app itself collects no DNS data. Low risk (policy pages †). | VpnService declaration required; eligibility of an on-device self-protection filter UNKNOWN (†) | Experiment; not distributable as is |
+| Privacy impact | Every DNS lookup goes to the provider. Cloudflare deletes resolver logs within 25 h, except limited samples for aggregate statistics, and shares anonymized data with APNIC. It replaces the network's or the user's own resolver. The app stores no hostnames. Needs H18. | Hostnames parsed in memory on the device. Allowed queries go to the network's or user's resolver, encrypted where Private DNS applies. Updating the rule list may need a distribution channel (open question, H9). | As A2, with plaintext upstream; refuses when Private DNS is active |
+| Security risk | No parsing or listening surface. Trust moves to the provider's answers and availability. DoT authenticates the host (the `LinkProperties` contract). | Packet-parsing surface (fuzz-tested in M1). Another app can slow DNS (single worker). A TLS client if it does its own DoT. Integrity of rule updates. | As A2 without TLS; experiment |
+| Implementation complexity | Low: guidance, observation, on-demand check, pure evaluator | Medium to high: compliant encrypted upstream, Always-on lifecycle, handover, rule management | Exists as an experiment; production hardening means A2 |
+| Testability | DNS-level oracle with a harmless provider test name and controls. State logic is JVM-testable. Browser coverage needs a device matrix. Provider behavior is external and must be re-verified at each release. | Pipeline is JVM-testable (M1 suite). Device matrix at M1-06 scale. | M1 suite exists |
+| Performance / battery | Negligible: the app is not in the data path; checks run only on foreground or user request | Low to moderate: every DNS query passes through the app, plus TLS upstream | Low (L7 idle soak passed; not measured) |
+| Lifecycle behavior | The system setting persists across reboot, app kill, updates and network changes (EXPECTATION: V6, V8). The app observes only while it runs (H5: "next available opportunity"). | VPN service lifecycle. Reboot needs A4a. Force-stop ends it (outside the guarantee, H5). A network change needs handover; today it stops (D12). | No boot start; stops on network change |
+| Maintainability | Little code. Depends on the provider's hostnames, test names and policies (external change risk). | Protocol, rule-list and lifecycle upkeep | Experiment code; not maintained for production |
+| Residual bypass surface | Browser or app DoH. Private DNS switched off or changed in Settings (a few taps; outside the guarantee; DETECTED). Another VPN (UNKNOWN, V11). Pre-existing connections (V7). Content inside allowed domains. Provider misclassification. | Browser or app DoH. System VPN disconnect or another VPN (H5). Apps' own DNS. Strict Private DNS (probably Unavailable). | As A2, plus refusal under active Private DNS |
+| Fit with H4–H12 | H5 ✓. H8: friction only in in-app flows; the off switch is Android Settings. H9 ✓ for app data; the third-party flow needs H18. H10 ✓ via §E. H11 ✓ by construction. H12 ✓. | H5 ✓. H8 ✓ (friction on the in-app Stop). H9: rule distribution open. H10 needs an M1-06-scale matrix. H11 only with a compliant upstream. H12 ✓. | H11 ✓ (it refuses rather than downgrading); no production path |
+
+### D.2 Modes and other options (compact)
+
+The status column is screening against H4–H12. It is not a ranking.
+
+| Option | What it adds | Main costs and risks | Fit | Status |
 |---|---|---|---|---|
-| (a) Self-bypass out of scope: protect ordinary and default configurations; the user can always switch off; gaps are shown truthfully | E1, E2, E5–E7, E9 and the default behaviors in E8; visibility (CC4) of E4 | O1 + O2 with CC1–CC4; O8, if T3 allows off-device DNS | O3, O5, O6, O7 | O9 narrows the scope instead of meeting it |
-| (b) Casual self-bypass in scope: a browser or Private DNS setting must not silently bypass protection; determined bypass out | (a), plus E3 and E4 without silent bypass, plus friction on the in-app Stop. The system disconnect stays possible but visible (R1). | O2 + O3 (friction through failure); O2 + O4 (coverage despite DoH in proxy-honouring browsers); O5; O6 in supported browsers | O7 | O1 or O8 alone, because the E3 setting bypasses them silently |
-| (c) Determined self-bypass in scope | (b), plus the system disconnect, another VPN, uninstall and factory reset | Only O7 reaches Settings and uninstall. Factory reset stays an exit unless blocked, and blocking it conflicts with K1. | — | O1–O6, O8, O9 |
+| A3 full-tunnel VPN (metadata only) | Blocking of known DoH/DoT endpoints and hard-coded resolvers | No guarantee against unknown DoH or ECH (RFC 9849). Parses all traffic. Very high complexity and battery cost. Likely a native dependency. | Allowed by H5; crosses the D1/D11 boundary | Deferred |
+| A4a Always-on (user setting; mode) | Starts a VPN filter at boot | A system-start path; revisits D10 | ✓ (the user can switch it off) | Required with any VPN filter; N/A to A8 |
+| A4b Lockdown (user setting; mode) | Blocks traffic when the VPN is down | Connectivity risk with a split tunnel (UNKNOWN); captive portals; recovery path | Allowed (user setting); high user-facing risk | Out of the MVP; separate decision and matrix |
+| A5 own resolver via Private DNS | Our own classification | A backend; the project would hold DNS data; operations | Conflicts with H9 ("no backend required for the MVP") | Deferred (outside the MVP) |
+| A6 browser-scoped | URL-level decisions inside our own browsing surface | Browser engineering; every other browser uncovered | ✓ | Deferred |
+| A7a Device Owner / legacy Device Admin | Owner-enforced locks on settings | Onboarding by factory reset; device-wide blast radius | Conflicts with H5 | Excluded |
+| A7b AccessibilityService as a URL detector | DNS-independent detection in supported browsers | Exposes screen content (H9); D1 review; Play disclosure; restricted settings and Advanced Protection trends (†); brittle | Not an H5 issue; tension with H9 | Out of scope; judged on these grounds if reopened |
 
-No option without owner privileges can remove the system dialog's disconnect button (R1). An in-app
-delay before Stop adds friction only inside the app.
+### D.3 Considered, not evaluated
 
-Logical relations between options (properties, not preferences):
+A VPN-advertised HTTP proxy (`VpnService.Builder.setHttpProxy`, API 29) could make browser DoH
+irrelevant for browsers that honour it. The platform calls it "only a recommendation" that apps may
+ignore. It is recorded here so that "browser DoH remains a gap" is clearly limited to the options
+that were evaluated.
 
-- If I1 shows that the filter refuses under Automatic on the target networks, O1 alone cannot
-  support any claim about Android's default configuration, and O2 (or O8) becomes a precondition of
-  every DNS-based package. If I1 shows the target networks do not validate DoT, O2's benefit shrinks
-  to the networks that do; CC4 keeps that visible.
-- O3 and O4 are layers, not alternatives to O1/O2: they need a running DNS core.
-- O6's distinct value over O4 and O5 is independence from DNS and connections. Its costs are the
-  highest privacy exposure after TLS interception, and platform restrictions that are tightening
-  (R21, R22 †).
-- O7 is the only option that changes the E8 disable paths from "visible" to "prevented". It does not
-  filter by itself and still needs a core.
-- O8 interacts with any VPN-based core through E4. Combining them needs I2 first.
+### D.4 A2: minimal definition and reopening triggers
+
+**Minimal definition** (enough to estimate it if it is reopened):
+
+1. A1's DNS-only split tunnel.
+2. An upstream that follows the `LinkProperties` Private DNS contract:
+   - in opportunistic mode, encrypt to a resolver from `getDnsServers()`;
+   - in strict mode, encrypt to the named host with certificate validation, or show a truthful
+     Unavailable state if queries do not reach the VPN;
+   - never send plaintext while Private DNS is active (H11).
+3. A4a Always-on support. No Lockdown.
+4. A local rule list with recorded provenance, licence, signed updates and rollback. Its source is
+   decided separately; no backend is assumed.
+5. A §F-equivalent state model.
+
+**Not included:** encrypted-DNS denial (breaking the user's own DoH or Private DNS choice, which
+would need its own decision under the spirit of H11), a full tunnel, and a proxy.
+
+**Reopening triggers** (any one):
+
+- A8 is rejected for an A8-specific reason (§I) and a filter is still wanted;
+- a product need for local rules, or for friction on an in-app off switch, is demonstrated;
+- H18 is rejected.
+
+**First step when reopened (no code):** re-run G5-W, G5-M, G6, G10 and G11 on current `main` with
+`dumpsys` evidence, then estimate.
 
 ---
 
-## 9. Decision packages for the M2-03 ADR
+## E. A8 Verification Plan
 
-Packages are combinations that make an ADR concrete. They are **not ranked and not exhaustive**.
+The purpose is to produce the evidence §I needs. It is **not** implementation.
 
-| Package | Contents | M2-03 outcome | Claim it could support (subject to M2-01 and verification) | Main costs and risks | Leaves out |
+The Tech Lead runs it on the physical Samsung device, as in M1-06. Settings are changed by hand, and
+`adb` is used only for read-only commands and name-resolution checks.
+
+### E.1 Gate V0 — before any device row
+
+1. **Test names (H19, extends D3).** Designate the following as harmless test names:
+   - `nudity.testcategory.com`: Cloudflare says it "tests whether adult content and malware domains
+     are blocked";
+   - `malware.testcategory.com`: the malware tier;
+   - controls `example.org` and `example.com` (IANA). The provider does not block them. M1's local
+     list blocked `example.com`; A8 does not.
+2. **Browser navigation to the test name.** The only evidence that the page is harmless is a search
+   result title, "This is a test website provided by Cloudflare Gateway" (†).
+   - The Tech Lead confirms this once before any browser row.
+   - If navigation is not approved, rows V3, V4, V7 and V11–V13 fall back to weaker evidence
+     (settings screenshots only) and cannot produce COVERED.
+3. **Provider:** Cloudflare Families `family.cloudflare-dns.com`, documented for Android 9+ Private
+   DNS.
+
+### E.2 The oracle (DNS level)
+
+Cloudflare documents that it "returns the address `0.0.0.0` instead of the real address" for a
+blocked name. The documentation sentence says "classified as malicious"; V0 confirms the same
+answer for the adult tier. The blocked AAAA answer is UNKNOWN (V9).
+
+| Observation | Meaning |
+|---|---|
+| Test name → `0.0.0.0` (or `::`), control → a real address | Filtered on this path |
+| Test name → a real address | Not filtered on this path |
+| Control fails | Environment failure → INCONCLUSIVE, never PASS |
+| Test name NXDOMAIN or other error | Not the provider's documented signal → INCONCLUSIVE |
+
+The oracle never needs page content. With V0 approval, a browser BYPASS shows only Cloudflare's
+test page.
+
+### E.3 Safety rules
+
+- Change Settings by hand only.
+- `adb` only for reads and `ping`-based name resolution.
+- Never use real adult domains.
+- Record the as-found settings and restore them.
+- No Always-on or Lockdown.
+- No other DNS or VPN apps, except in V11.
+- Redact SSIDs and IP addresses.
+- Keep raw evidence outside the repository; commit one classified results document, as for M1-06.
+
+### E.4 Matrix
+
+The "Was" column gives the matching row ID from the A1–A8 proposal.
+
+| ID | Was | Setup | Action | Expected (basis) | Result classes |
 |---|---|---|---|---|---|
-| PK1 Narrow DNS, hardened | O1 + O2 + CC1–CC4 | Continue with a narrowed DNS-based claim | Standard system DNS lookups, including under Android's default Private DNS mode, while protection runs; unsupported configurations shown | Encrypted upstream; revisiting Always-on; CC3 work | E3, E4, the E8 disable paths |
-| PK2 DNS plus circumvention friction | PK1 + O3 and/or O4 | A different architecture, as a bounded prototype | PK1, plus "known encrypted-DNS settings do not silently bypass" and/or "proxy-honouring browsers are covered despite Secure DNS" | The privacy trade-off (O3); the proxy's attack surface and battery cost (O4); endpoint-list upkeep | Unknown DoH endpoints, apps that ignore the proxy, the disable paths |
-| PK3 Full-tunnel metadata filter | O5 with O2 semantics + CC1–CC4 | A different architecture, as a bounded prototype | Most connections' destinations checked on the device, with named gaps (ECH with unknown DoH, other VPNs) | Very high complexity, battery cost, privacy exposure, a dependency | The disable paths |
-| PK4 Managed self-protection mode | O7 with a PK1 core and Chrome policies | Product or platform direction change (an opt-in mode on a reset device) | Protection starts at boot and cannot be switched off from Settings without the designed exit | Factory-reset onboarding; distribution (R23 †); blast radius; consent-and-exit design | Unmanaged browsers and apps; factory reset |
-| PK5 Delegate to a Private DNS resolver | O8 + CC4-style verification | Direction change | "Device DNS goes to filtering service X, and the app verifies the setting" | Off-device DNS data flow (T3, K4) | E3; the settings toggle |
-| PK6 Browser-scoped | O9 | Direction change | "Filtering inside this browser or integration only" | Browser engineering, or several store ecosystems | All other browsers and apps |
-| PK7 Investigate first | N1: I1–I8 | More investigation required | None yet | Time; the experimental builds need approval | — |
-| PK8 Stop or change product | N2 | Stop the approach | None | — | — |
+| V0 | T12 | Desktop, no device | `dig` the test names at `1.1.1.3` and at `1.1.1.1`; `dig` the controls at `1.1.1.3` | Test names `0.0.0.0` at `1.1.1.3` and a real address at `1.1.1.1`; controls real at both (Cloudflare docs). The malware name is informational only (†: a community report says the malware-only tier may not block it). | Oracle VALID / INVALID |
+| V1 | T03 | Device: Wi-Fi, then cellular; Private DNS = provider host | Settings screenshot; `dumpsys connectivity` Private DNS lines; `dumpsys dnsresolver` validation | Strict mode active with the provider host | PASS / FAIL |
+| V2 | T03 | As V1, plus a baseline with Private DNS Off | `adb shell ping -c 1 <name>`; read only the resolved address | Host set: test name `0.0.0.0`, controls real. Private DNS Off: test name real. | PASS / FAIL / INCONCLUSIVE |
+| V3 | T01 | Host set; browser DNS settings as found (recorded) | Chrome normal and Incognito, Samsung Internet normal and Secret, Firefox normal and Private: open the test name (V0-gated), then a control | Error page with no content; control loads. Chrome EXPECTATION: its DoH upgrade list maps `family.cloudflare-dns.com` to Cloudflare's family DoH endpoint, but that entry is disabled by default, so Chrome should use Android's resolver; if it were enabled, Chrome would still stay on the family tier. | COVERED / BYPASS / INCONCLUSIVE |
+| V4 | T02 | Host set | Chrome Secure DNS with a chosen non-filtering provider; Firefox DoH Increased and Max | BYPASS expected (the browser's own DoH); Cloudflare's test page shows | DISCLOSED (with evidence) / COVERED |
+| V5 | T03 | Host set | Switch Private DNS to Automatic, to Off, and to another host; repeat V2 each time | Test name resolves, so filtering is off | DETECTED on the app side later (V15) |
+| V6 | T07 | Host set | Reboot without opening the app, then V2. Force-stop the app, then V2. | Still blocked (EXPECTATION: the app is not in the DNS path) | PASS / FAIL |
+| V7 | T08 | Private DNS Off; the browser loads the test name (V0-gated) and stays open | Set the host; reload at +0 s, +60 s and +5 min; then a cold start | A short window from cached answers or connections is possible; record it | DISCLOSED window / PASS |
+| V8 | T04 | Host set | Wi-Fi → cellular → Wi-Fi; V2 and part of V3 on each | Blocked on every network | PASS / FAIL |
+| V9 | T08 | Host set; IPv6-capable network | AAAA lookups (`ping6`) for the test name and a control; part of V3 | Test name AAAA `::` or none; control usable | PASS / FAIL / NOT RUN (no IPv6) |
+| V10 | T05 | Host set | A network that blocks TCP 853 (router rule), and a captive-portal network, if available | DNS fails on that network. Record the system message and a recovery path: set Automatic, connect or log in, restore the host. | DISCLOSED with recovery documented / FAIL (no clear recovery) |
+| V11 | T06 | Host set | Start a common VPN app that has its own DNS; V2 and part of V3 | UNKNOWN. The DevicePolicyManager note says the resolver "must be reachable both from within and outside the VPN". | COVERED / DISCLOSED |
+| V12 | new | Host set | A Custom Tabs flow and a WebView in-app browser | UNKNOWN | COVERED / DISCLOSED |
+| V13 | new | Host set | One more browser at default settings (for example Edge or Brave) | UNKNOWN | COVERED / DISCLOSED |
+
+**Later rows.** These depend on an app and need a separate, approved prototype task. They are not
+executed under this plan.
+
+| ID | Was | Checks |
+|---|---|---|
+| V14 | T09 | §F accuracy: Filter Active only when its conditions hold; stale after a network change |
+| V15 | T03, T09 | Private DNS change detected at the next foreground (H5) |
+| V16 | T10 | Check privacy: only documented names; no hostnames in logs, storage or backup |
+| V17 | T11 | Recovery works with the filter Unsupported, Unavailable or Stopped (H12); product acceptance for M3/M4 |
+
+### E.5 Evidence and classification
+
+Each row records:
+
+- Settings screenshots;
+- redacted `dumpsys` lines;
+- the first `ping` line (name and address);
+- browser screenshots with the URL bar and the exact error;
+- Android, One UI and browser versions;
+- network type;
+- timestamps;
+- the classification.
+
+Classifications map to H4:
+
+- **COVERED** means PASS within the tested boundary.
+- **DETECTED** means Android exposes a reliable signal and the app's state changes truthfully; the
+  app side needs V14 and V15.
+- **DISCLOSED** means the path is neither prevented nor detected, and it is named in the claim's
+  limitations.
+- A row that is INCONCLUSIVE twice counts as not passed.
 
 ---
 
-## 10. Evidence gaps and bounded investigations
+## F. Filter State / Coverage State Model
 
-| ID | Question | Method | Resolves | Informs | Code / approval |
-|---|---|---|---|---|---|
-| I1 | Does the filter run or refuse under Android's default Private DNS on the target networks? | Re-run G5-W, G5-M, G6, G10 and G11 on current `main`, recording the `dumpsys` Private DNS lines before Start and after SBA; add one network whose resolver validates DoT | E2; E11 for the current build | O1 vs O2; PK1 | None; device time only |
-| I2 | Under strict and automatic Private DNS, do queries still reach the VPN's DNS server? Does `DnsResolver.rawQuery()` on the underlying network apply Private DNS? | An experimental build that forwards with `rawQuery()` (API 29+) instead of refusing; harmless domains; counters plus `dumpsys` | E4; R9 | O2's scope; O3; O8 combined with a VPN core | Experimental build; approval needed (D11's deferred item) |
-| I3 | What happens in rows D2, D4, D5 and P1 when the bootstrap names of known encrypted-DNS services (and the Firefox canary, F5 †) are denied? | An experimental rule set containing resolver hostnames only (harmless, K3); re-run rows D2, D4, D5 and P1 | E3; E4; F5 | O3 | Rule change in an experimental build; approval needed |
-| I4 | On API 29+, do Chrome, Samsung Internet and Firefox use a VPN-advertised loopback proxy, with Secure DNS on? Do they fall back from QUIC to TCP? What does relaying cost? | A minimal experimental proxy that refuses only the blocked test domain and relays the rest; no logging | E3 through O4; R6 | O4 | Experimental build; approval needed (D11: HTTP parsing) |
-| I5 | What do the unmeasured default paths do? | Current build and harmless domains: other browsers (for example Edge, Brave, Opera, DuckDuckGo), a Custom Tabs flow, a WebView in-app browser, one non-browser app | E8 | M2-01 claim wording; all options | None; device time only |
-| I6 | How do Always-on and lockdown behave? | An experimental build without the D10 opt-out: reboot, force-stop, app update, lockdown with the VPN down, network change under lockdown | E5; E6 | CC1; CC2 | Approval needed (D10 revisit) |
-| I7 | Can M1 be closed formally? | Run PR #32's device procedure (rows P, M, S, R, PD, X) on `main`; update M1-07; record the M1 → M2 decision | E6; E11; the M2 entry criteria | all | None |
-| I8 | Does the product fit Play policy? | The Tech Lead reads the Play Console VpnService declaration categories and the Accessibility and device-owner policies directly (the AI could not reach them) | R19–R23 † | O1–O7 | None |
+### F.1 Observed facts (A8)
 
-I1, I5, I7 and I8 need no code. I2, I3, I4 and I6 need experimental builds, which this document does
-not authorize.
+| Fact | Source | Kept |
+|---|---|---|
+| F-api: API ≥ 28 | `Build.VERSION` | — |
+| F-net: an active network exists | `ConnectivityManager` | memory |
+| F-pdns: `isPrivateDnsActive()` | `LinkProperties` of the active network | memory |
+| F-host: `getPrivateDnsServerName()` equals the provider host (exact match, case-insensitive) | same | memory |
+| F-check: the last check on this network: test name → provider block answer, control → real address | system resolver | memory only, never persisted |
+| F-vpn: the active network is a VPN | `NetworkCapabilities` | memory |
+| Setup intent: the user completed setup | local preference | persisted. Used only for wording, never for Filter Active (D8 principle). |
+
+### F.2 Mechanism state
+
+The first matching rule wins.
+
+| State | Condition | User meaning |
+|---|---|---|
+| Unsupported | not F-api | Filtering needs Android 9+ |
+| Not set up | no setup intent and not F-host | Neutral onboarding state |
+| Stopped | not F-host (Private DNS Off, Automatic or another host) | Filtering is off. If setup intent exists: "changed in Android settings" (DETECTED). |
+| Unavailable | F-host but not F-pdns; or the last check failed with the control also failing | The resolver or network is unreachable |
+| Error | the last check contradicts the configuration: the test name got a real address while F-host and F-pdns hold (this path is not filtered, e.g. another VPN) | Never Active |
+| Degraded | F-host and F-pdns, but no fresh passing check (§F.4) | Set up, not verified on this network |
+| **Filter Active** | F-api, F-pdns, F-host, and a fresh passing check | All conditions of the approved boundary are observed (H7) |
+
+### F.3 Coverage
+
+Coverage is a statement built only from the committed §E results. For each browser and mode it
+says: covered (tested PASS), not covered (DISCLOSED) or not tested.
+
+- Runtime facts can narrow coverage but never widen it. Example: another VPN is active (F-vpn) and
+  V11 was not COVERED, so the text becomes "coverage not verified with another VPN".
+- Filter Active never implies any browser row.
+
+### F.4 Observation freshness
+
+- A check is fresh only for the network it ran on, and only within the current app process.
+- It expires on:
+  - a network change or a Private DNS change (callbacks while the process lives);
+  - a process restart.
+- Checks run when the app comes to the foreground with a stale state, and when the user taps
+  "Check now".
+- There is **no** background service, scheduler or periodic job.
+- The UI shows the check time. A time-based expiry can be added by the spec, but it may only shorten
+  freshness.
+
+### F.5 Check constraints (H9)
+
+- Only provider-documented test names and neutral controls; never a name that identifies the app.
+  The app contacts nothing else.
+- Results are kept in memory only: no hostname or check history, and no hostnames in logs.
+- Lookups go through the system resolver, the same path other apps use, bypassing the local cache
+  where the platform allows (implementation detail).
+
+### F.6 User-facing texts (drafts; final copy follows M2-01 §5)
+
+| State | Draft |
+|---|---|
+| Filter Active | "Filter active on this network (checked 10:42). Covers apps that use Android's DNS. Tested browsers: Chrome, Samsung Internet. Browsers or apps using their own secure DNS are not covered." |
+| System check passes, browser not tested | "System DNS filter: active (checked just now). Firefox: not tested — it may use its own secure DNS." |
+| Degraded | "Set up, not yet checked on this network. [Check now]" |
+| Stopped (after a change) | "Filtering is off: Android Private DNS was changed. Recovery tools still work." |
+| Unavailable | "The filtering DNS can't be reached on this network. Android may have no internet here. [How to reconnect]" |
+| Error | "The check failed: a test name wasn't blocked. Filtering may not be working on this network." |
+| Unsupported | "Filtering needs Android 9 or later. Recovery tools work normally." |
+
+The texts never say "Protected", "full protection" or any other wording M2-01 §5 rejects.
+
+### F.7 Relation to D8
+
+- D8's principle holds: state is computed from runtime facts only, and saved intent never produces
+  Active.
+- D8's `ProtectionSignals` fields are VPN-specific. A8 needs a Private-DNS signals type evaluated
+  with the same discipline: pure logic with JVM tests.
+- Renaming `ProtectionState.Protected` stays deferred (H7).
+- If A2 is reopened, its mechanism facts are VPN, tunnel and upstream facts; coverage and freshness
+  stay the same.
 
 ---
 
-## 11. Tech Lead decision
+## G. Privacy & Trust Decision
 
-Decisions the M2-03 ADR needs from this assessment:
+Proposed decision H18 — PENDING.
 
-- [ ] T1: scope of deliberate self-bypass (with M2-01)
-- [ ] T2: distribution target
-- [ ] T3: which off-device data flows, if any, are acceptable
-- [ ] T4: Android versions the claim must cover
-- [ ] T5: browsers the claim must cover
-- [ ] Criterion weights (§7.5), and any rating in §7.3 to overwrite
-- [ ] A package or outcome (§9), or another combination
-- [ ] Which approval boundaries (§7.4) are accepted
-- [ ] Which investigations (§10) are authorized before, or instead of, M3
+### G.1 The decision
 
-### Tech Lead decision record
+> When the user turns on filtering, Android sends every DNS lookup made by apps that use the system
+> resolver, encrypted with DoT, to the filtering provider the user chose. The provider may keep
+> query logs within its published policy. The project runs no server and receives nothing.
 
-**Decision:** Pending  
-**Date:** Pending  
-**Rationale:** Pending
+**Options:**
+
+- accept for verification only (the Tech Lead's own device during §E);
+- accept for production (after §I);
+- reject: A8 stops, and either A2 is reopened (§D.4) or the product ships recovery-only (H12).
+
+### G.2 What leaves the device
+
+**Goes to the provider:** query names and types, timing, and the source IP, subject to the
+provider's policy. This covers every app that uses Android's resolver, not only browsers.
+
+**What is already true without A8:** DNS goes to the network's resolver (often the ISP, often in
+plaintext) or to the user's own Private DNS choice. A8 changes who receives it, and encrypts the
+path.
+
+**Stays on the device:** recovery data, app usage, check results, and any identifier from the app.
+The app's only own lookups are the check names.
+
+### G.3 Provider facts — Cloudflare (FACT, documentation source)
+
+- 1.1.1.1 for Families "uses the same privacy commitments" as 1.1.1.1.
+- The source IP is not written to non-volatile storage, except randomly sampled packets from at
+  most 0.05% of traffic, used for troubleshooting and attack mitigation. Truncated IPs are deleted
+  within 25 hours.
+- Resolver logs, which include query name and type, are deleted within 25 hours. The exception is
+  limited sampled data, without IP addresses, used for aggregate statistics.
+- APNIC can access anonymized query names, types and resolver location for research.
+- The practices are audited by an accounting firm.
+
+**This is not "zero logs".**
+
+### G.4 User explanation
+
+Shown before setup; the user can decline. Draft:
+
+> "To filter, Android will send the names of the sites and services your apps look up to
+> Cloudflare's family filter instead of your network's DNS. Cloudflare says it deletes these logs
+> within 25 hours, apart from limited samples kept for statistics, and shares anonymized data with a
+> research partner (APNIC). This app never sees
+> or stores them. You can turn filtering off in Android settings at any time — uninstalling this
+> app does not turn it off. Recovery tools work either way."
+
+### G.5 Trust boundaries
+
+- **Device ↔ provider:** DoT to the named host, certificate-validated under the Private DNS
+  contract. This authenticates who answers, not whether the answers are right. The provider
+  controls classification and availability.
+- **App ↔ Android settings:** read-only observation. Only a device owner can set Private DNS.
+- **App ↔ provider:** the check lookups only.
+
+### G.6 Provider selection criteria
+
+| # | Criterion | Cloudflare Families |
+|---|---|---|
+| 1 | Android Private DNS (DoT host) with an adult-content tier | FACT |
+| 2 | A documented harmless test name blocked by that tier, and a documented blocked answer | FACT (docs); browser safety of the test page † (V0) |
+| 3 | Published retention, IP handling, sharing and audit; no advertising or data sale | FACT |
+| 4 | No account or identity needed (H9) | FACT: only a hostname is entered |
+| 5 | Availability record and redundant anycast | UNKNOWN (not researched) |
+| 6 | A misclassification feedback path that doesn't require sending browsing history | FACT: anonymous categorization feedback |
+| 7 | Terms allow recommending the service; hostnames are stable | UNKNOWN (terms not read) |
+| 8 | If Chrome's DoH upgrade list contains the host, it maps to the same filtering tier | FACT: Chromium maps it to the family DoH endpoint; the entry is disabled by default |
+
+**Result:** Cloudflare is the provider under verification, not a final choice. There is no
+provider framework: a provider is three data items (DoT host, test names, blocked answer).
 
 ---
 
-## 12. AI contribution and verification boundary
+## H. Migration Impact on Existing M1 / D8–D12 / `vpn/` / `dns/`
 
-AI (Claude) contributed:
+This document changes no code. The dispositions below apply only if the gate selects A8 for
+production. The removal work would then become an M3 task under its own contract.
 
-- reading the project documents and the M1 evidence;
-- platform research in the Android reference documentation and the Chromium source (through its
-  GitHub mirror);
-- the option cards, matrices, packages and investigation list in this draft.
+### H.1 Components
 
-AI did not:
+| Item | Today | If A8 is selected for production | If A2 is later reopened |
+|---|---|---|---|
+| `vpn/` (`LocalProtectionVpnService`, `VpnLifecycleController`, `DnsProxyRuntime`, `UnderlyingNetworkMonitor`, `UnderlyingNetworkDns`, `CapturedNetworkWatch`, `VpnRuntimeFacts`, `VpnRuntimeStatus`) | M1 experiment on `main` | Removed from the product (M3), after tagging the last experiment commit. Not disabled by a flag: a declared VpnService keeps the Play VpnService obligations (the A1–A8 proposal's point; Play policy †). | Basis for A2 |
+| `dns/` (codec, IPv4/UDP adapter, filtering engine, packet processor, upstream selector, status, experimental rules) | M1 experiment | Removed together with `vpn/` | Reused and extended (§D.4) |
+| `domain/rules/` `RuleSet` (D9) | Pure Kotlin, used by `dns/` | Unused, because the provider classifies. Removed unless the gate keeps local lists for another reason. | Reused |
+| `domain/protection/` (D8) | VPN-shaped signals | Principle kept; signals replaced by Private-DNS facts (§F.7) | VPN signals extended |
+| `MainActivity` harness | Development harness | Replaced by product UI (M4). V14–V16 need a separate prototype task. | — |
+| Manifest | VpnService (guarded by `BIND_VPN_SERVICE`); `FOREGROUND_SERVICE(_SYSTEM_EXEMPTED)`; `POST_NOTIFICATIONS`; `INTERNET`; `ACCESS_NETWORK_STATE` | `INTERNET` and `ACCESS_NETWORK_STATE`; `POST_NOTIFICATIONS` only if a product feature needs it. No VpnService, no foreground service. | Unchanged |
+| JVM tests | Cover `dns/`, `vpn/`, rules | Removed with their code; new tests for the §F evaluator | Kept |
+| CI workflow | Builds, tests and lints project 04 | Unchanged | Unchanged |
 
-- select, rank or approve an option — §7.3 contains per-criterion judgments without weights or
-  totals, and §9's packages are unranked;
-- run any device test or measure performance or battery;
-- read the Play policy pages or Google's enterprise pages directly (blocked; marked †);
-- obtain an independent review of this document.
+### H.2 Decisions
 
-Verification performed: each E row was checked against
-[`m1-06-execution-results.md`](m1-06-execution-results.md) and
-[`m1-07-evidence-synthesis.md`](m1-07-evidence-synthesis.md); each R row not marked † was checked
-against its source on 2026-09-26; relative links were checked. An independent review of §3.2 and §7
-(for example by another model, per [`AI_ROLES.md`](../../../docs/AI_ROLES.md)) is advisable before
-the ADR.
+| Decision | Under A8 | Under A2 |
+|---|---|---|
+| D1 (DNS hypothesis) | Answered by the M2-03 ADR; closed with a pointer | Same |
+| D2–D7 | Unchanged | Unchanged |
+| D3 (test domains) | Extended by H19 | Extended by H19 |
+| D5 (no backend) | Kept; A8 needs no backend | Kept |
+| D8 | Principle kept; amended for Private-DNS signals | Extended |
+| D9 | Retired with `RuleSet` | Kept |
+| D10, D11, D12 | Historical (M1 experiment) | Baseline |
+
+### H.3 Artifact and roadmap
+
+- **Artifact:** one app, with **no build variants**. The M1 experiment stays reproducible from its
+  tag. Bringing VPN code back later needs an explicit decision.
+- **Docs** (a separate docs task):
+  - merge M2-01 into `main`;
+  - update M1-07 (M-1 merged; gate state) and the README status;
+  - update the roadmap.
+- **Roadmap:** under A8, M3 "Protection Core V1" becomes a small filter-observation core plus the
+  removal of the experiment code, and the recovery MVP (M4) carries more of the product. This
+  roadmap change needs its own decision.
 
 ---
 
-## 13. Sources
+## I. Acceptance & Rejection Criteria
 
-Android developer reference, read directly on 2026-09-26:
+**Required browser set** (proposed; the Tech Lead confirms, §J Q2): the target device's default
+browsers, Chrome (normal and Incognito) and Samsung Internet (normal and Secret), with browser DNS
+settings as found.
 
-- [VpnService][vpnservice], [VpnService.Builder][builder], [VPN guide][vpnguide]
-- [LinkProperties][linkprops], [DnsResolver][dnsresolver]
-- [DevicePolicyManager][dpm], [UserManager][usermanager]
-- [Network security configuration][nsc], [AccessibilityServiceInfo][a11yinfo]
+### I.1 Accept A8 as the production filter architecture only if all of these hold
 
-Chromium source, `main` branch through the GitHub mirror, read on 2026-09-26:
+| ID | Criterion | Rows |
+|---|---|---|
+| AC1 | The oracle is valid | V0 |
+| AC2 | The mechanism is active on Wi-Fi and on cellular | V1 |
+| AC3 | The system path is blocked on Wi-Fi and cellular, and the controls resolve | V2 |
+| AC4 | Every required browser row is COVERED and reproduced once | V3 |
+| AC5 | Blocking persists after a reboot and after an app force-stop, without opening the app, and across Wi-Fi ↔ cellular | V6, V8 |
+| AC6 | Every other row is classified COVERED, DETECTED or DISCLOSED with evidence; NOT RUN only with a stated reason | V4, V5, V7, V9–V13 |
+| AC7 | Behavior when the resolver is unreachable or behind a captive portal is documented, with a working recovery path through standard Settings | V10 |
+| AC8 | H18 is accepted | — |
+| AC9 | H19 is accepted before any row | — |
 
+### I.2 Reject A8 if any of these holds
+
+| ID | Criterion | Consequence |
+|---|---|---|
+| RJ1 | Oracle invalid: the test name is not blocked by the family tier, or is also blocked by the unfiltered resolver (V0) | Stop. Retry V0 with another provider that meets §G.6, or reopen A2. |
+| RJ2 | The mechanism or the system path fails on the target device on normal networks (V1, V2) | Stop A8; reopen A2 (§D.4) |
+| RJ3 | A required browser row BYPASSes reproducibly at default settings (V3) | A2 would have the same browser-level gap, so reopening A2 does not help. The Tech Lead chooses between narrowing the claim to the browsers that pass and making no filter claim. |
+| RJ4 | Blocking does not survive a reboot (V6) | Stop A8; reopen A2 |
+| RJ5 | V10 shows the user can be left without connectivity and without a clear standard recovery path | Stop A8, or narrow the supported networks (Tech Lead) |
+| RJ6 | H18 is rejected | Stop A8; A2 or recovery-only |
+
+### I.3 Handling other results
+
+- **Not decisive but recorded:** Firefox and other browsers must be classified COVERED or DISCLOSED.
+  The claim covers only the COVERED rows (H10); DISCLOSED rows become its limitations.
+- **INCONCLUSIVE:** a required row that is INCONCLUSIVE twice counts as not passed. The Tech Lead
+  decides between another re-run and rejection.
+
+---
+
+## J. Answers to Reviewer Questions
+
+1. **What exactly are the Filter Active conditions, and what text shows when the system check
+   passes but browser coverage is unknown?**
+   Filter Active holds only when all of the following are true:
+   - the device runs API 28+;
+   - Private DNS is active in strict mode with the provider host on the active network;
+   - a check on this network, in this app session, got the provider's block answer for the test
+     name while the control resolved.
+
+   Nothing else produces Active: not the saved setup, not the host alone, not a check from another
+   network. When the system check passes and a browser is untested, the app shows: "System DNS
+   filter: active (checked just now). [Browser]: not tested — it may use its own secure DNS."
+   (§F.2, §F.6)
+
+2. **Which T1 rows must pass before A8 is accepted, and what result stops it?**
+   - **Must pass:** V3 COVERED for Chrome (normal, Incognito) and Samsung Internet (normal,
+     Secret) at default settings, plus V1, V2, V6 and V8.
+   - **Stops A8:** any of RJ1–RJ6. RJ3, a reproducible default-settings BYPASS in a required
+     browser, leads to narrowing the claim or making no filter claim, because A2 shares that gap.
+   - **Other browsers:** Firefox and the rest do not block acceptance. They must be classified, and
+     the claim excludes them if they are DISCLOSED. (§I)
+
+3. **Does the Tech Lead accept sending DNS queries to the chosen provider, and how is it explained to
+   the user?**
+   This is not decided. H18 is pending and belongs to the Tech Lead. Running §E already sends the
+   test device's DNS to Cloudflare, so the first sub-decision is to accept it "for verification".
+   The user explanation in §G.4 appears before setup, with a way to decline, and recovery works
+   either way.
+
+4. **Can A2 be estimated now, or is it a deferred investigation?**
+   It is a deferred investigation. Four things are unknown or open:
+   - whether it works under Android's default Private DNS (five INCONCLUSIVE M1 rows);
+   - how it behaves under a strict Private DNS host;
+   - whether Play accepts it;
+   - where its rule list comes from.
+
+   §D.4 records a minimal definition, the triggers that reopen it and the first no-code step:
+   re-run the five rows on current `main`.
+
+5. **Which old parts and decisions does A8 replace, and what does the published artifact look like?**
+   - **Code:** the product drops `vpn/` and `dns/`, and `RuleSet` too unless it is kept for
+     another reason.
+   - **Decisions:** D8's principle stays with Private-DNS signals; D9 is retired; D10–D12 become
+     historical.
+   - **Artifact:** a single app with normal permissions (`INTERNET`, `ACCESS_NETWORK_STATE`), no
+     VpnService, no foreground service, no backend and no build variants. The experiment stays
+     reproducible from a tag.
+   - **Play:** no VpnService declaration; the listing discloses the third-party resolver. (§H)
+
+---
+
+## K. Remaining Unknowns
+
+| ID | Unknown | Resolved by | Affects |
+|---|---|---|---|
+| U1 | Whether `nudity.testcategory.com` is safe to open in a browser; only a search-result title says it is a Cloudflare test site | V0 gate (Tech Lead) | V3, V4, V7, V11–V13 |
+| U2 | The AAAA answer for blocked names | V9 | Oracle |
+| U3 | Whether Firefox uses its own DoH by default in the tested region while Private DNS is strict | V3 | Claim scope |
+| U4 | Samsung Internet's own DNS behavior | V3 | AC4 |
+| U5 | Another VPN running together with A8 | V11 | T4 coverage |
+| U6 | In-app browsers and WebView | V12 | Claim scope |
+| U7 | Captive portals and DoT-blocking networks on the target device, and the exact system message | V10 | AC7 |
+| U8 | The cache or connection window right after enabling | V7 | Claim limitations |
+| U9 | What `isPrivateDnsActive()` reports when the strict host fails validation | V10, later V14 | §F Unavailable |
+| U10 | Cloudflare's availability record and terms | Desk research (§G.6 #5, #7) | H18 |
+| U11 | Play listing wording for an app that guides users to a third-party DNS (policy pages †) | The Tech Lead reads the Play Console | Distribution |
+| U12 | Whether the malware test name separates the two Families tiers (†) | V0 | Use the nudity name as the family oracle |
+| U13 | Whether the recovery layer is valuable enough on its own | Product research in M4/M6 with a privacy plan; not an architecture gate | Product |
+| U14 | Whether A2 works under Android's default Private DNS | Only if A2 is reopened | A2 |
+
+---
+
+## L. Updated ADR / Architecture Baseline Candidate
+
+### ADR-M2-02 — Filter layer: verify guided Private DNS (A8) first
+
+**Status:** Proposed. It goes to final verification review, then to the Architecture Gate (M2-03).
+It is not accepted.
+
+**Context:** In M1, a DNS-only VpnService filter:
+
+- worked on the standard DNS path;
+- was bypassed by browser DoH (rows D2, D4, D5);
+- refused to run under a user-set Private DNS host (P1–P4);
+- left its behavior under Android's default Private DNS unknown (G5-W, G5-M, G6, G10, G11).
+
+M2-01 approved:
+
+- recovery first (H6, H12);
+- no OS-level locks (H5);
+- privacy with no backend (H9);
+- claim control (H10);
+- no Private DNS downgrade (H11).
+
+**Options considered:** A1–A8 (§D).
+
+**Decision (proposed):** H13–H20 below.
+
+**Why:** §A.3.
+
+**Trade-offs:**
+
+- a third-party DNS data flow (H18);
+- the off switch sits in Android Settings, outside H8 friction;
+- browser DoH stays DISCLOSED;
+- API 28+ only;
+- dependence on a provider.
+
+**Consequences:** the §H migration if accepted; verification per §E before any production claim;
+A2 kept as a defined, deferred investigation.
+
+**AI contribution:** AI (Claude) did the analysis and drafting as input to the Tech Lead's decision.
+The Tech Lead owns the decision.
+
+### Decision items (all PENDING)
+
+| ID | Proposed wording | Relation to the A1–A8 proposal |
+|---|---|---|
+| H13 | Recovery/filter boundary: the recovery layer never depends on the filter layer's presence, state, code paths or data. Filter absence, failure, an unsupported platform or the user's choice never changes recovery behavior. | Its H13, rewritten as a boundary |
+| H14 | A8 is the filter layer's verification candidate. The user sets Android Private DNS (strict) to a filtering provider; the provider under verification is Cloudflare Families `family.cloudflare-dns.com`. The filter layer is API 28+, shown Unsupported below that, with minSdk unchanged. Production selection only after §I acceptance, H18 and the gate. | Its H14 |
+| H15 | Mechanism state, coverage and freshness are separate. Filter Active only under the §F.2 conditions. Coverage comes only from committed verification results. Checks run only on foreground or user request; no background probes. | Its H15, made precise |
+| H16 | A4a Always-on is required with any VPN-based filter (N/A to A8). A4b Lockdown is out of the MVP pending its own matrix. A3, A5 and A6 are deferred. A7a is excluded (H5). A7b is out of scope; if reopened it is judged on H9, D1 and Play. A2 is a deferred investigation with the §D.4 triggers. | Its H16, split |
+| H17 | Next step: the Tech Lead runs §E rows V0–V13 on the target device after H19, and the results are committed as a classified report. No implementation. V14–V17 need a separate, approved prototype task. | Its H17, made concrete |
+| H18 | Privacy and trust: accept or reject the third-party DNS data flow for A8, for verification and for production (§G) | New |
+| H19 | Test names (extends D3): `nudity.testcategory.com` and `malware.testcategory.com` for DNS-level checks; browser navigation to them only after the Tech Lead confirms they are harmless test pages; controls `example.org` and `example.com` | New |
+| H20 | Optional, derived from H9 (local-first), not from H12: recovery also works without internet | New; corrects the H12 attribution |
+
+### Pre-gate actions (Tech Lead)
+
+1. Merge `docs/04-m2-01-approved-decisions` (`5291383`) into `main`, so that H4–H12 are in the formal
+   reference before M2-03.
+2. Decide H19, and at least the "for verification" part of H18; then run §E.
+3. Separate docs task: M1-07 status after PR #32, README status, roadmap update (§H.3).
+
+### Architecture baseline candidate
+
+If §I passes, the gate would approve:
+
+- the §A.1 structure;
+- the §F state model;
+- the §G decision;
+- the §H dispositions.
+
+### Sources
+
+Android reference, read directly (FACT):
+
+- [LinkProperties][linkprops] — Private DNS contract, API 28
+- [DevicePolicyManager][dpm] — Private DNS is owner-only; the note on VPN reachability
+- [VpnService][vpnservice], [VPN guide][vpnguide], [VpnService.Builder][builder]
+- [UserManager][usermanager]
+
+Chromium source, `main`, through the GitHub mirror (FACT):
+
+- [`net/dns/public/doh_provider_entry.cc`][cr-doh] — the `CloudflareFamily` entry, disabled by
+  default
+- [`net/dns/dns_util.cc`][cr-dnsutil] — `GetDohUpgradeServersFromDotHostname` requires the entry's
+  feature to be enabled
 - [`chrome/browser/net/stub_resolver_config_reader.cc`][cr-stub]
-- [`components/policy/android/java/src/org/chromium/components/policy/EnterpriseInfo.java`][cr-ei]
-- [`chrome/browser/ssl/ssl_config_service_manager.cc`][cr-ssl], [`net/base/features.cc`][cr-features]
-- [`components/policy/resources/templates/policy_definitions/Miscellaneous/`][cr-policies]
-  (`DnsOverHttpsMode`, `IncognitoModeAvailability`, `URLBlocklist`, `ForceGoogleSafeSearch`,
-  `SafeSitesFilterBehavior`)
 
-Known only from search-engine excerpts or secondary reporting (†, not verified):
+Cloudflare documentation source, `production` branch on GitHub (FACT), and the published pages:
 
-- [Play Console Help: VpnService policy][play-vpn]
-- [Play Console Help: permissions and APIs that access sensitive information][play-perms]
-- [Esper: Android 13 restricted settings][esper-13]
-- [The Hacker News: Android 17 accessibility restriction][thn-17]
-- [Android Management API: migrating custom DPC devices][amapi-migration]
-- [Nomid MDM: the end of custom DPCs][nomid-dpc]
-- [Mozilla Add-ons blog: open extensions on Firefox for Android][moz-ext]
-- [Samsung Internet: content blockers][sbrowser-cb]
+- [`1.1.1.1/setup/index.mdx`][cf-setup-src] ([page][cf-setup]) — Families tiers, `0.0.0.0`, test
+  URLs, miscategorization feedback
+- [`1.1.1.1/setup/android.mdx`][cf-android-src] ([page][cf-android]) — Android 9+ Private DNS host
+- [`1.1.1.1/privacy/public-dns-resolver.mdx`][cf-privacy-src] ([page][cf-privacy]) — retention, IP
+  handling, APNIC, audit
+- [`cloudflare-one/traffic-policies/dns-policies/test-dns-filtering.mdx`][cf-test-src] — the
+  `testcategory.com` naming format
 
-M1-06 sources (A-, C- and F-rows) are listed in [`m1-06-coverage-gate.md`](m1-06-coverage-gate.md#sources).
+† Search excerpts, not verified:
 
-[vpnservice]: https://developer.android.com/reference/android/net/VpnService
-[builder]: https://developer.android.com/reference/android/net/VpnService.Builder
-[vpnguide]: https://developer.android.com/develop/connectivity/vpn
+- the `nudity.testcategory.com` page title;
+- a Cloudflare community thread on the malware-only tier;
+- the Play VpnService and sensitive-permissions policies ([VpnService][play-vpn],
+  [sensitive permissions][play-perms]).
+
+Project sources:
+
+- [M1-06 results](m1-06-execution-results.md)
+- [M1-07](m1-07-evidence-synthesis.md)
+- [`decisions.md`](decisions.md), [`requirements.md`](requirements.md), [`roadmap.md`](roadmap.md),
+  [`architecture.md`](architecture.md)
+- [M2-01][m2-01]
+- [issue #21](https://github.com/takh86/ai-engineering-lab/issues/21)
+- [PR #32](https://github.com/takh86/ai-engineering-lab/pull/32)
+
+[m2-01]: https://github.com/takh86/ai-engineering-lab/blob/529138340c74b29a78298e60ef6019dc3ff2083d/projects/04-muslim-recovery-protection/docs/m2-01-approved-threat-model.md
 [linkprops]: https://developer.android.com/reference/android/net/LinkProperties
-[dnsresolver]: https://developer.android.com/reference/android/net/DnsResolver
 [dpm]: https://developer.android.com/reference/android/app/admin/DevicePolicyManager
+[vpnservice]: https://developer.android.com/reference/android/net/VpnService
+[vpnguide]: https://developer.android.com/develop/connectivity/vpn
+[builder]: https://developer.android.com/reference/android/net/VpnService.Builder
 [usermanager]: https://developer.android.com/reference/android/os/UserManager
-[nsc]: https://developer.android.com/privacy-and-security/security-config
-[a11yinfo]: https://developer.android.com/reference/android/accessibilityservice/AccessibilityServiceInfo
+[cr-doh]: https://github.com/chromium/chromium/blob/main/net/dns/public/doh_provider_entry.cc
+[cr-dnsutil]: https://github.com/chromium/chromium/blob/main/net/dns/dns_util.cc
 [cr-stub]: https://github.com/chromium/chromium/blob/main/chrome/browser/net/stub_resolver_config_reader.cc
-[cr-ei]: https://github.com/chromium/chromium/blob/main/components/policy/android/java/src/org/chromium/components/policy/EnterpriseInfo.java
-[cr-ssl]: https://github.com/chromium/chromium/blob/main/chrome/browser/ssl/ssl_config_service_manager.cc
-[cr-features]: https://github.com/chromium/chromium/blob/main/net/base/features.cc
-[cr-policies]: https://github.com/chromium/chromium/tree/main/components/policy/resources/templates/policy_definitions/Miscellaneous
+[cf-setup-src]: https://github.com/cloudflare/cloudflare-docs/blob/production/src/content/docs/1.1.1.1/setup/index.mdx
+[cf-setup]: https://developers.cloudflare.com/1.1.1.1/setup/
+[cf-android-src]: https://github.com/cloudflare/cloudflare-docs/blob/production/src/content/docs/1.1.1.1/setup/android.mdx
+[cf-android]: https://developers.cloudflare.com/1.1.1.1/setup/android/
+[cf-privacy-src]: https://github.com/cloudflare/cloudflare-docs/blob/production/src/content/docs/1.1.1.1/privacy/public-dns-resolver.mdx
+[cf-privacy]: https://developers.cloudflare.com/1.1.1.1/privacy/public-dns-resolver/
+[cf-test-src]: https://github.com/cloudflare/cloudflare-docs/blob/production/src/content/docs/cloudflare-one/traffic-policies/dns-policies/test-dns-filtering.mdx
 [play-vpn]: https://support.google.com/googleplay/android-developer/answer/12564964
 [play-perms]: https://support.google.com/googleplay/android-developer/answer/16585319
-[esper-13]: https://www.esper.io/blog/android-13-sideloading-restriction-harder-malware-abuse-accessibility-apis
-[thn-17]: https://thehackernews.com/2026/03/android-17-blocks-non-accessibility.html
-[amapi-migration]: https://developers.google.com/android/management/dpc-migration
-[nomid-dpc]: https://www.nomidmdm.com/en/blog/the-shift-to-amapi-navigating-the-end-of-custom-dpcs-in-android-enterprise
-[moz-ext]: https://blog.mozilla.org/addons/2023/12/14/a-new-world-of-open-extensions-on-firefox-for-android-has-arrived/
-[sbrowser-cb]: https://samsunginternet.github.io/docs/content-blockers
