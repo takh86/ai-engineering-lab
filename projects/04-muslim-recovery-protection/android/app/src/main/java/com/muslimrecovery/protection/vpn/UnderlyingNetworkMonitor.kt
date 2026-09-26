@@ -21,19 +21,25 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * It registers one NetworkCallback for physical Internet networks (`INTERNET` + `NOT_VPN`):
  * - API 31+: `registerBestMatchingNetworkCallback`. Another network becoming the best match means
- *   the captured one is no longer the preferred physical path. The current best network is
- *   delivered at registration, so a different best network is caught immediately.
- *   Limit (all API levels): if the captured network is already gone at registration and nothing
- *   else matches, no callback arrives. The DNS worker's 2 s re-check then stops the session.
+ *   the captured one is no longer the preferred physical path. In AOSP the current best network is
+ *   also delivered at registration (observed behaviour, not stated in the docs), so a different
+ *   best network then stops the session right away. The best match for this request and
+ *   `getActiveNetwork()` are not documented to be identical, so a per-app network preference could
+ *   cause such a stop immediately after Start. That is fail-closed; device testing must check it.
  * - API 24–30: `registerNetworkCallback`, which reports every matching network. Only the captured
- *   network's events matter there, and a change of preferred network is not observable directly.
- *   It is caught when the old network is lost or loses FOREGROUND (API 28+), VALIDATED or INTERNET.
+ *   network's events matter there. A change of preferred network is caught through `onLosing`
+ *   ("Read network state" guide: when Wi-Fi becomes default, "the mobile network goes to the
+ *   background, and the regular network callback receives a call to onLosing()"). It is also caught
+ *   through `onLost`, or through the loss of FOREGROUND (API 28+), VALIDATED or INTERNET.
+ * - Limit (all API levels): if the captured network is already gone at registration and nothing
+ *   else matches, no callback arrives. The DNS worker's 2 s re-check then stops the session.
  *
  * Policy decisions come only from the callback payloads, never from synchronous ConnectivityManager
  * getters, which the NetworkCallback docs say must not be called from callbacks. The pure
  * [CapturedNetworkWatch] makes them. Deliberately NOT `registerDefaultNetworkCallback` or
- * `getActiveNetwork`: those describe this app's default network, which "may be ... a VPN that
- * applies to the application" — i.e. possibly this app's own VPN once it is established.
+ * `getActiveNetwork` after the VPN is up. Both track this app's default network. The
+ * `registerDefaultNetworkCallback` docs say that "may be a physical network or a virtual network,
+ * such as a VPN that applies to the application", i.e. possibly this app's own VPN.
  *
  * Race safety: a stale callback (after [stop], or from an earlier session) is dropped by the closed
  * watch. The service also ignores reports from any monitor that is not its current one.
@@ -57,6 +63,8 @@ internal class UnderlyingNetworkMonitor(
 
     private val callback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) = report(watch.onAvailable(network))
+
+        override fun onLosing(network: Network, maxMsToLive: Int) = report(watch.onLosing(network))
 
         override fun onLost(network: Network) = report(watch.onLost(network))
 

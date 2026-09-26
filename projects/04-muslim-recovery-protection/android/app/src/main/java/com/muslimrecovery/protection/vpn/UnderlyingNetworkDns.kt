@@ -36,9 +36,10 @@ internal class UnderlyingNetworkInspector(private val connectivityManager: Conne
     /**
      * The app's current default network. Only meaningful BEFORE this app's VPN is established: the
      * VPN applies to this app's own uid too (that is what lets the harness's lookups exercise the
-     * proxy), and the app's default network "may be ... a VPN that applies to the application"
-     * (ConnectivityManager docs). So afterwards it is never used to re-identify the underlying
-     * network; the session keeps the Network captured here (see [UnderlyingNetworkMonitor]).
+     * proxy), and the app's default network "may be a physical network or a virtual network, such
+     * as a VPN that applies to the application" (`registerDefaultNetworkCallback` docs). So
+     * afterwards it is never used to re-identify the underlying network; the session keeps the
+     * Network captured here (see [UnderlyingNetworkMonitor]).
      */
     fun currentDefaultNetwork(): Network? = try {
         connectivityManager.activeNetwork
@@ -50,8 +51,10 @@ internal class UnderlyingNetworkInspector(private val connectivityManager: Conne
      * Null when [network] is null or no longer connected (`getNetworkCapabilities` "returns null if
      * the network is unknown"). Synchronous: never call it from a NetworkCallback, whose docs warn
      * these getters may return outdated or null objects there. [UnderlyingNetworkMonitor] uses the
-     * callback payloads instead. Blocked status has no synchronous getter, so it is reported false
-     * here; only the monitor's callback observes it.
+     * callback payloads instead. Blocked status has no per-network synchronous getter, so it is
+     * reported false here. At startup a blocked default network is already excluded, because
+     * `getActiveNetwork()` "will return null ... when the default network is blocked". During a
+     * session only the monitor's callback observes it; the worker's 2 s re-check cannot.
      */
     fun factsFor(network: Network?): UnderlyingNetworkDnsFacts? {
         if (network == null) return null

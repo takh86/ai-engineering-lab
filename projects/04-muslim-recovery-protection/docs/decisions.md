@@ -243,16 +243,19 @@ network and never downgrades Private DNS. After conditions stabilise the user ca
 **Why:** Fail closed / stop truthfully is preferred over automatic handover in M1. A stale network
 would otherwise leave allowed DNS failing while the experiment still looked active.
 `getActiveNetwork()` and the default-network callback are not used after the VPN is established:
-the ConnectivityManager docs say the app's default network may be a VPN that applies to the app.
+the `registerDefaultNetworkCallback` docs say the app's default network may be "a VPN that applies
+to the application".
 
 **Consequences:** Automatic handover remains out of scope. There is no debounce, so a transient
-loss of `VALIDATED` stops the session. Start is also refused on a network that is not validated
-or not usable. Below API 31 a change of preferred network is noticed only when the old network is
-lost or loses `FOREGROUND`/`VALIDATED`/`INTERNET`. `filteringOperational` stays false and
+loss of `VALIDATED`, or a suspended cellular network (e.g. during a non-VoLTE call), stops the
+session. Start is also refused on a network that is not validated or not usable. `onLosing` for the
+captured network also stops the session on every API level. Below API 31 a change of preferred
+network is otherwise noticed only when the old network is lost or loses
+`FOREGROUND`/`VALIDATED`/`INTERNET`. On API 31+ a per-app network preference could make the best
+match differ from the captured network, which would stop every session right after Start
+(fail-closed, to be checked on device). `filteringOperational` stays false and
 `ProtectionState.Protected` stays unreachable. No new permission or route is introduced. The
 monitor is a session-scoped reporter under the existing lifecycle authority (`VpnLifecycleController`).
-On API 24–27 a network kept only in the background is not observable, so that stale-network case is
-not detected there until the network is lost.
 
 ## AI contribution
 

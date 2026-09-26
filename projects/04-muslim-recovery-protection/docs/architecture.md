@@ -171,9 +171,12 @@ handover is not implemented.** After conditions stabilise, the user starts again
   physical Internet networks (`INTERNET` + `NOT_VPN`) when the DNS runtime starts, and unregisters
   it on every teardown. On API 31+ it uses `registerBestMatchingNetworkCallback`, so another network
   becoming the best match is also reported. On API 24–30 it uses `registerNetworkCallback` and
-  reacts only to the captured network's own events. It never uses `getActiveNetwork()` or the
-  default-network callback after the VPN is up, because the app's default network "may be ... a VPN
-  that applies to the application" (ConnectivityManager docs). It never calls synchronous
+  reacts only to the captured network's own events. On every API level, `onLosing` for the captured
+  network (e.g. mobile data moved to the background after Wi-Fi became default, per the "Read
+  network state" guide) also stops the session. It never uses `getActiveNetwork()` or the
+  default-network callback after the VPN is up: the app's default network "may be a physical
+  network or a virtual network, such as a VPN that applies to the application"
+  (`registerDefaultNetworkCallback` docs). It never calls synchronous
   ConnectivityManager getters inside callbacks, which the NetworkCallback docs forbid; decisions come
   only from callback payloads.
 - `vpn/CapturedNetworkWatch` (pure Kotlin, unit tested) turns those payloads into at most one
@@ -198,11 +201,15 @@ Limitations:
 - There is no automatic handover and no debounce. A transient loss of VALIDATED, or a suspended
   cellular network (e.g. during a non-VoLTE call), stops the session.
 - Start is now refused on a network that is not validated or not usable.
-- Below API 31 a change of preferred network is only noticed once the old network is lost or loses
-  FOREGROUND (API 28+), VALIDATED or INTERNET.
-- On API 24–27 FOREGROUND / NOT_SUSPENDED are not observable. A captured cellular network kept only
-  in the background (e.g. "mobile data always active" after Wi-Fi becomes default) is therefore not
-  detected until it is lost. There, allowed queries can still fail while the proxy shows `running`.
+- Below API 31 a change of preferred network is noticed through `onLosing` / `onLost`, or through
+  the loss of FOREGROUND (API 28+), VALIDATED or INTERNET. There is no best-match signal there.
+- On API 24–27 FOREGROUND / NOT_SUSPENDED are not observable. A captured network moved to the
+  background is caught only through `onLosing`, as the guide documents; suspension is not
+  observable at all.
+- On API 31+ the best match for the request and the pre-VPN `getActiveNetwork()` are not
+  documented to be identical. A per-app network preference (work profile, OEM or "mobile data only"
+  apps) could therefore make every Start stop at once with "another network became preferred".
+  That is fail-closed and needs device checking.
 - A network lost before the callback is registered produces no callback on any API level. The
   worker's 2 s re-check stops the session instead.
 - Two detectors, the callback and the worker's re-check, can race. Either may set the stop

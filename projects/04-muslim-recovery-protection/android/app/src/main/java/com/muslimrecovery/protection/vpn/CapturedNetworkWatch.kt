@@ -18,6 +18,8 @@ import java.net.InetAddress
  * The policy stops the session truthfully rather than handing over. It never picks another network:
  * - events about other networks are ignored, except that with [tracksBestNetwork] (API 31+
  *   best-matching callback) another network becoming the best match invalidates the captured one;
+ * - the captured network "about to be lost" (`onLosing`, e.g. mobile data moved to the background
+ *   after Wi-Fi became default) invalidates it, in both modes;
  * - [UpstreamDnsSelector] decides validity from the latest capabilities, link properties and
  *   blocked status of the captured network. That is the same policy startup used, so within one
  *   snapshot Private DNS is reported ahead of the validation, usability and DNS-server checks.
@@ -48,6 +50,15 @@ internal class CapturedNetworkWatch<N : Any>(
         } else {
             null
         }
+
+    /**
+     * `onLosing`: the network "is about to be lost, typically because there are no outstanding
+     * requests left for it", e.g. it is being replaced as the default network. The session does not
+     * wait for it to linger out or move to the background, where this app cannot use it.
+     */
+    @Synchronized
+    fun onLosing(network: N): UpstreamRefusalReason? =
+        if (network == captured) invalidate(UpstreamRefusalReason.UNDERLYING_NETWORK_SUPERSEDED) else null
 
     /** The network disconnected or no longer satisfies the request (e.g. lost INTERNET). */
     @Synchronized

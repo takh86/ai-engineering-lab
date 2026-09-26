@@ -128,6 +128,13 @@ class CapturedNetworkWatchTest {
     }
 
     @Test
+    fun `the captured network about to be lost (moved to the background) supersedes it in both modes`() =
+        bothModes { watch ->
+            assertNull(watch.onLosing(MOBILE))
+            assertEquals(UpstreamRefusalReason.UNDERLYING_NETWORK_SUPERSEDED, watch.onLosing(WIFI))
+        }
+
+    @Test
     fun `when listening to all networks, another network appearing does not invalidate the captured one`() {
         val watch = watch(tracksBestNetwork = false)
 
@@ -166,6 +173,7 @@ class CapturedNetworkWatchTest {
         val events: List<Pair<String, (CapturedNetworkWatch<String>) -> UpstreamRefusalReason?>> = listOf(
             "lost" to { it.onLost(WIFI) },
             "lost again" to { it.onLost(WIFI) },
+            "losing" to { it.onLosing(WIFI) },
             "VALIDATED lost" to { it.onCapabilitiesChanged(WIFI, healthyCapabilities.copy(isValidated = false)) },
             "Private DNS" to { it.onLinkPropertiesChanged(WIFI, healthyLink.copy(privateDnsActive = true)) },
             "blocked" to { it.onBlockedStatusChanged(WIFI, true) },
@@ -188,6 +196,7 @@ class CapturedNetworkWatchTest {
         watch.close() // idempotent
 
         assertNull(watch.onLost(WIFI))
+        assertNull(watch.onLosing(WIFI))
         assertNull(watch.onAvailable(MOBILE))
         assertNull(watch.onCapabilitiesChanged(WIFI, healthyCapabilities.copy(isValidated = false)))
         assertNull(watch.onLinkPropertiesChanged(WIFI, healthyLink.copy(privateDnsActive = true)))
@@ -212,9 +221,11 @@ class CapturedNetworkWatchTest {
             // Late callbacks from the old session's registration, and about the old network.
             val lateReports = listOfNotNull(
                 oldSession.onLost(WIFI),
+                oldSession.onLosing(WIFI),
                 oldSession.onLinkPropertiesChanged(WIFI, healthyLink.copy(privateDnsActive = true)),
                 oldSession.onAvailable(MOBILE),
                 newSession.onLost(WIFI),
+                newSession.onLosing(WIFI),
                 newSession.onCapabilitiesChanged(WIFI, healthyCapabilities.copy(isValidated = false)),
                 newSession.onBlockedStatusChanged(WIFI, true),
             )
