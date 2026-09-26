@@ -1,14 +1,15 @@
 # M2-03B — A8 Verification Runbook (V0–V13)
 
-> **Status: PREPARED — NOT EXECUTED. G0, result/privacy mappings, Q-readings and C-choice rules are frozen; execution still waits for final review and row-specific environment evidence.**
+> **Status: PREPARED — NOT EXECUTED. G0 and all pre-result human decision rules are frozen. Final review completed on 2026-09-26; execution still requires the row-specific environment/evidence records and this PR to be merged.**
 >
 > **Project:** Muslim Recovery Protection\
 > **Milestone:** M2 — Architecture & Truthful Product Claim\
 > **Task:** M2-03B — execute the A8 verification matrix V0–V13 ([issue #40](https://github.com/takh86/ai-engineering-lab/issues/40)); this file prepares the procedure only\
 > **Date prepared:** 2026-09-26\
-> **Nature:** an execution procedure prepared by AI for the Tech Lead. It records no decision, runs
-> no test, and changes no device, service or repository setting. Every checkbox is empty. Only the
-> Tech Lead fills them in.
+> **Nature:** an execution procedure prepared by AI for the Tech Lead. It transcribes human decisions
+> already made by the Tech Lead; it does not create or infer them. It runs no test and changes no
+> device, service or repository setting. All execution/result checkboxes remain empty until the
+> Tech Lead performs the corresponding step.
 
 This runbook turns rows V0–V13 of [M2-02][m2-02] §E.4 into step-by-step procedures. It does not
 define or change any test criterion. M2-02 is authoritative for:
@@ -68,18 +69,16 @@ read evidence, but it records no classification as final and makes no decision.
 
 ### 2.1 Gate G0 (M2-02 §E.1)
 
-This runbook records none of these decisions. For each one, the executor confirms that the Tech
-Lead's record exists and notes where it is. At preparation (2026-09-26), `main` recorded none of
-H18, H19a, H19b or H21, and the G0 boxes in M2-03 §3 were empty. Check the current record, not
-this note.
+The Tech Lead completed G0 on 2026-09-26. The human gate record is issue #39; this runbook
+copies that state for execution convenience and does not replace the gate record.
 
-| Item | Needed before | M2-02 content | Record location (commit / link / date) | Record exists |
+| Item | Needed before | M2-02 content | Record location | Record exists |
 |---|---|---|---|---|
-| M2-03A baseline adoption | G0 | A8 is a verification candidate only (M2-03 §2) | | [ ] |
-| H19a — test names | V0 | Category name `nudity.testcategory.com`; informational `malware.testcategory.com`; controls `example.org` and `example.com` | | [ ] |
-| H19b — browser navigation | V3, V4, V7, V11–V13 and the browser-level friction runs. **If it is not approved, no device row runs** (§E.1). | Whether browsers may open the category test page | | [ ] |
-| H18 — verification scope | V1 and every later device row | The test device's DNS goes to the provider while the tests run (§G) | | [ ] |
-| H21 — T1 browser set | V1 | Chrome, Samsung Internet and Firefox, each in normal and private mode, at the default DNS setting of the installed version in the tested region. Includes consent to switch a browser's DNS setting to its default for the test and to restore the as-found setting afterwards. | | [ ] |
+| M2-03A baseline adoption | G0 | A8 is a verification candidate only (M2-03 §2) | issue #39 / M2-03A, 2026-09-26 | [x] |
+| H19a — test names | V0 | Category name `nudity.testcategory.com`; informational `malware.testcategory.com`; controls `example.org` and `example.com` | issue #39, 2026-09-26 | [x] |
+| H19b — browser navigation | V3, V4, V7, V11–V13 and the browser-level friction runs | Approved harmless provider test-page access | issue #39, 2026-09-26 | [x] |
+| H18 — verification scope | V1 and every later device row | Verification-only consent for the provider under test; production remains separate | issue #39, 2026-09-26 | [x] |
+| H21 — T1 browser set | V1 | Chrome normal/Incognito, Samsung Internet normal/Secret, Firefox normal/Private, at the registered default-setting boundary | issue #39, 2026-09-26 | [x] |
 
 - **Registered H21 set.** Copy the set exactly as the Tech Lead recorded it, including any
   MODIFY, into §5 and §11 **before V1**. The V3 rows are that set, and nothing else.
@@ -136,56 +135,68 @@ subject is recorded before that row begins, never after its result.
 | C9 | Accept or amend the runbook readings Q1–Q23 (§15) | Before each affected row | — | See §15.1: decision-critical readings approved as written; procedural-only defaults retained; Q18/Q20 resolved by frozen mappings. | **COMPLETE — 2026-09-26** |
 | C10 | Desktop tool for V0 if `dig` is unavailable | V0 | "`dig A`" | `dig` preferred. If unavailable, use `nslookup -type=A <name> <server>` as a recorded deviation; it shows the answer/NXDOMAIN but not the full response header. | **APPROVED AS PROPOSED — 2026-09-26** |
 
-### 2.5 Pre-execution freeze required after review
+### 2.5 Pre-execution freeze — completed 2026-09-26
 
-The runbook is **not execution-ready** until the following result-affecting points are frozen in the
-authoritative M2 decision record. They are not decided by this runbook.
+The Tech Lead froze the result-affecting rules **before any V-row was executed**. The authoritative
+human record is issue #39 plus the corresponding PR #59 conversation entries. This section is the
+execution summary.
 
-#### Outcome / classification semantics
+#### Frozen outcome / classification semantics
 
-Before any affected row runs, the Tech Lead must record the rule for:
+1. **V7 / B8.**
+   - Immediate blocking after enabling the host may be recorded as COVERED for that measured
+     condition.
+   - Any measurable reuse/cache window is **DISCLOSED** and its duration is recorded.
+   - If the fresh cold-start navigation still loads, B8 remains **DISCLOSED** with the stronger
+     limitation that the observed bypass extends across cold start. Confirm the fresh-navigation
+     behavior under formal V3 for the same browser/default setting; only formal V3 can trigger RJ3.
+   - Unresolved/control-failure evidence → AC6 not met → INCOMPLETE until rerun.
+2. **V8 → AC5.**
+   - PASS across Wi-Fi → cellular → Wi-Fi → the network-transition part of AC5 is MET.
+   - V8 FAIL → that part of AC5 is NOT MET; by itself this yields INCOMPLETE, unless the evidence
+     also meets an existing RJ condition.
+   - A V2-type failure is evaluated under RJ2. A browser bypass is confirmed under formal V3;
+     only formal V3 BYPASS triggers RJ3.
+3. **V9 → AC6.**
+   - PASS → COVERED.
+   - IPv6 bypass → DISCLOSED.
+   - No IPv6-capable network → NOT RUN with reason; never treated as PASS.
+   - An expected IPv6 environment that remains inconclusive → AC6 not met → INCOMPLETE.
+   - A browser-default bypass seen in the embedded browser check is confirmed under formal V3;
+     only formal V3 BYPASS triggers RJ3.
+4. **Embedded "part of V3" in V8 / V9 / V11.**
+   - It is supporting evidence, not the authoritative V3 row and does not trigger RJ3 by itself.
+   - V8 browser bypass → V8 FAIL / AC5 not met, then formal-V3 confirmation.
+   - V9 browser bypass → DISCLOSED under AC6, then formal-V3 confirmation when applicable.
+   - V11 bypass while the VPN is active → B6 DISCLOSED; it is not RJ3 unless the same
+     browser/default configuration also BYPASSes formal V3 without the VPN-specific condition.
+5. **V10 → AC7.**
+   - Both available scenarios must show documented behavior and a working standard-Settings
+     recovery path for AC7 to be MET.
+   - If only one scenario is available, run it and mark the other NOT RUN; AC7 remains NOT MET and
+     the M2 outcome remains INCOMPLETE unless scope is separately changed.
+   - An available scenario with no clear recovery path triggers RJ5.
+   - Available but inconclusive evidence → INCOMPLETE until rerun.
 
-1. **V7 failure semantics** — whether a cold-start/persistence miss makes AC6 not met → INCOMPLETE,
-   or has another predefined consequence.
-2. **V8 failure semantics** — the exact mapping from each V8 result to AC5 and the overall outcome.
-3. **V9 mapping** — how the row's PASS / FAIL observations map to the M2-02 AC6 classes
-   COVERED / DISCLOSED / NOT RUN.
-4. **"Part of V3" in V8 / V9 / V11** — whether a browser BYPASS there is treated as RJ3,
-   an AC6 contradiction/reclassification, or another predefined outcome.
-5. **V10 partial availability** — how AC7 is judged when only one of the optional network sub-rows
-   can be executed.
+#### Frozen privacy / trust decisions outside H18
 
-These rules must be recorded **before** the first affected result is observed. The runbook must not
-invent or select a favorable rule afterwards.
+- **V4:** Cloudflare standard non-filtering Secure DNS, verification only.
+- **V5-OTHER:** `one.one.one.one`, verification only.
+- **V11:** Proton VPN Free, verification only.
 
-#### Privacy / trust scope outside H18
+For all three: short test window, registered harmless names/controls only, no personal browsing,
+record the as-found state, restore immediately afterwards, verify restore, and do not treat the
+choice as a production dependency.
 
-H18 verification consent covers only the provider under verification unless the Tech Lead records a
-broader decision. The following proposed rows can introduce additional third-party data flows:
+#### Frozen Q-reading policy
 
-- **V4** — the selected non-filtering Chrome DoH provider;
-- **V5-OTHER** — the selected alternative public Private-DNS host;
-- **V11** — the selected VPN provider/operator.
+- **DECISION-CRITICAL approved as written:** Q1, Q2, Q5, Q7, Q8, Q9, Q10, Q11, Q13, Q14, Q16,
+  Q17, Q19, Q21, Q22, Q23, subject to the explicit V7 / embedded-V3 mappings above where those
+  mappings supersede an earlier draft reading.
+- **PROCEDURAL-ONLY defaults:** Q3, Q4, Q6, Q12, Q15.
+- **Resolved by the mappings above:** Q18, Q20.
 
-Before those rows run, one of the following must be recorded for each external provider/data flow:
-
-- explicit Tech Lead consent for the named provider and test purpose;
-- a redesigned procedure that avoids the unapproved third party; or
-- NOT RUN / deferred, with the consequence evaluated under the authoritative M2 decision rules.
-
-**H18 must not be treated as blanket consent for unrelated DNS or VPN providers.**
-
-#### Q-readings: decision-critical vs procedural
-
-The Q1–Q23 readings are proposals, not twenty-three automatic human gates. Before execution, the
-Tech Lead (or the authoritative M2 amendment) must classify each reading as one of:
-
-- **DECISION-CRITICAL** — can change PASS / FAIL / coverage / privacy / claim scope. Freeze it
-  before the affected result is observed.
-- **PROCEDURAL-ONLY** — evidence handling or restoration mechanics that cannot improve a result,
-  suppress a bypass, or widen a claim. It may remain a documented runbook default.
-
-When there is doubt, treat the reading as DECISION-CRITICAL. The split itself is recorded before V0.
+No result-affecting interpretation may be changed after a row result is observed.
 
 ---
 
@@ -1008,13 +1019,13 @@ the B8 gate evidence, with its measured window. Feeds AC6.
 
 | Class | Condition |
 |---|---|
-| **PASS** | Every reload after T0 and the cold start show an error page with no test-page content, and the control loads |
-| **DISCLOSED window** | One or more reloads after T0 still show the test page, and the cold start shows an error page with no content. Window = from T0 to the last reload that showed the page. Upper bound: the first reload that did not. |
-| **NOT MET — unclassified** (Q16) | The cold start still shows the test page. That is not a window, and M2-02 gives it no class. Record it verbatim and pause (S-UNCL). |
-| **INCONCLUSIVE** | The initial load failed with Private DNS Off, the control fails, the network changed during the run, or evidence is missing |
+| **PASS** | Every reload after T0 and the fresh cold-start navigation show an error page with no test-page content, and the control loads |
+| **DISCLOSED window** | Any post-T0 reload still shows the test page. Record the measured lower/upper bounds. If the fresh cold-start navigation also loads, keep B8 = DISCLOSED and record the stronger limitation "extends across cold start"; the upper bound is unknown until a later blocked observation. |
+| **INCONCLUSIVE** | The initial load failed with Private DNS Off, the control fails, the network changed during the run, or required evidence is missing |
 
-**Row:** DISCLOSED window if either run shows one, reporting the longer window. PASS only if both
-runs pass.
+**Row:** DISCLOSED if either run shows any post-T0 access, reporting the longest/strongest observed
+window. PASS only if both runs pass. A fresh cold-start LOADED result requires a formal V3
+confirmation for the same browser/default setting; only formal V3 BYPASS triggers RJ3 (§2.5).
 
 **Restoration:** the provider host stays set. Set the browser back to its as-found DNS setting (§8
 step 6; screenshot), and close the tabs.
@@ -1024,7 +1035,7 @@ CHECKPOINT V7
 Browser / mode / DNS setting (C1):
 Run 1: +0 __ +60 __ +5min __ cold __ → ____      Run 2: ____      Row: ____   Window: ____
 Browser setting restored (screenshot ID):
-Stop condition:        none / S-UNCL / S-SAFE
+Stop condition:        none / S-SAFE
 Tech Lead:             [ ] continue to V8   [ ] pause   [ ] stop
 ```
 
@@ -1067,9 +1078,12 @@ the browser part, the preferred and fallback methods are as in V3.
 | **FAIL** | The category name gets a real address while the controls resolve, **or** the browser part is LOADED in either run |
 | **INCONCLUSIVE** (Q2) | A control fails, the network is not up, or evidence is missing. One extra run; if still unresolved, NOT MET. |
 
-**V8 as a row** is PASS only if all three points pass, and FAIL if any point fails. M2-02 has no RJ
-row for a V8 FAIL. How it enters §I.3, and whether a browser LOADED here counts toward RJ3, is
-decided in §13 by the Tech Lead (Q17, Q18).
+**V8 as a row** is PASS only if all three points pass, and FAIL if any point fails. Under the
+pre-registered mapping (§2.5), V8 PASS makes the network-transition part of AC5 MET. V8 FAIL makes
+that part of AC5 NOT MET and therefore yields INCOMPLETE unless the same evidence also satisfies an
+existing RJ condition. A V2-type mechanism/path failure is evaluated under RJ2. A browser LOADED
+result here is supporting evidence only; confirm it under formal V3 for the same browser/default
+setting, and only formal V3 BYPASS triggers RJ3.
 
 **Restoration:** the device ends on N-W with the host set. Set the browser back to its as-found
 setting (screenshot).
@@ -1135,8 +1149,11 @@ T1 setting, and take a screenshot.
 | **NOT RUN (no IPv6)** | No IPv6-capable network is available. The reason and the evidence are recorded. |
 | **INCONCLUSIVE** (Q2) | The control gets no IPv6 address, so the IPv6 path is not shown, or evidence is missing. One extra run; if still unresolved, NOT MET. |
 
-The AC6 wording (COVERED / DISCLOSED) is applied to this result in the report, after Tech Lead
-confirmation (Q18).
+Frozen AC6 mapping (§2.5): PASS → COVERED; FAIL / evidenced IPv6 bypass → DISCLOSED; NOT RUN is
+allowed only when no IPv6-capable network is available and the reason is recorded. If the browser
+part suggests a default-browser bypass, confirm it under formal V3; only formal V3 BYPASS triggers
+RJ3. An expected IPv6 environment that remains unresolved after the extra run leaves AC6 not met
+and the M2 outcome INCOMPLETE.
 
 **Restoration:** back to N-W. Set the browser back to its as-found setting (screenshot).
 
@@ -1222,7 +1239,13 @@ preferred and fallback methods for the rule check are in V10-853 step 2.
 | **DISCLOSED with recovery documented** | The behavior on the network is recorded (messages, DNS results) **and** the standard-Settings path (Automatic, then connect or log in, then restore the host) restores connectivity, with its steps written down |
 | **FAIL (no clear recovery)** (RJ5) | The device is left without connectivity, and the standard-Settings path does not restore it, or there is no clear path |
 | **NOT RUN** | That network is not available. The reason is recorded (Q20). |
-| **NOT MET — unclassified** (Q20) | DNS does **not** fail on N-853 with TCP 853 blocked (the rule check confirmed). M2-02 expects a failure and gives no class for this. Record it verbatim and pause (S-UNCL). |
+| **NOT MET — unclassified** (Q20) | DNS does **not** fail on N-853 with TCP 853 blocked (the rule check confirmed). Record it verbatim; the affected evidence remains unresolved. |
+
+**Frozen AC7 mapping (§2.5):**
+- both scenarios available + each has documented behavior and a working standard-Settings recovery path → AC7 MET;
+- one scenario unavailable → run the available scenario, mark the other NOT RUN, and AC7 remains NOT MET → INCOMPLETE;
+- any available scenario with no clear recovery → RJ5;
+- available but unresolved evidence → AC7 NOT MET → INCOMPLETE until rerun.
 
 **Restoration:** the router rule is removed (screenshot); the captive network is forgotten; the
 device is back on N-W with the host set and active.
@@ -1286,6 +1309,10 @@ Tech Lead:             [ ] continue to V11   [ ] pause   [ ] stop
 | **COVERED** | With the VPN connected: the category name gets `0.0.0.0` with both controls real, **and** the browser part is BLOCKED in both runs |
 | **DISCLOSED** | With the VPN connected, a bypass appears in either part: the category name gets a real address, or the browser part is LOADED in any run. B6 then follows its register row (§E.6): DETECTED only if the check later shows Error (V14), otherwise DISCLOSED. The gate does not decide V14. |
 | **INCONCLUSIVE** (Q2) | The VPN is not connected, the controls fail (the VPN broke connectivity), or evidence is missing. One extra run; if still unresolved, NOT MET. |
+
+The browser check embedded in V11 is supporting evidence only (§2.5). A bypass while Proton VPN is
+active classifies B6 as DISCLOSED for this gate; it does not trigger RJ3 unless the same
+browser/default configuration also BYPASSes formal V3 without the VPN-specific condition.
 
 **Restoration:**
 
@@ -1613,7 +1640,7 @@ the session end (§6.5) unless the Tech Lead continues at once.
 | S-ORACLE | V0 NOT MET (still INCONCLUSIVE after its extra run) | STOP before V1. Without a valid oracle no DNS result can be read (INCOMPLETE). | §E.2, §I.3 |
 | S-RJ | RJ2 (V1 or V2 FAIL), RJ3 (an H21 row BYPASS), RJ4 (V6 FAIL) or RJ5 (V10 FAIL) | PAUSE. The outcome for the registered scope is **FAIL — candidate**, and no later row can change it. The Tech Lead decides whether the remaining rows run as evidence only, and records that before any of them runs. | §I.3 |
 | S-PATH | During SC, session start or any DNS-CHECK: the category name resolves to a real address while the host is shown and the controls resolve | PAUSE. Record it as evidence; it may be V2-type evidence of a system-path failure. The Tech Lead decides. | §E.2 |
-| S-UNCL | An observation fits none of the row's M2-02 classes (for example: V7 cold start LOADED; V10 DNS works with 853 blocked) | PAUSE. Record it verbatim. The row is NOT MET until the Tech Lead decides. The runbook does not invent a class. | §I.3 |
+| S-UNCL | An observation remains outside the frozen row/mapping rules (for example V10 DNS works with TCP 853 blocked despite a confirmed rule) | PAUSE. Record it verbatim. The affected criterion remains NOT MET / INCOMPLETE until the evidence is resolved or a separate scope decision is made. | §I.3; §2.5 |
 | S-SAFE | Unexpected content (§9 rule 9); a real adult domain typed; Always-on or Lockdown turned on; a DNS or VPN app used outside V11; a setting changed by automation | STOP. Restore the settings. Record without explicit detail. Tech Lead review. | §E.3 |
 | S-CONN | The device is left without connectivity and the standard-Settings recovery does not work | Restore Private DNS to the as-found value at once, and record. In V10 this is also the RJ5 evidence. | §E.3, V10 |
 | S-SCOPE | Any wish to change the H21 set, the networks, the test names or any criterion after a result | STOP. This is a separate Tech Lead scope decision, followed by re-evaluation, and never a pass. | §I.3, §L H21 |
@@ -1658,7 +1685,8 @@ Step 1 — NOT VERIFIABLE?
 Step 2 — Any rejection condition?
   RJ1 V0 oracle invalid:                                   yes / no   (evidence: )
   RJ2 V1 or V2 fails on the target device, normal networks: yes / no
-  RJ3 any H21 row BYPASS (V3):                             yes / no   (Q17: BYPASS in a "part of V3" run: ____)
+  RJ3 any formal H21 V3 row BYPASS:                        yes / no
+       Embedded browser BYPASS in V8/V9/V11: record + formal-V3 confirmation; embedded result alone is not RJ3
   RJ4 blocking does not survive a reboot (V6):             yes / no
   RJ5 V10 leaves the user without connectivity or recovery: yes / no
   RJ6 H18 rejected for production:                         yes / no / not decided
@@ -1712,10 +1740,10 @@ limitations.
 
 **A8 remains a verification candidate only.**
 
-- This runbook does not approve A8 for production, and it does not record G0, H18, H19, H21 or
-  any other decision.
-- No V-row starts until G0 is complete **and** the §2.5 decision-critical outcome/privacy rules are
-  frozen in the authoritative M2 record.
+- This runbook does not approve A8 for production. It **transcribes** G0 and later Tech Lead
+  pre-execution decisions already recorded in issue #39 / PR #59; it does not create them.
+- G0 and the §2.5 result/privacy rules are now frozen. No V-row starts until this runbook is merged
+  and the required environment/evidence records for that row are complete.
 - No outcome exists until the rows are executed and the Tech Lead applies §13 to a committed,
   classified report.
 - Even then, only an M2-02 §I.3 PASS, together with H18 accepted for production and the Tech
@@ -1735,8 +1763,8 @@ automatic human gates. Before V0, each Q-reading must be marked **DECISION-CRITI
 observed. Procedural-only readings may remain runbook defaults only when they cannot improve a
 result, suppress a bypass, change privacy exposure, or widen the claim.
 
-The five outcome-mapping questions and the three extra-provider privacy flows in §2.5 remain
-explicit execution blockers until their authoritative decision record exists.
+The outcome mappings and extra-provider privacy flows are frozen in §2.5. They are no longer open
+decision blockers; execution must follow them exactly.
 
 ### 15.1 Tech Lead classification freeze — 2026-09-26
 
@@ -1764,24 +1792,24 @@ a bypass, change privacy exposure, or widen the claim.
 |---|---|---|---|---|
 | Q1 | §E.5, §I.1 | §E.5 says runs and repeats "follow §I.1", but §I.1 defines run rules only for T1 rows | T1 rows exactly as §I.1. Other browser-level rows: two runs, and a bypass in either run counts. DNS-level and signal rows: one run. (§6.4) | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
 | Q2 | §E.4 V0, V1, V5, V6, V8, V10–V13 | These rows list no INCONCLUSIVE class, and missing evidence has no class | Apply §E.2 ("control fails → INCONCLUSIVE, never PASS") and the §I.1 extra-run rule. A row still unresolved is NOT MET, which feeds INCOMPLETE. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
-| Q3 | §I.1 step 5, §E.3 | When "afterwards" is, for restoring a browser setting | Before the checkpoint of every row that changed it, and at every session end | [ ] accept / amend: |
-| Q4 | §E.3, §E.5 | "Redact … IP addresses" versus "the first `ping` line (name and address)" | Keep the answer address for test names and controls; redact every other address | [ ] accept / amend: |
+| Q3 | §I.1 step 5, §E.3 | When "afterwards" is, for restoring a browser setting | Before the checkpoint of every row that changed it, and at every session end | **PROCEDURAL-ONLY DEFAULT — no separate gate** |
+| Q4 | §E.3, §E.5 | "Redact … IP addresses" versus "the first `ping` line (name and address)" | Keep the answer address for test names and controls; redact every other address | **PROCEDURAL-ONLY DEFAULT — no separate gate** |
 | Q5 | V0 | A desktop network that intercepts or filters DNS could produce a false RJ1. `dig` may not be installed. | Record the desktop network. An INVALID stands as recorded. The Tech Lead decides on a pre-recorded repeat from another network. `nslookup` is a recorded substitute (C10). | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
-| Q6 | §E.1, §L Sequence | Whether V0 runs if H19b is refused | V0 may run (it is not a device row and needs H19a only). It cannot change NOT VERIFIABLE. | [ ] accept / amend: |
+| Q6 | §E.1, §L Sequence | Whether V0 runs if H19b is refused | V0 may run (it is not a device row and needs H19a only). It cannot change NOT VERIFIABLE. | **PROCEDURAL-ONLY DEFAULT — no separate gate** |
 | Q7 | V1, V2, RJ2 | What a "normal network" is. A network resolver (for example a carrier filter) that already blocks the category name. | V2 on that network is INCONCLUSIVE, because the block cannot be attributed; the Tech Lead judges "normal network" for RJ2. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
 | Q8 | V2 | Whether the system resolver cache is cleared between the Off baseline and the host-set lookup (UNKNOWN) | Off baseline first; after each Private DNS change in V2, reconnect the network before the lookups. V5 and V7 do not reconnect, because they measure the device as the user leaves it. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
 | Q9 | V3 | The network for V3 is not named | N-W (V8 covers cellular) | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
 | Q10 | V3 | "Error page with no content" does not require the error to come from the provider's block | Apply as written. Record the exact error text, and run an SC (DNS-CHECK) before each browser block as information. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
 | Q11 | §I.1 step 5 | The run count of characterization rows. Whether as-found rows run when a default cannot be established. | Two runs, never counted. Without an established default, no substitute rows run unless the Tech Lead decides. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
-| Q12 | §I.1 step 1 | The region is "the country of the device settings and of the network used", with no rule if the two differ | Record both. If they differ, pause before V3 (S-REGION). | [ ] accept / amend: |
+| Q12 | §I.1 step 1 | The region is "the country of the device settings and of the network used", with no rule if the two differ | Record both. If they differ, pause before V3 (S-REGION). | **PROCEDURAL-ONLY DEFAULT — no separate gate** |
 | Q13 | V4, V13 | The browser mode is not stated | Normal mode (as M1-06 D2, D4, D5) | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
 | Q14 | V5 | The start state for each Private DNS change | Each change starts from the provider host, restored between sub-rows. V5-AUTO and V5-OFF give B1; V5-OTHER gives B2. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
-| Q15 | V6 | Whether "before opening any app" includes the Settings app | `adb` checks first; the Settings screenshot after them | [ ] accept / amend: |
-| Q16 | V7 | The browser and its DNS setting are not named. A cold start that still loads the page has no class. | C1 browser at its V3 T1 setting. A cold start that still loads is NOT MET (S-UNCL). | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
-| Q17 | V8, V9, V11 | "Part of V3" is not defined. Whether a BYPASS there counts toward RJ3, which names V3. | C1 browser, one mode, two runs. The row records the result; the RJ3 question is answered in §13 by the Tech Lead. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
-| Q18 | V7, V8, V9; AC6 | These rows have no RJ condition, so under §I.3's wording an evidenced failure gives INCOMPLETE rather than FAIL. V9 is recorded as PASS / FAIL, but AC6 asks for COVERED / DISCLOSED. | Record the §E.4 classes only. The §I.3 mapping, and V9 PASS→COVERED and FAIL→DISCLOSED, are applied in the report after Tech Lead confirmation. | [ ] accept / amend: |
+| Q15 | V6 | Whether "before opening any app" includes the Settings app | `adb` checks first; the Settings screenshot after them | **PROCEDURAL-ONLY DEFAULT — no separate gate** |
+| Q16 | V7 | The browser and its DNS setting are not named. A cold start that still loads the page needs a pre-registered interpretation. | C1 browser at its V3 T1 setting. Outcome semantics follow the frozen V7 mapping in §2.5: cold-start access is DISCLOSED with the stronger limitation and formal-V3 confirmation if it is fresh navigation. | **RESOLVED BY FROZEN V7 MAPPING — 2026-09-26** |
+| Q17 | V8, V9, V11 | "Part of V3" is not defined. Whether a BYPASS there counts toward RJ3, which names V3. | C1 browser, Normal mode, two runs. Embedded browser evidence is supporting only; formal V3 confirmation is required before RJ3 can apply. | **RESOLVED BY FROZEN EMBEDDED-V3 MAPPING — 2026-09-26** |
+| Q18 | V7, V8, V9; AC5/AC6 | These rows need deterministic mapping into §I.3 / AC classes. | Apply the frozen §2.5 mappings: V7 DISCLOSED/PASS; V8 FAIL → AC5 not met → INCOMPLETE unless an existing RJ also applies; V9 PASS→COVERED, FAIL/bypass→DISCLOSED, unavailable→NOT RUN with reason. | **RESOLVED BY FROZEN MAPPINGS — 2026-09-26** |
 | Q19 | V9 | "Control usable" | The control resolves to a real IPv6 address. Whether the ping got a reply is recorded as information. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
-| Q20 | V10, AC7 | "If available" and AC7's "or": whether one sub-row is enough. No class if DNS keeps working with TCP 853 blocked; whether the installed Android reaches the provider only over TCP 853 is not established in M2-02. | An unavailable sub-row is NOT RUN with the reason, and the Tech Lead decides AC7. "DNS keeps working" is NOT MET (S-UNCL). | [ ] accept / amend: |
+| Q20 | V10, AC7 | "If available" and AC7's "or": whether one sub-row is enough. | Apply the frozen §2.5 mapping: both scenarios with working recovery are required for AC7 MET; one unavailable → NOT RUN + AC7 not met → INCOMPLETE; no clear recovery → RJ5; unresolved available evidence → INCOMPLETE. | **RESOLVED BY FROZEN V10 MAPPING — 2026-09-26** |
 | Q21 | V12 | How to open a Custom Tab or WebView without new apps, and how to tell them apart | Installed apps chosen in C6. Confirm the in-app browser UI; `dumpsys activity` as optional stronger evidence. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
 | Q22 | V13 | "At default settings" for a non-H21 browser. H21's consent does not cover switching it. | A fresh install, or an as-found setting equal to a recorded default. Otherwise the Tech Lead's consent is recorded in C7. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
 | Q23 | V1 | Which `dumpsys` output shows "strict mode active". No class if `connectivity` and `dnsresolver` disagree (U9 is open). | PASS needs both sources, because M2-02 names both as V1's evidence. FAIL needs both to agree that it is not active. A disagreement is NOT MET (S-UNCL). | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
