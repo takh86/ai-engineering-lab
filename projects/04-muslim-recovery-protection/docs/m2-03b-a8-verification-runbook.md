@@ -1,6 +1,6 @@
 # M2-03B — A8 Verification Runbook (V0–V13)
 
-> **Status: PREPARED — NOT EXECUTED. Execution is blocked until gate G0 is recorded and the §2.5 result/privacy rules are frozen.**
+> **Status: PREPARED — NOT EXECUTED. G0 and the §2.5 result/privacy/Q-reading decisions are frozen; execution still waits for the remaining named runbook choices and final review.**
 >
 > **Project:** Muslim Recovery Protection\
 > **Milestone:** M2 — Architecture & Truthful Product Claim\
@@ -1745,6 +1745,9 @@ The Tech Lead approved the following split before execution:
 - **PROCEDURAL-ONLY:** Q3, Q4, Q6, Q12, Q15.
 - **RESOLVED BY SEPARATE FROZEN MAPPINGS:** Q18 and Q20.
 
+**Tech Lead decision (2026-09-26): all remaining DECISION-CRITICAL Q-readings are APPROVED AS WRITTEN.**
+The PROCEDURAL-ONLY readings remain the runbook defaults under the guardrail below.
+
 Clarifications already frozen:
 - Q16's V7 cold-start outcome semantics are governed by the approved V7 mapping; only the remaining
   browser/configuration choice stays decision-critical.
@@ -1758,29 +1761,29 @@ a bypass, change privacy exposure, or widen the claim.
 
 | Q | Where | Gap in M2-02 | Runbook reading | Tech Lead |
 |---|---|---|---|---|
-| Q1 | §E.5, §I.1 | §E.5 says runs and repeats "follow §I.1", but §I.1 defines run rules only for T1 rows | T1 rows exactly as §I.1. Other browser-level rows: two runs, and a bypass in either run counts. DNS-level and signal rows: one run. (§6.4) | [ ] accept / amend: |
-| Q2 | §E.4 V0, V1, V5, V6, V8, V10–V13 | These rows list no INCONCLUSIVE class, and missing evidence has no class | Apply §E.2 ("control fails → INCONCLUSIVE, never PASS") and the §I.1 extra-run rule. A row still unresolved is NOT MET, which feeds INCOMPLETE. | [ ] accept / amend: |
+| Q1 | §E.5, §I.1 | §E.5 says runs and repeats "follow §I.1", but §I.1 defines run rules only for T1 rows | T1 rows exactly as §I.1. Other browser-level rows: two runs, and a bypass in either run counts. DNS-level and signal rows: one run. (§6.4) | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
+| Q2 | §E.4 V0, V1, V5, V6, V8, V10–V13 | These rows list no INCONCLUSIVE class, and missing evidence has no class | Apply §E.2 ("control fails → INCONCLUSIVE, never PASS") and the §I.1 extra-run rule. A row still unresolved is NOT MET, which feeds INCOMPLETE. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
 | Q3 | §I.1 step 5, §E.3 | When "afterwards" is, for restoring a browser setting | Before the checkpoint of every row that changed it, and at every session end | [ ] accept / amend: |
 | Q4 | §E.3, §E.5 | "Redact … IP addresses" versus "the first `ping` line (name and address)" | Keep the answer address for test names and controls; redact every other address | [ ] accept / amend: |
-| Q5 | V0 | A desktop network that intercepts or filters DNS could produce a false RJ1. `dig` may not be installed. | Record the desktop network. An INVALID stands as recorded. The Tech Lead decides on a pre-recorded repeat from another network. `nslookup` is a recorded substitute (C10). | [ ] accept / amend: |
+| Q5 | V0 | A desktop network that intercepts or filters DNS could produce a false RJ1. `dig` may not be installed. | Record the desktop network. An INVALID stands as recorded. The Tech Lead decides on a pre-recorded repeat from another network. `nslookup` is a recorded substitute (C10). | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
 | Q6 | §E.1, §L Sequence | Whether V0 runs if H19b is refused | V0 may run (it is not a device row and needs H19a only). It cannot change NOT VERIFIABLE. | [ ] accept / amend: |
-| Q7 | V1, V2, RJ2 | What a "normal network" is. A network resolver (for example a carrier filter) that already blocks the category name. | V2 on that network is INCONCLUSIVE, because the block cannot be attributed; the Tech Lead judges "normal network" for RJ2. | [ ] accept / amend: |
-| Q8 | V2 | Whether the system resolver cache is cleared between the Off baseline and the host-set lookup (UNKNOWN) | Off baseline first; after each Private DNS change in V2, reconnect the network before the lookups. V5 and V7 do not reconnect, because they measure the device as the user leaves it. | [ ] accept / amend: |
-| Q9 | V3 | The network for V3 is not named | N-W (V8 covers cellular) | [ ] accept / amend: |
-| Q10 | V3 | "Error page with no content" does not require the error to come from the provider's block | Apply as written. Record the exact error text, and run an SC (DNS-CHECK) before each browser block as information. | [ ] accept / amend: |
-| Q11 | §I.1 step 5 | The run count of characterization rows. Whether as-found rows run when a default cannot be established. | Two runs, never counted. Without an established default, no substitute rows run unless the Tech Lead decides. | [ ] accept / amend: |
+| Q7 | V1, V2, RJ2 | What a "normal network" is. A network resolver (for example a carrier filter) that already blocks the category name. | V2 on that network is INCONCLUSIVE, because the block cannot be attributed; the Tech Lead judges "normal network" for RJ2. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
+| Q8 | V2 | Whether the system resolver cache is cleared between the Off baseline and the host-set lookup (UNKNOWN) | Off baseline first; after each Private DNS change in V2, reconnect the network before the lookups. V5 and V7 do not reconnect, because they measure the device as the user leaves it. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
+| Q9 | V3 | The network for V3 is not named | N-W (V8 covers cellular) | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
+| Q10 | V3 | "Error page with no content" does not require the error to come from the provider's block | Apply as written. Record the exact error text, and run an SC (DNS-CHECK) before each browser block as information. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
+| Q11 | §I.1 step 5 | The run count of characterization rows. Whether as-found rows run when a default cannot be established. | Two runs, never counted. Without an established default, no substitute rows run unless the Tech Lead decides. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
 | Q12 | §I.1 step 1 | The region is "the country of the device settings and of the network used", with no rule if the two differ | Record both. If they differ, pause before V3 (S-REGION). | [ ] accept / amend: |
-| Q13 | V4, V13 | The browser mode is not stated | Normal mode (as M1-06 D2, D4, D5) | [ ] accept / amend: |
-| Q14 | V5 | The start state for each Private DNS change | Each change starts from the provider host, restored between sub-rows. V5-AUTO and V5-OFF give B1; V5-OTHER gives B2. | [ ] accept / amend: |
+| Q13 | V4, V13 | The browser mode is not stated | Normal mode (as M1-06 D2, D4, D5) | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
+| Q14 | V5 | The start state for each Private DNS change | Each change starts from the provider host, restored between sub-rows. V5-AUTO and V5-OFF give B1; V5-OTHER gives B2. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
 | Q15 | V6 | Whether "before opening any app" includes the Settings app | `adb` checks first; the Settings screenshot after them | [ ] accept / amend: |
-| Q16 | V7 | The browser and its DNS setting are not named. A cold start that still loads the page has no class. | C1 browser at its V3 T1 setting. A cold start that still loads is NOT MET (S-UNCL). | [ ] accept / amend: |
-| Q17 | V8, V9, V11 | "Part of V3" is not defined. Whether a BYPASS there counts toward RJ3, which names V3. | C1 browser, one mode, two runs. The row records the result; the RJ3 question is answered in §13 by the Tech Lead. | [ ] accept / amend: |
+| Q16 | V7 | The browser and its DNS setting are not named. A cold start that still loads the page has no class. | C1 browser at its V3 T1 setting. A cold start that still loads is NOT MET (S-UNCL). | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
+| Q17 | V8, V9, V11 | "Part of V3" is not defined. Whether a BYPASS there counts toward RJ3, which names V3. | C1 browser, one mode, two runs. The row records the result; the RJ3 question is answered in §13 by the Tech Lead. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
 | Q18 | V7, V8, V9; AC6 | These rows have no RJ condition, so under §I.3's wording an evidenced failure gives INCOMPLETE rather than FAIL. V9 is recorded as PASS / FAIL, but AC6 asks for COVERED / DISCLOSED. | Record the §E.4 classes only. The §I.3 mapping, and V9 PASS→COVERED and FAIL→DISCLOSED, are applied in the report after Tech Lead confirmation. | [ ] accept / amend: |
-| Q19 | V9 | "Control usable" | The control resolves to a real IPv6 address. Whether the ping got a reply is recorded as information. | [ ] accept / amend: |
+| Q19 | V9 | "Control usable" | The control resolves to a real IPv6 address. Whether the ping got a reply is recorded as information. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
 | Q20 | V10, AC7 | "If available" and AC7's "or": whether one sub-row is enough. No class if DNS keeps working with TCP 853 blocked; whether the installed Android reaches the provider only over TCP 853 is not established in M2-02. | An unavailable sub-row is NOT RUN with the reason, and the Tech Lead decides AC7. "DNS keeps working" is NOT MET (S-UNCL). | [ ] accept / amend: |
-| Q21 | V12 | How to open a Custom Tab or WebView without new apps, and how to tell them apart | Installed apps chosen in C6. Confirm the in-app browser UI; `dumpsys activity` as optional stronger evidence. | [ ] accept / amend: |
-| Q22 | V13 | "At default settings" for a non-H21 browser. H21's consent does not cover switching it. | A fresh install, or an as-found setting equal to a recorded default. Otherwise the Tech Lead's consent is recorded in C7. | [ ] accept / amend: |
-| Q23 | V1 | Which `dumpsys` output shows "strict mode active". No class if `connectivity` and `dnsresolver` disagree (U9 is open). | PASS needs both sources, because M2-02 names both as V1's evidence. FAIL needs both to agree that it is not active. A disagreement is NOT MET (S-UNCL). | [ ] accept / amend: |
+| Q21 | V12 | How to open a Custom Tab or WebView without new apps, and how to tell them apart | Installed apps chosen in C6. Confirm the in-app browser UI; `dumpsys activity` as optional stronger evidence. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
+| Q22 | V13 | "At default settings" for a non-H21 browser. H21's consent does not cover switching it. | A fresh install, or an as-found setting equal to a recorded default. Otherwise the Tech Lead's consent is recorded in C7. | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
+| Q23 | V1 | Which `dumpsys` output shows "strict mode active". No class if `connectivity` and `dnsresolver` disagree (U9 is open). | PASS needs both sources, because M2-02 names both as V1's evidence. FAIL needs both to agree that it is not active. A disagreement is NOT MET (S-UNCL). | **ACCEPTED AS WRITTEN — Tech Lead, 2026-09-26** |
 
 **Data flows outside H18** (noted with C2, C3 and C5, not a reading). H18 covers sending the test
 device's DNS to the provider under verification only. V4 (Chrome's DoH provider), V5-OTHER (the
