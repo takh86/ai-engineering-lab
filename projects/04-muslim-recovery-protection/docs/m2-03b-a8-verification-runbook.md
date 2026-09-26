@@ -122,7 +122,7 @@ selection rules on 2026-09-26 before execution. Where a concrete environment/app
 until the row is prepared (C4, C6), the approved rule below governs the selection and the exact
 subject is recorded before that row begins, never after its result.
 
-| ID | Choice | Needed before | M2-02 wording | Runbook proposal (not a decision) | Tech Lead record |
+| ID | Choice | Needed before | M2-02 wording | Approved selection / rule | Tech Lead record |
 |---|---|---|---|---|---|
 | C1 | Browser for V7, and for "part of V3" in V8, V9 and V11 | V7 | Not named | Chrome, normal mode, at its V3 T1 (default) DNS setting. Precedent: M1-06 row L2. | **APPROVED AS PROPOSED — 2026-09-26** |
 | C2 | V4 Chrome provider | V4 | "a chosen non-filtering provider" | Cloudflare standard non-filtering Secure DNS, verification only; short window; harmless registered names/controls only; no personal browsing; restore Chrome's as-found Secure DNS setting. | **APPROVED — 2026-09-26** |
