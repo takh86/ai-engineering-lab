@@ -15,8 +15,9 @@ This record selects A8 as the verification candidate and records G0 as complete.
 select a production architecture or authorize M3 work. Where it and its sources differ,
 [M2-01][m2-01] and [M2-02][m2-02] win.
 
-**Later product-scope addendum (2026-09-26):** The Owner separately approved a voluntary,
-package-level [app-blocking architecture boundary](app-blocking-architecture-decision.md).
+**Later product-scope proposal (2026-09-26):** The Owner approved the voluntary app-blocking
+direction in conversation; the exact [package-level architecture boundary](app-blocking-architecture-decision.md)
+is under review in PR #60, pending a GitHub human decision record.
 This does not change this ADR's A8 verification criteria, G0 decisions, or production status.
 The H16/A7b exclusion of Accessibility for URL inspection is not a decision about the new
 package-level candidate. The new permission and coverage gate remains conditional.
@@ -232,8 +233,8 @@ M2 production architecture decision
 - V0 needs H19a only; V1 and every later device row need all of G0 (§E.1).
 - The rows, oracle, safety rules and evidence rules are in M2-02 §E.2–§E.6. They are not restated.
 - V14–V17 are not part of this phase. They need a separate, approved prototype task (§E.4, H17).
-- **Status:** G0 is complete, but no V-row or friction run has been executed. No A8 device evidence
-  exists. After PR #59 is merged and the #40 device/environment baseline is recorded, V0 is first,
+- **Status:** G0 is complete and PR #59 is merged, but no V-row or friction run has been executed.
+  No A8 device evidence exists. After the #40 device/environment baseline is recorded, V0 is first,
   followed by device rows on the named Samsung test device and the friction protocol. Results
   belong in issue #40/#41's evidence report.
 

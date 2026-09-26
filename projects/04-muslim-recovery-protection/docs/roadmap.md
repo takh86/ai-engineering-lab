@@ -301,7 +301,7 @@ Status (2026-09-26): G0 complete; device verification pending. Parent issue #22 
 | Issue | Step | State |
 |---|---|---|
 | #39 | M2-03A — human gate / G0 | **Closed as completed.** The Tech Lead recorded M2-03A and approved H18 for verification only, H19a, H19b and H21 in [#39](https://github.com/takh86/ai-engineering-lab/issues/39). No production decision. |
-| #40 | M2-03B — A8 verification V0–V13 | **Pre-execution.** G0 complete. PR #59 runbook awaits merge; device/environment and as-found settings still need recording. No device row executed. |
+| #40 | M2-03B — A8 verification V0–V13 | **Pre-execution.** G0 complete; PR #59 runbook merged. Device/environment and as-found settings still need recording. No device row executed. |
 | #41 | M2-03C — T2 friction validation | Open; coordinate with #40 after the execution setup. No friction result recorded. |
 | #42 | M2-03D — evidence synthesis + final architecture ADR | Blocked by #40 and #41. |
 
@@ -312,12 +312,16 @@ ADR.
 ### Later product-scope decision — voluntary app blocking
 
 On 2026-09-26 the Owner approved the bounded direction in
-[`app-blocking-architecture-decision.md`](app-blocking-architecture-decision.md): selected-app
+the project conversation. PR #60 proposes the exact
+[`app-blocking architecture`](app-blocking-architecture-decision.md): selected-app
 interruption plus local recovery help, separately from DNS. A physical-device permission and
 latency spike must choose between the Usage Access/overlay and narrow Accessibility candidates;
 Play review and truthful claims are required before release. This does not amend A8's AC/RJ
 criteria or unblock the final production ADR. An app-blocking task contract must be approved
 separately before code, without silently treating the historical M1 exclusions as current scope.
+The exact architecture boundary still needs the Owner's GitHub decision record.
+The bounded product/technical validation is tracked separately in
+[issue #61](https://github.com/takh86/ai-engineering-lab/issues/61); it does not block #40/#41.
 
 ## Exit criteria
 
@@ -344,8 +348,9 @@ No M3 issue may assume:
 - TLS interception;
 - browser modification;
 - Device Owner;
-- AccessibilityService beyond the bounded package-level candidate in
-  [`app-blocking-architecture-decision.md`](app-blocking-architecture-decision.md);
+- AccessibilityService; PR #60 considers a bounded package-level candidate, but **does not**
+  authorize an M3 implementation until a mechanism is selected after the spike, Play review and
+  an explicit task contract;
 - root;
 - backend;
 - production rule distribution;

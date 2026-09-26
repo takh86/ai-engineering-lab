@@ -259,17 +259,19 @@ monitor is a session-scoped reporter under the existing lifecycle authority (`Vp
 
 ## D13 — Voluntary app blocking is an approved, bounded product direction
 
-**Status:** Accepted as a product/architecture boundary (2026-09-26); enforcement method and
-production claim pending a device and Play-policy gate.
+**Status:** Product direction approved in the project conversation (2026-09-26). Architecture
+boundary proposed in PR #60; the Owner's GitHub decision record is pending. Enforcement method
+and production claim remain subject to device and Play-policy gates.
 
-**Decision:** The Owner approved an opt-in local blocker for user-selected apps with a rapid
-interruption and direct access to recovery help. The [app-blocking decision](app-blocking-architecture-decision.md)
+**Decision proposed for repository approval:** An opt-in local blocker for user-selected apps with
+a rapid interruption and direct access to recovery help. The [app-blocking decision](app-blocking-architecture-decision.md)
 records AB1–AB7, its data and permission boundaries, and its rejection tests. Usage Access plus
 overlay and narrow package-only Accessibility are candidates to compare, not implemented features.
 
 **Why:** The M2-02 DNS candidate cannot interrupt use of an entire selected app. This is a new,
 complementary product requirement, explicitly approved after the M2-02 baseline. It satisfies D1's
-requirement for new review and human approval before considering AccessibilityService outside M1.
+requirement for a new review; the Owner's final GitHub record must approve its exact boundary
+before AccessibilityService is selected or implemented outside M1.
 
 **Consequences:** H5 and H8 still exclude OS locks; H9 still excludes browsing/hostname histories
 and backend surveillance. A7b/H16 excluded Accessibility **URL detection**, not this narrower
