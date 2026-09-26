@@ -2,29 +2,28 @@
 
 > **Project:** Muslim Recovery Protection  
 > **Milestone:** M1 — DNS Feasibility & Coverage Evidence  
-> **Status:** **FINAL — M1 CLOSED**  
-> **Date:** 2026-09-26  
-> **Purpose:** Synthesize M1 evidence, separate facts from assumptions/unknowns, record the M1 close-out verification, and preserve the human M1 → M2 decision without silently selecting an architecture.
+> **Status:** **DRAFT — M1 NOT CLOSED**  
+> **Date:** 2026-09-25  
+> **Purpose:** Synthesize M1-05 and M1-06 evidence, separate facts from assumptions/unknowns, and prepare the human M1 → M2 gate without silently selecting an architecture.
 
 ## 1. Executive outcome
 
-M1 established useful evidence for the bounded DNS-only experiment and its limits. The prototype can intercept and block selected **standard plaintext DNS** lookups under the tested configuration while keeping `ProtectionState.Protected` unreachable.
+M1 has produced useful evidence that the DNS-only experiment can intercept and block selected **standard plaintext DNS** lookups under a controlled configuration while keeping `ProtectionState.Protected` unreachable.
 
-The final M1 reliability blocker, **M-1 stale-underlying-network handling**, was fixed narrowly in PR #32 and merged. The fix does not implement automatic network handover; instead, when the captured underlying network becomes unusable or is superseded, the experimental VPN session stops truthfully.
+However, M1 cannot be closed yet from the evidence currently preserved in the repository and recoverable project record.
 
-GitHub Actions subsequently built the Android app and ran the required Gradle gate on commit `fd559324ac5d655a7f8fb4c93ba471b6b391d9b5`:
+One close-out blocker remains:
 
-```text
-./gradlew clean assembleDebug testDebugUnitTest lintDebug --no-daemon
-```
+1. **M-1 stale-underlying-network reliability finding.** The remaining M1 close-out work is to fix M-1 narrowly or explicitly accept it as a known limitation after targeted verification.
 
-The workflow completed successfully and produced the debug APK used for the final Samsung verification. Relative to `main` at `4d1fe84cb9123a2edca6dec5f87eccd1b7372eae`, that tested commit adds documentation only; the Android implementation is therefore the same M-1 code already merged through PR #32.
+The build-provenance mismatch is still documented as a fact: the physical-device M1-05 work was performed on the mobile-fix line rooted at `ddabe8a`, and the full GitHub verification gate later passed at `1492c108`, while PR #11 was merged from `a292b6d`. PR #30 was created to test a possible source reconciliation path, but the Tech Lead intentionally closed it **without merge**. M1 therefore keeps `1492c108` as historical tested-build evidence and does **not** claim that current `main` is behaviorally identical to that build.
 
-The Tech Lead then executed the approved Samsung close-out checks. The project record classifies the physical-device outcomes as **HUMAN-REPORTED PASS**: P (Wi-Fi loss), M (mobile → Wi-Fi transition), S (steady state), R (Start → Stop → Start), PD (Private DNS regression), and X (false-stop/configuration matrix). During the guided P run, screenshots also demonstrated truthful stop behavior and successful DNS recovery after the VPN stopped. No `Protected` state was reported.
+M1-06 execution is human-confirmed complete. The repository preserves a row-by-row execution report; rows whose exact timing/network branch cannot be reconstructed are explicitly classified `INCONCLUSIVE` rather than guessed.
 
-**Mechanical M1 gate result: `PASS`. M1 is CLOSED.**
+**Mechanical M1 gate result at this point: `INCOMPLETE` — due to M-1 only.**
 
-This closes the experiment evidence milestone only. It does **not** approve a production filtering architecture or broaden the product claim. Those remain M2 decisions.
+This is not an architecture verdict and not a project stop. It means the evidence package is not yet strong enough to honestly close M1.
+
 ---
 
 ## 2. Evidence policy
@@ -51,10 +50,8 @@ No missing row is converted into PASS. No AI review is treated as objective vali
 | `ddabe8a0a9a6adfcb542d3c1edcfdb47654651ee` | Mobile-fix candidate | Adds `setUnderlyingNetworks(arrayOf(underlyingNetwork))` and guarded `setMetered(false)` |
 | `0f13df6a2eb5c56e166327a8d4b3eb3268a7adcc` | Device-test workflow | CI infrastructure only |
 | `c6e3a30fa3e4b5ea306ee216aaf7679ec0d7795c` | Full verification gate | Changes workflow command to include assemble + tests + lint |
-| `1492c108d81d529f8f9b2a617fcef01a8f8f3e89` | Historical CI-verified M1-05 candidate | Adds lint suppression/comment only in manifest; GitHub check passed |
-| `41376538bde3b9da3e6faa04e4f5ecbfc5996dc6` | PR #32 merge commit | M-1 stale-underlying-network fix merged to `main` |
-| `4d1fe84cb9123a2edca6dec5f87eccd1b7372eae` | `main` at final Samsung close-out | Contains PR #32 plus documentation-only M2 merges |
-| `fd559324ac5d655a7f8fb4c93ba471b6b391d9b5` | Final Samsung close-out APK build | GitHub Actions PASS; differs from `4d1fe84` only by documentation |
+| `1492c108d81d529f8f9b2a617fcef01a8f8f3e89` | CI-verified candidate | Adds lint suppression/comment only in manifest; GitHub check passed |
+| `58fda1af260d0e38a64ac7ccff406afd839db7ed` | Current `main` at M1-07 start | Contains merged PR #11 and PR #12 |
 
 ### 3.2 Verified ancestry
 
@@ -86,8 +83,6 @@ Those are runtime VPN-builder behavior changes. Therefore the tested candidate c
 PR #30 explored a reconciliation path and its CI passed, but the Tech Lead intentionally closed PR #30 **without merge**. This was a deliberate project decision: no source reconciliation is required for M1 close. The verified/device-tested evidence remains attached to `1492c108` as historical evidence only, and no claim is made that current `main` is the exact tested build.
 
 **Status:** **RECORDED / ACCEPTED PROVENANCE LIMITATION — PR #30 CLOSED UNMERGED BY TECH LEAD DECISION.**
-
-This historical provenance limitation does not invalidate the later M-1 close-out. PR #32 was merged onto current `main`, and the final APK used for M-1 verification was built from `fd55932`. A Git comparison from the PR #32 merge commit through the tested commit contains documentation changes only, so the Android implementation exercised in the final Samsung close-out matches the merged M-1 implementation.
 
 ---
 
@@ -182,19 +177,7 @@ The experiment captures the Android `Network` at startup and later checks that c
 
 The later background code review independently rediscovered the same network-handover gap.
 
-**M1-07 fix status: VERIFIED / CLOSED FOR M1.** PR #32 merged the narrow D12 fix. Underlying-network invalidation stops the experimental VPN session truthfully. Automatic network handover is intentionally **not** implemented.
-
-The fix covers a lost network or one about to be lost (`onLosing`); loss of `INTERNET` or `VALIDATED`; a network kept only in the background or suspended (API 28+), or blocked for the app (API 29+); loss of a usable DNS server; Private DNS becoming active; and, on API 31+, another physical network becoming the best match. Each is handled by the existing truthful stop path.
-
-Final verification evidence:
-
-- **FACT — GitHub Actions:** commit `fd55932` passed `clean assembleDebug testDebugUnitTest lintDebug --no-daemon` and produced the APK.
-- **FACT — source equivalence for the tested Android code:** from PR #32 merge `41376538` through tested commit `fd55932`, later changes are documentation only.
-- **HUMAN-REPORTED PASS — Samsung:** P, M, S, R, PD and X close-out checks passed.
-- **Guided P evidence:** while running, blocked names did not resolve and the allowed control resolved; after Wi-Fi loss the experiment stopped with a truthful Error/unavailable state; after stop both blocked and allowed controls resolved again, demonstrating no persistent DNS black hole.
-- `ProtectionState.Protected` was not observed.
-
-The remaining limitation is explicit: the experiment stops and requires a later manual Start after an underlying-network transition; it does not perform automatic handover.
+**M1-07 fix status: IMPLEMENTED ON A BRANCH — NOT DONE.** A narrow fix exists on branch `fix/04-m1-07-m1-network-handover-mobile` (draft PR #32, started from `main` at `8238193`), and is recorded as D12 and in `architecture.md` (M1-07). Underlying-network invalidation stops the experimental VPN session. Automatic network handover is not implemented. The fix covers a lost network or one about to be lost (`onLosing`); loss of `INTERNET` or `VALIDATED`; a network kept only in the background or suspended (API 28+), or blocked for the app (API 29+); loss of a usable DNS server; Private DNS becoming active; and, on API 31+, another physical network becoming the best match. Each is handled by the existing truthful stop path. M-1 is **not** DONE until the required Gradle gate passes, the Samsung device test passes, review findings are resolved, and the Tech Lead approves the merge. This fix is built on current `main`; it makes no claim about `1492c108`.
 
 ---
 
@@ -316,7 +299,7 @@ M1 has **not** established that:
 - TCP DNS is covered;
 - IPv6 DNS transport is covered;
 - CNAME/DNAME/SVCB targets are filtered;
-- automatic network handover is implemented or supported; the M1 fix instead performs a truthful stop and requires a later manual Start;
+- network handover is reliable;
 - deliberate self-bypass is prevented;
 - reboot/Always-on behavior is supported;
 - the exact code currently on `main` is the same code that passed the recorded device and CI evidence.
@@ -346,31 +329,37 @@ Final user-facing wording belongs to M2-01 after the evidence gaps are closed.
 
 | Exit criterion | Status | Reason |
 |---|---|---|
-| M1-05 reviewed build passed required verification | **PASS — historical tested build** | CI passed at `1492c108`; the historical PR #11 provenance mismatch remains explicitly documented rather than rewritten. |
-| M1-06 approved fixed scope | **PASS** | PR #12 merged; H1–H3 and decision rules recorded. |
-| Required M1-06 cases have evidence or explicit unavailable/inconclusive classification | **PASS** | Full execution human-confirmed; row classifications are preserved in `m1-06-execution-results.md`, with unreconstructable branches explicitly INCONCLUSIVE. |
-| M-1 close-out implementation merged | **PASS** | PR #32 merged the narrow truthful-stop fix. |
-| Required M-1 Gradle gate | **PASS** | GitHub Actions on `fd55932` completed assemble, unit tests and lint successfully. |
-| Required M-1 Samsung close-out | **PASS — HUMAN-REPORTED** | P, M, S, R, PD and X reported PASS by the Tech Lead; guided P screenshots demonstrate the core truthful-stop/no-black-hole behavior. |
-| Final M1 evidence report exists | **PASS** | This document is the final M1 report. |
-| Stop conditions and limitations visible | **PASS** | M1-06 stop policy is preserved; automatic network handover remains explicitly unsupported. |
-| Tech Lead M1 → M2 decision recorded | **PASS** | Continue to M2, recorded below. |
+| M1-05 reviewed build passed required verification | **PASS — TESTED BUILD ONLY** | CI passed at `1492c108`; device evidence is attached to that build. Current `main` is not claimed identical; PR #30 was intentionally closed unmerged and the provenance difference is retained as a documented limitation. |
+| M1-06 approved fixed scope | **PASS** | PR #12 merged; H1-H3 and decision rules recorded |
+| Required M1-06 cases have evidence or explicit unavailable/inconclusive classification | **PASS** | Full execution human-confirmed; row classifications preserved in `m1-06-execution-results.md`, with unreconstructable branches explicitly INCONCLUSIVE |
+| Final M1 evidence report exists | **PASS as draft** | This document |
+| Stop conditions visible | **PASS** | S0/S2/S3 policy remains in M1-06 runbook |
+| Tech Lead M1 → M2 decision recorded | **PENDING** | Must follow evidence close-out |
 
 ### Mechanical gate
 
-**M1 status: CLOSED — PASS**
+**M1 status: INCOMPLETE**
 
-The result means the M1 evidence milestone is complete. It is not a production-architecture approval and does not widen the filtering claim.
+This conclusion is driven by evidence completeness/provenance, not by an AI preference for or against DNS filtering.
+
 ---
 
-## 11. Completed close-out actions
+## 11. Required close-out actions before the human M1 → M2 gate
 
-1. M-1 was fixed narrowly in PR #32 using truthful session stop rather than automatic handover.
-2. The required Gradle gate passed on the exact APK build commit `fd55932`.
-3. The Tech Lead completed the Samsung close-out matrix and reported P / M / S / R / PD / X as PASS.
-4. The historical `1492c108` / PR #11 provenance mismatch remains recorded as a limitation; PR #30 stayed intentionally closed without merge.
-5. The final M1 report now distinguishes repository facts, CI evidence and human-reported physical-device evidence.
-6. The Tech Lead chose to continue into M2 without treating M1 as approval of a production DNS architecture.
+1. **Resolve M-1** before declaring the DNS experiment a stable M1 baseline:
+   - narrow fix + targeted test, or
+   - explicit Tech Lead acceptance as a known limitation.
+
+2. **Re-run only the evidence invalidated by an M-1 code change.**
+   Do not rerun unrelated rows mechanically. For the M1-07 M-1 fix, these are the network-change
+   lifecycle rows (L5, L6, L8) and a basic Start/block/allow check (startup now also refuses a
+   network that is not validated or not usable). The Private DNS stop path (G5/G6 family) is also
+   affected, because Private DNS activation is now also reported by the network callback.
+
+3. Update this report from **DRAFT / INCOMPLETE** to the final gate state.
+
+**Recorded Tech Lead decision:** PR #30 was intentionally closed without merge. The `1492c108` build remains historical M1 verification evidence; current `main` must not inherit claims that were only verified on `1492c108`.
+
 ---
 
 ## 12. Architecture alternatives prepared for M2
@@ -405,9 +394,9 @@ No M2 option is authorized by this M1 report.
 
 ## 13. Human gate
 
-The Tech Lead records exactly one M1 → M2 decision:
+After sections 10–11 are closed, the Tech Lead records exactly one decision:
 
-- [x] **Continue to M2**
+- [ ] **Continue to M2**
 - [ ] **More investigation required**
 - [ ] **Narrow the product claim before M2**
 - [ ] **Change product/platform direction**
@@ -415,9 +404,9 @@ The Tech Lead records exactly one M1 → M2 decision:
 
 ### Tech Lead decision record
 
-**Decision:** Continue to M2  
-**Date:** 2026-09-26  
-**Rationale:** M1 produced enough verified and explicitly classified evidence to close the DNS feasibility experiment, including a narrow verified fix for M-1. The decision authorizes M2 analysis and human architecture selection only; it does not approve any production filtering architecture or broaden the product claim.
+**Decision:** Pending  
+**Date:** Pending  
+**Rationale:** Pending
 
 ---
 
