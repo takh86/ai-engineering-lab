@@ -17,34 +17,51 @@ The project must continue to preserve the public product framing in `problem.md`
 opt-in self-protection tool for consenting adults on their own devices. It is not a surveillance,
 parental-control, or third-party-monitoring system.
 
-## 2. Current source of truth — 2026-09-25
+## 2. Current source of truth — 2026-09-26
 
-### Merged on `main`
+Checked against `main` at `6e3349b` (PR #38) and the GitHub issues, milestones, pull requests and
+Actions runs on 2026-09-26. GitHub remains the live tracker: if it disagrees with this section,
+GitHub wins and this section needs an update.
 
-- M1-01 — project scaffolding.
-- M1-02 — truthful protection-state domain model.
-- M1-03 — deterministic block-rules-only hostname matching engine.
-- M1-04 — Android VPN lifecycle foundation with no filtering.
+### M1 — CLOSED
 
-### Open work
+- The GitHub milestone "M1 — DNS Feasibility & Coverage Evidence" is closed. Tracker #14 and #16,
+  #17 and #18 were closed as completed.
+- #15 (M1-05A, one exact build under test) was closed as **not planned**. The historical mismatch
+  between the tested build `1492c108` and the code PR #11 merged (`a292b6d`) was not reconstructed;
+  it stays an accepted, documented limitation, and PR #30 stays closed unmerged.
+- Merged: PR #11 (M1-05 experiment), PR #12 (M1-06 runbook), PRs #29 and #31 (M1-07 synthesis and
+  the PR #30 decision), PR #32 (M-1 fix, D12).
+- M-1 close-out, by evidence class (details in [M1-07](m1-07-evidence-synthesis.md) §5):
+  - FACT: GitHub Actions passed `clean assembleDebug testDebugUnitTest lintDebug` on PR #32's head
+    `5382a6c` and on `fd55932`. The Android code on `main` is identical to both.
+  - HUMAN-REPORTED: the Tech Lead reported the Samsung close-out rows P, M, S, R, PD and X as PASS.
+  - KNOWN LIMITATION: no automatic network handover. When the underlying network changes or becomes
+    unusable, the experiment stops truthfully and the user restarts it manually.
+- Tech Lead M1 → M2 decision: **continue to M2** (#14, #18). M1 approved no production
+  architecture and widened no product claim.
 
-- **PR #11 — M1-05 DNS-only filtering experiment**
-  - Draft / open / not merged.
-  - PR head: `feat/04-m1-05-dns-filtering`.
-  - A separate branch, `feat/04-m1-05-mobile-fixes`, is currently one commit ahead of the PR head.
-  - The extra commit must not be treated as part of PR #11 until it is deliberately reviewed and
-    integrated by the Tech Lead.
+### M2 — ACTIVE
 
-- **PR #12 — M1-06 DNS coverage and bypass validation gate**
-  - Draft / open / documentation only / not executed.
-  - It must not execute until the M1-05 build under test is fixed to one exact reviewed commit and
-    M1-05's own build, lint, and device acceptance gates pass.
+- M2-01 threat model: complete (PR #33; #20 closed).
+- M2-02 architecture options baseline: complete (PR #34; #21 closed).
+- M2-03: pending human-gate and verification work. Parent #22 is split into #39 → #40 → #41 → #42;
+  their state is in the M2-03 section below.
+- A8 is a verification candidate only. No production architecture is selected.
+
+### M3–M6 — BLOCKED
+
+M3 (#23) is blocked by the final M2 ADR; M4–M6 (#24–#26) are blocked in sequence behind it. Their
+child issues (#43–#54) are marked BLOCKED on GitHub and authorize no work.
 
 ### Source-of-truth rule
 
 Before M1-06 execution, record exactly one M1-05 build commit as the build under test.
 The GitHub PR, local checkout, installed APK, M1-06 runbook, and evidence report must all refer to
 that same reviewed commit. A branch name alone is not sufficient evidence.
+
+How this rule was applied, and the accepted exception recorded in #15, are in
+[M1-07](m1-07-evidence-synthesis.md) §3.
 
 ## 3. Delivery model
 
@@ -103,9 +120,9 @@ Preferred convention:
 
 | Milestone | Outcome | Status | Human gate |
 |---|---|---|---|
-| M1 | Establish real evidence for the DNS-only feasibility hypothesis and its bypass limits | ACTIVE | Decide what the evidence permits us to claim and whether the project continues |
-| M2 | Make an explicit architecture + truthful product-claim decision from M1 evidence | ACTIVE — M2-01 and M2-02 merged; M2-03 pending Tech Lead | Approve one path, narrow scope, investigate further, or stop |
-| M3 | Implement and verify the **approved** Protection Core V1 | CONDITIONAL | Approve verified protection semantics before productization |
+| M1 | Establish real evidence for the DNS-only feasibility hypothesis and its bypass limits | **CLOSED** (2026-09-26) | Decide what the evidence permits us to claim and whether the project continues — decided: continue to M2 |
+| M2 | Make an explicit architecture + truthful product-claim decision from M1 evidence | **ACTIVE** — M2-01 and M2-02 complete; M2-03 (#39 → #42) pending | Approve one path, narrow scope, investigate further, or stop |
+| M3 | Implement and verify the **approved** Protection Core V1 | CONDITIONAL — **BLOCKED** until the final M2 ADR | Approve verified protection semantics before productization |
 | M4 | Build the MVP user experience around the verified protection core | CONDITIONAL | Approve product usability and truthful user-facing states |
 | M5 | Security, quality, compatibility, and release engineering hardening | CONDITIONAL | Approve release candidate |
 | M6 | Controlled pilot, evidence review, and portfolio/release decision | CONDITIONAL | Approve broader release or another iteration |
@@ -122,7 +139,19 @@ Close the DNS-only hypothesis with reproducible evidence rather than implementat
 
 ## Entry state
 
-M1-01 through M1-04 merged. M1-05 and M1-06 are open draft work.
+At planning time: M1-01 through M1-04 merged; M1-05 and M1-06 were open draft work.
+
+**Current status (2026-09-26): M1 is CLOSED.** This section is kept as the historical work breakdown
+and evidence contract. Outcomes:
+
+- M1-05A (#15): closed as **not planned**. No single commit was frozen retroactively; the provenance
+  difference is an accepted, documented limitation.
+- M1-05B: recorded in M1-07 §4. The Gradle gate passed on the historical tested build `1492c108`;
+  device results are human-reported.
+- M1-06A (#16) and M1-06B (#17): completed. Every row is classified, with INCONCLUSIVE where
+  detail was not preserved.
+- M1-07 (#18): completed, including the M-1 fix (PR #32). Final report:
+  [`m1-07-evidence-synthesis.md`](m1-07-evidence-synthesis.md).
 
 ## Required work
 
@@ -194,6 +223,19 @@ M1 is closed only when:
 - any stop condition is visible;
 - the Tech Lead has made the M1 → M2 continuation decision.
 
+**Status (2026-09-26): met, with one recorded qualifier. M1 is closed.**
+
+- The required verification passed on the tested M1-05 build `1492c108`, not on the code PR #11
+  merged (`a292b6d`). This difference is kept as a documented limitation (#15 closed as not planned;
+  M1-07 §3.3).
+- M1-06 scope and H1–H3 were fixed before execution: the runbook is unchanged since `b565d04`,
+  which predates the build under test. PR #12 merged it.
+- Every M1-06 row is classified; rows whose detail was not preserved are INCONCLUSIVE
+  ([results](m1-06-execution-results.md)).
+- The evidence report is final ([M1-07](m1-07-evidence-synthesis.md)), including the M-1 close-out.
+- Stop conditions and limitations stay visible, including the absence of automatic network handover.
+- The Tech Lead decided to continue to M2 (#14, #18).
+
 ---
 
 # M2 — Architecture & Truthful Product Claim
@@ -254,8 +296,18 @@ The Tech Lead records one explicit decision:
 
 Only after that decision is accepted may M3 implementation tasks be decomposed.
 
-Status: pending Tech Lead decision. Decision package:
-[`m2-03-architecture-adr.md`](m2-03-architecture-adr.md).
+Status (2026-09-26): pending. Parent issue #22 is split into four steps, in order:
+
+| Issue | Step | State |
+|---|---|---|
+| #39 | M2-03A — human gate / G0 | The Tech Lead recorded "M2-03A = APPROVE": M2-01 + M2-02 are the M2 decision baseline and A8 is a verification candidate only. PR #55 is merged and carries that decision package on `main`. G0 remains **incomplete**: H18, H19a, H19b and H21 are still pending Tech Lead decisions. No device verification is authorized until G0 is complete. |
+| #40 | M2-03B — A8 verification V0–V13 | Blocked by M2-03A / G0. Not executed. |
+| #41 | M2-03C — T2 friction validation | Blocked by M2-03A / G0. Not executed. |
+| #42 | M2-03D — evidence synthesis + final architecture ADR | Blocked by #40 and #41. |
+
+Decision package: [`m2-03-architecture-adr.md`](m2-03-architecture-adr.md). A8 is not approved for
+production, no production architecture is selected, and M3 stays blocked until #42 records the final
+ADR.
 
 ## Exit criteria
 

@@ -47,7 +47,7 @@ M1 is **not** successful if normal mainstream browser configurations trivially b
 - compileSdk/targetSdk 36 (Android 16), the approved project requirement. See `docs/decisions.md` D2 for the toolchain versions this required and the corrected history (API 35 was used briefly during initial local scaffolding before platform 36 was installed; it was never an accepted target).
 - Compatibility risk for legacy Android versions (minSdk 24 through targetSdk 36) is documented, not optimized for, during scaffolding.
 
-## Milestone M1-01 — Project Scaffolding (this PR)
+## Milestone M1-01 — Project Scaffolding (merged, PR #1)
 
 ### Requirements
 

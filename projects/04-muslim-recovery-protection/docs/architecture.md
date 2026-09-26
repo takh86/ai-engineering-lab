@@ -1,8 +1,8 @@
-# Architecture (initial placeholder)
+# Architecture
 
 ## Status
 
-This is a placeholder for M1-01. No protection architecture is implemented yet. It records the current shape of the project and the constraints the next milestones must respect.
+This document records the code shape implemented during M1 (M1-01 to M1-07; M1 is closed) and the constraints later milestones must respect. No production protection architecture is implemented or selected: the M1 DNS code is an experiment, and the architecture decision belongs to M2 ([`roadmap.md`](roadmap.md), [`m2-03-architecture-adr.md`](m2-03-architecture-adr.md)).
 
 ## Current state (M1-03)
 
@@ -153,8 +153,8 @@ UDP only, one query at a time (a slow upstream delays others by up to 2 s, which
 exploit to degrade DNS for all apps), only the question name is filtered (a CNAME into a blocked
 domain is not caught), no TCP DNS (truncated responses fail), no IPv6 DNS transport on the TUN,
 DoH/DoT/Private DNS/browser Secure DNS not handled, and an underlying-network change stops the
-experiment instead of handing over (addressed by the M1-07 M-1 fix below, pending device
-verification; automatic handover is not implemented).
+experiment instead of handing over (addressed by the M1-07 M-1 fix below, merged in PR #32 and
+human-reported PASS on the Samsung close-out; automatic handover is not implemented).
 
 ## Current state (M1-07) — M-1: stale underlying network stops the experiment
 
@@ -221,9 +221,10 @@ Limitations:
 - Pre-existing and unchanged: a stop that lands just after a new Start can undo that Start (the
   result is still stopped and truthful).
 - The Android glue (monitor registration, the service's identity guard and teardown order) is not
-  unit tested (no Robolectric or mocking dependency). On-device behaviour needs human verification.
+  unit tested (no Robolectric or mocking dependency). On-device behaviour is covered only by the
+  human-reported Samsung close-out ([`m1-07-evidence-synthesis.md`](m1-07-evidence-synthesis.md) §5).
 
-## Planned technical direction for M1 (not yet implemented)
+## Technical direction for M1
 
 - M1-05 feeds the rules engine real hostnames from standard DNS (see above), but
   `filteringOperational` stays false until a future, human-approved milestone establishes what
