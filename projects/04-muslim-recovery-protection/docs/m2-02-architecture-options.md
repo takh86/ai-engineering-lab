@@ -14,7 +14,7 @@
 > **Revision:** final baseline after the second verification review of `bff6c09` (status BLOCK).
 > Every item is resolved in §B.3; earlier reviews are in §B.1 and §B.2.  
 > **Approved inputs:** M2-01 decisions H4–H12, approved by the Tech Lead
-> ([`m2-01-approved-threat-model.md` @ `5291383`][m2-01], not yet on `main`). They are not reopened here.  
+> ([`m2-01-approved-threat-model.md`][m2-01], merged into `main` through PR #33). They are not reopened here.\
 > **Supersedes:** the A1–A8 proposal (uploaded 2026-09-26, not in the repository) and the O1–O9 draft
 > previously in this file (commit `e9f0e09`). See §B.  
 > **Scope:** architecture and verification design only. No implementation, no production code, and no
@@ -709,7 +709,7 @@ production. The removal work would then become an M3 task under its own contract
 - **Artifact:** one app, with **no build variants**. The M1 experiment stays reproducible from its
   tag. Bringing VPN code back later needs an explicit decision.
 - **Docs** (a separate docs task):
-  - merge M2-01 into `main`;
+  - merge M2-01 into `main` (done: PR #33);
   - update M1-07 (M-1 merged; gate state) and the README status;
   - update the roadmap.
 - **Roadmap:** under A8, M3 "Protection Core V1" becomes a small filter-observation core plus the
@@ -960,8 +960,8 @@ The Tech Lead owns the decision.
 
 ### Pre-gate actions (Tech Lead)
 
-1. Merge `docs/04-m2-01-approved-decisions` (`5291383`) into `main`, so that H4–H12 are in the formal
-   reference before M2-03.
+1. ~~Merge `docs/04-m2-01-approved-decisions` (`5291383`) into `main`, so that H4–H12 are in the formal
+   reference before M2-03.~~ Done: merged through PR #33 (`a0aba40`).
 2. Separate docs task: M1-07 status after PR #32, README status, roadmap update (§H.3).
 
 ### What recording this baseline means
@@ -1036,7 +1036,7 @@ Project sources:
 - [issue #21](https://github.com/takh86/ai-engineering-lab/issues/21)
 - [PR #32](https://github.com/takh86/ai-engineering-lab/pull/32)
 
-[m2-01]: https://github.com/takh86/ai-engineering-lab/blob/529138340c74b29a78298e60ef6019dc3ff2083d/projects/04-muslim-recovery-protection/docs/m2-01-approved-threat-model.md
+[m2-01]: m2-01-approved-threat-model.md
 [linkprops]: https://developer.android.com/reference/android/net/LinkProperties
 [dpm]: https://developer.android.com/reference/android/app/admin/DevicePolicyManager
 [vpnservice]: https://developer.android.com/reference/android/net/VpnService

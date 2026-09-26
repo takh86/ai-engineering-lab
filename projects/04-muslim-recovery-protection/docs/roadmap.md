@@ -104,7 +104,7 @@ Preferred convention:
 | Milestone | Outcome | Status | Human gate |
 |---|---|---|---|
 | M1 | Establish real evidence for the DNS-only feasibility hypothesis and its bypass limits | ACTIVE | Decide what the evidence permits us to claim and whether the project continues |
-| M2 | Make an explicit architecture + truthful product-claim decision from M1 evidence | PLANNED | Approve one path, narrow scope, investigate further, or stop |
+| M2 | Make an explicit architecture + truthful product-claim decision from M1 evidence | ACTIVE — M2-01 and M2-02 merged; M2-03 pending Tech Lead | Approve one path, narrow scope, investigate further, or stop |
 | M3 | Implement and verify the **approved** Protection Core V1 | CONDITIONAL | Approve verified protection semantics before productization |
 | M4 | Build the MVP user experience around the verified protection core | CONDITIONAL | Approve product usability and truthful user-facing states |
 | M5 | Security, quality, compatibility, and release engineering hardening | CONDITIONAL | Approve release candidate |
@@ -216,6 +216,9 @@ Define:
 
 Deliverable: reviewed threat-model / product-claim document.
 
+Status: approved by the Tech Lead and merged (PR #33):
+[`m2-01-approved-threat-model.md`](m2-01-approved-threat-model.md).
+
 ## M2-02 — Architecture options assessment
 
 Compare only options justified by M1 evidence.
@@ -235,6 +238,10 @@ For every candidate evaluate:
 
 Potential alternatives are research inputs, not pre-approved implementations.
 
+Status: final architecture baseline merged (PR #34):
+[`m2-02-architecture-options.md`](m2-02-architecture-options.md). It selects no production
+architecture.
+
 ## M2-03 — Human ADR and M3 task contract
 
 The Tech Lead records one explicit decision:
@@ -246,6 +253,9 @@ The Tech Lead records one explicit decision:
 - stop the approach.
 
 Only after that decision is accepted may M3 implementation tasks be decomposed.
+
+Status: pending Tech Lead decision. Decision package:
+[`m2-03-architecture-adr.md`](m2-03-architecture-adr.md).
 
 ## Exit criteria
 
