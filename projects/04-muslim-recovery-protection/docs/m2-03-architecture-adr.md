@@ -1,17 +1,17 @@
-# M2-03 — Architecture ADR: Human Decision Package
+# M2-03 — Architecture ADR: Verification Gate Record
 
-> **Status: PENDING TECH LEAD DECISION**
+> **Status: M2-03A AND G0 RECORDED; A8 VERIFICATION PENDING**
 >
 > **Project:** Muslim Recovery Protection\
 > **Milestone:** M2 — Architecture & Truthful Product Claim ([issue #19](https://github.com/takh86/ai-engineering-lab/issues/19))\
 > **Task:** M2-03 — Human architecture ADR ([issue #22](https://github.com/takh86/ai-engineering-lab/issues/22)); this file prepares step M2-03A only\
 > **Date prepared:** 2026-09-26\
-> **Nature:** decision package prepared by AI for the Tech Lead. It records **no** decision. Every
-> checkbox below is empty, and only the Tech Lead fills it in.
+> **Decision provenance:** the Tech Lead directed adoption of the final baseline and then approved
+> proceeding with the bounded verification sequence in the project conversation on 2026-09-26.
+> Codex transcribed that instruction into the checkboxes below. No device result is implied.
 
-This document does not select a production architecture, does not start verification, and does not
-authorize any M3 work. It summarizes and references already-approved inputs; where it and its sources
-differ, [M2-01][m2-01] and [M2-02][m2-02] win.
+This record selects A8 for verification only. It does not select a production architecture or
+authorize M3 work. Where it and its sources differ, [M2-01][m2-01] and [M2-02][m2-02] win.
 
 ---
 
@@ -49,9 +49,9 @@ Issued as the final baseline at the Tech Lead's direction and merged into `main`
 
 ---
 
-## 2. Proposed M2-03A decision
+## 2. M2-03A decision — approved for verification
 
-> **PROPOSED — REQUIRES TECH LEAD APPROVAL**
+> **APPROVED FOR VERIFICATION ONLY — 2026-09-26**
 
 - Adopt M2-01 and M2-02 as the M2 decision baseline.
 - Approve A8 only as the next **verification candidate**.
@@ -66,10 +66,11 @@ optional. It does not accept A8 for production.
 
 **Tech Lead decision on M2-03A:**
 
-- [ ] APPROVE
+- [x] APPROVE
 - [ ] REJECT
 
-Recorded by: ______________________ Date: ______________ Notes: ______________________
+Recorded from: Tech Lead's project-conversation direction, 2026-09-26. Transcribed by Codex.
+Notes: A8 and Cloudflare Families are not approved for production. H20 remains optional.
 
 ### 2.1 Decision items carried by the proposal
 
@@ -77,24 +78,25 @@ Final wording is in M2-02 §L, "Decision items". The summaries below are pointer
 
 | ID | Subject | State in this package |
 |---|---|---|
-| H13 | Recovery/filter separation | PROPOSED |
-| H14 | A8 is the filter layer's verification candidate only | PROPOSED |
-| H15 | Mechanism + coverage + freshness state model | PROPOSED |
-| H16 | Deferred / excluded architecture paths (A2, A3, A4a, A4b, A5, A6, A7a, A7b) | PROPOSED |
-| H17 | Verification before the production decision (G0 → V0–V13 → friction runs → report → §I.3) | PROPOSED |
+| H13 | Recovery/filter separation | APPROVED BASELINE |
+| H14 | A8 is the filter layer's verification candidate only | APPROVED FOR VERIFICATION |
+| H15 | Mechanism + coverage + freshness state model | APPROVED BASELINE; unimplemented |
+| H16 | Deferred / excluded architecture paths (A2, A3, A4a, A4b, A5, A6, A7a, A7b) | APPROVED BASELINE |
+| H17 | Verification before the production decision (G0 → V0–V13 → friction runs → report → §I.3) | APPROVED SEQUENCE; unexecuted |
 | H20 | Recovery also works without internet; optional and not an implementation precondition unless approved | OPTIONAL — pending Tech Lead acceptance |
 
 H18, H19 and H21 are not part of M2-03A. They are gate G0 decisions (§3).
 
 ---
 
-## 3. G0 — Tech Lead Decisions Required Before Verification
+## 3. G0 — recorded verification decisions
 
-Source: M2-02 §E.1, §G and §L. No box is pre-checked. AI has recorded none of these decisions.
+Source: M2-02 §E.1, §G and §L. Recorded from the Tech Lead's direction to proceed with the
+previously presented verification sequence; the named scope below is frozen before results.
 
 ### H18 — Verification privacy consent
 
-- [ ] APPROVE
+- [x] APPROVE
 - [ ] REJECT
 
 **Question:** For the verification phase only, do I approve routing the test device's DNS queries
@@ -104,13 +106,17 @@ through the filtering provider under test (Cloudflare Families / `family.cloudfl
 - **This is NOT production approval.** Production privacy acceptance is a separate decision, made
   through AC8 (§I.2). Rejecting it for production is RJ6 (§I.3).
 - **Data flow and provider facts:** M2-02 §G.1–§G.3.
+- **Verification boundary:** use a dedicated, limited test window; avoid personal browsing.
+  Other installed apps may still generate DNS queries. Record the as-found Private DNS setting,
+  restore it immediately after the window, and verify the restored setting and connectivity.
+  Never interpret this approval as consent to ongoing routing or production deployment.
 - **If rejected:** M2-02 §G.1 lists the reject option as "A8 stops, and either A2 is reopened
   (§D.4) or the product ships recovery-only (H12)"; H18 rejection is also an A2 reopening trigger
   (§D.4). The choice between those follow-ups is a separate Tech Lead decision.
 
 ### H19a — Test names
 
-- [ ] APPROVE
+- [x] APPROVE
 - [ ] REJECT
 
 Policy exactly as defined in M2-02 §E.1 and §L H19(a), extending D3:
@@ -128,15 +134,19 @@ Policy exactly as defined in M2-02 §E.1 and §L H19(a), extending D3:
 
 ### H19b — Browser test-page access
 
-- [ ] APPROVE
+- [x] APPROVE
 - [ ] REJECT
 
 **Question:** May the approved test browsers open the provider's documented harmless test-category
 page where the verification protocol requires it?
 
 - **Needed before:** V3, V4, V7, V11–V13 and the browser-level friction runs (§E.1).
-- **Known evidence of harmlessness:** only a search-result title, "This is a test website provided
-  by Cloudflare Gateway" (†). M2-02 §E.1 asks the Tech Lead to check it once before deciding (U1).
+- **Safety evidence checked before recording this decision:** Cloudflare's
+  [Families setup documentation](https://developers.cloudflare.com/1.1.1.1/setup/#test-1111-for-families)
+  explicitly names this test URL. Its [currently served page](https://nudity.testcategory.com/)
+  was opened read-only on 2026-09-26; the visible page identifies itself as a Cloudflare Gateway
+  test site and contains no adult-content text. The device test still uses only this designated
+  test name and the approved controls; page contents may change after this check.
 - **If rejected** (M2-02 §E.1, §I.3):
   - no validated alternative currently gives equivalent browser evidence; a resolver-diagnostic
     page is an unvalidated candidate (U15);
@@ -147,7 +157,7 @@ page where the verification protocol requires it?
 
 ### H21 — Browser verification scope
 
-- [ ] APPROVE
+- [x] APPROVE
 - [ ] MODIFY
 - [ ] REJECT
 
@@ -184,7 +194,9 @@ the outcome is INCOMPLETE (§I.1 step 3). The claim is scoped to the tested regi
 - **If rejected:** M2-02 defines no separate outcome. Without a recorded H21, gate G0 is incomplete,
   so V1 cannot start (§E.1) and AC9 cannot hold (§I.2).
 
-**G0 recorded by:** ______________________ Date: ______________ Notes: ______________________
+**G0 recorded from:** Tech Lead's project-conversation decision to proceed, 2026-09-26;
+transcribed by Codex. Scope: H18 verification only, H19a/H19b and H21 as written above.
+No device setting has been changed by this record.
 
 ---
 
@@ -209,7 +221,9 @@ M2 production architecture decision
 - V0 needs H19a only; V1 and every later device row need all of G0 (§E.1).
 - The rows, oracle, safety rules and evidence rules are in M2-02 §E.2–§E.6. They are not restated.
 - V14–V17 are not part of this phase. They need a separate, approved prototype task (§E.4, H17).
-- **Status:** no V-row and no friction run has been executed. No A8 evidence exists.
+- **Status:** G0 is recorded; no V-row and no friction run has been executed. No A8 device
+  evidence exists. The next executable step is V0, followed by the device rows on the named
+  Samsung test device and the friction protocol. Results belong in issue #40/#41's evidence report.
 
 Possible outcomes are exactly those defined in M2-02 §I.3; they are not redefined here:
 
@@ -267,8 +281,10 @@ non-goals, verification strategy before code) remain open.
 
 ## AI contribution
 
-AI (Claude) prepared this package from the merged M2-01 and M2-02 documents. It made no decision and
-checked no box. The Tech Lead owns every decision in it.
+AI (Claude) prepared the original package from the merged M2-01 and M2-02 documents. Codex
+transcribed the Tech Lead's later project-conversation approval for M2-03A and G0 and checked the
+test URL's currently served page against Cloudflare's documentation. The Tech Lead owns these
+decisions; AI has made no production choice, run no device test, and changed no device setting.
 
 [m2-01]: m2-01-approved-threat-model.md
 [m2-02]: m2-02-architecture-options.md
