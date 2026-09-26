@@ -163,3 +163,10 @@ The remaining M1 blockers are outside M1-06 execution completeness:
 
 1. source/build reconciliation with the maintained code path;
 2. M-1 underlying-network handover decision.
+
+> **Status update (2026-09-26):** both items were closed when M1 closed. (1) No source/build
+> reconciliation was made: PR #30 stayed closed unmerged and #15 was closed as not planned, so the
+> `1492c108` provenance difference remains an accepted, documented limitation
+> ([M1-07](m1-07-evidence-synthesis.md) §3.3). (2) M-1 was fixed in PR #32 (D12: truthful stop, no
+> automatic handover); its close-out evidence is in M1-07 §5. The rows above remain evidence for
+> build `1492c108` only.

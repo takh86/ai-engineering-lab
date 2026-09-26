@@ -227,9 +227,9 @@ enter the TUN, so everything else is untouched by construction.
 
 ## D12 — M-1: underlying-network invalidation stops the experiment; no automatic handover
 
-**Status:** Proposed (M1-07). The Tech Lead set this policy in the M1-07 M-1 task contract. This
-record documents its implementation, which is pending physical-device verification and merge
-approval.
+**Status:** Accepted (M1-07). The Tech Lead set this policy in the M1-07 M-1 task contract and
+merged its implementation in PR #32 (2026-09-26). The Gradle gate passed in GitHub Actions, and the
+Samsung close-out was human-reported PASS (see `m1-07-evidence-synthesis.md` §5).
 
 **Decision:** While a DNS-experiment session runs, the underlying network captured at startup is
 watched through one session-scoped `ConnectivityManager` network callback. It is re-checked with

@@ -1,5 +1,12 @@
 # M1-06 DNS Coverage & Bypass Validation
 
+> **Status update (2026-09-26): executed; M1 is closed.** The Tech Lead reported full execution on
+> the physical Samsung device with build `1492c108` (HUMAN-REPORTED; M1-07 §3 explains how that build
+> relates to P1's `ddabe8a`). Row classifications are in
+> [`m1-06-execution-results.md`](m1-06-execution-results.md); the M1 synthesis is
+> [`m1-07-evidence-synthesis.md`](m1-07-evidence-synthesis.md). The status text and procedure below
+> are the pre-execution record, unchanged since `b565d04`.
+
 **Status:** Draft validation gate. Not executed. Measures behavior only; it implements no mitigation
 and changes no architecture.
 
