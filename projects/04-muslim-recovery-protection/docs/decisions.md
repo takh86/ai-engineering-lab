@@ -288,9 +288,9 @@ The bounded tracker synchronization was separately authorized and executed. OD1�
 [recovery-first product baseline](recovery-first-product-baseline.md). The urge moment, not the
 filter, is the product. The product is organized in layers L0–L4 (plus L2b Web Guard) with
 independent status, follows the adopt/adapt/approved-scope/reject feature ledger, and runs a
-pre-registered product discovery gate (M2-04: E1–E3) before any M3 build. M3 would become
+pre-registered product discovery gate (M2-04: E1–E3) before any M3 build. M3 becomes
 **Recovery Core V1**, starting after the M2-04 GO decision and an approved M3-01 contract, not
-after the DNS-layer ADR. App interruption (L1), DNS guidance (L2) and Web Guard (L2b) would each
+after the DNS-layer ADR. App interruption (L1), DNS guidance (L2) and Web Guard (L2b) each
 join only after their own gate: PR #60 plus AB-01 for L1, #40–#42 for L2, and a new architecture
 decision for L2b.
 
@@ -303,8 +303,8 @@ than further filter engineering.
 
 **Consequences:**
 
-- U13 would move from M4/M6 research to a gate before M3.
-- #42 would decide L2 only. A8's AC/RJ criteria, the frozen V0–V13 runbook and #40/#41 are
+- U13 moves from M4/M6 research to a gate before M3.
+- #42 decides L2 only. A8's AC/RJ criteria, the frozen V0–V13 runbook and #40/#41 are
   unchanged regardless.
 - H4–H12 and D1–D13 remain operative unless explicitly reopened by the Owner. D14 approves no permission, provider,
   backend, payment flow or release claim.
