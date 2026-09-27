@@ -1,26 +1,22 @@
 # Recovery-first product baseline
 
-> **Decision state (updated 2026-09-27):** The Owner approved the recovery-first direction in
-> conversation on 2026-09-27. **D14 itself is still PROPOSED, not approved.** The first Red-Team
-> review ([comment](https://github.com/takh86/ai-engineering-lab/pull/69#issuecomment-5853232456))
-> found three blockers, fixed in the prior revision. A **second** review
-> ([comment](https://github.com/takh86/ai-engineering-lab/pull/69#issuecomment-5853885601))
-> confirmed the direction survives the red team, and narrowed the remaining work to four items —
-> the execution issues (#63–#67) not yet matching this document, the E1 monetization gate still
-> combining two signals with OR, E2's per-language attribution, and #68's stale body — all fixed
-> in this revision (§8, §9, §11, and issue #68 directly). A further Owner verification pass is
-> still pending before D14 = APPROVE. Separately, the Owner has
-> **already decided** several open items (OD1–OD9, OD11, OD13) and approved a specific MVP
-> product-scope expansion (Web Guard, secure notes, modes, a monitoring boundary, screen reading
-> and uninstall-prevention for self-protection) via GitHub comments on
-> [issue #68](https://github.com/takh86/ai-engineering-lab/issues/68) — those decisions are
-> recorded below as **DECIDED**, distinct from D14's own pending status. OD10, OD12 and OD14 stay
-> open.
+> **Decision state (updated 2026-09-27): D14 APPROVED by the Owner.** The recovery-first
+> baseline and discovery-before-build restructuring are now the approved product direction.
+> The approval followed two Red-Team review cycles on PR #69 and an independent final verification;
+> the Owner recorded **D14 = APPROVE** in PR #69 comment 5854294320 and separately authorized the
+> bounded live-tracker synchronization. OD1–OD9, OD11 and OD13 are decided; OD10, OD12 and OD14
+> remain evidence-gated/open. The approved MVP scope includes Web Guard, secure notes, recovery
+> modes, self-protection monitoring, screen reading for self-protection and an uninstall-resistance
+> investigation **as product intent only**. The Owner subsequently selected a **Conservative Gate**:
+> no Web Guard keyword/screen-content design or spike may begin until the affected H9 boundary is
+> explicitly reopened/amended and a dedicated security/privacy/Play review is approved; no
+> uninstall-resistance design or spike may begin until H5 is explicitly reopened/amended under the
+> same review discipline.
 >
 > **What this changes:** the product thesis, the layer structure, the feature boundaries and the
 > order of work: discovery before build, and the recovery core before protection layers.
 >
-> **What it does not change:** H4–H12 ([M2-01](m2-01-approved-threat-model.md)), the
+> **What it does not change:** H4–H12 ([M2-01](m2-01-approved-threat-model.md)) remain operative unless explicitly reopened by a later Owner decision, and the
 > [M2-02 baseline](m2-02-architecture-options.md), A8's AC/RJ criteria, the frozen V0–V13
 > runbook (PR #59), AB1–AB7 ([PR #60](app-blocking-architecture-decision.md), pending), D1–D13,
 > or any Android code. It approves no production architecture, permission, DNS provider,
