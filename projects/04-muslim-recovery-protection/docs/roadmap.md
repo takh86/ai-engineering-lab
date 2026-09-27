@@ -23,7 +23,7 @@ Checked against `main` at `6b0212f` (PR #59) and the GitHub issues, milestones a
 2026-09-27. GitHub remains the live tracker: if it disagrees with this section, GitHub wins and
 this section needs an update.
 
-**Product direction (proposed in D14):** the [recovery-first product baseline](recovery-first-product-baseline.md)
+**Product direction (D14 APPROVED):** the [recovery-first product baseline](recovery-first-product-baseline.md)
 makes the urge moment, not the filter, the product. It adds a product discovery gate (M2-04)
 before any build and turns M3 into Recovery Core V1. The Owner approved the direction in
 conversation on 2026-09-27; the GitHub record is pending on the PR that adds D14.
@@ -54,7 +54,7 @@ conversation on 2026-09-27; the GitHub record is pending on the PR that adds D14
   is split into #39 → #40 → #41 → #42; their state is in the M2-03 section below.
 - A8 is a verification candidate only. No production architecture is selected.
 - AB-01 (#61) validates the proposed app interruption (PR #60).
-- M2-04 (#63) is the product discovery gate (E1–E3) proposed by D14. Nothing in it has run.
+- M2-04 (#63) is the product discovery gate (E1–E3) approved by D14. Nothing in it has run.
 
 ### M3–M6 — BLOCKED
 
@@ -309,7 +309,7 @@ The Tech Lead records one explicit decision:
 
 Only after that decision is accepted may M3 implementation tasks be decomposed.
 
-**Scope under D14 (proposed):** M2-03 decides the DNS layer (L2). It no longer decides alone when
+**Scope under D14 (APPROVED):** M2-03 decides the DNS layer (L2). It no longer decides alone when
 M3 starts: the Recovery Core V1 entry depends on the M2-04 GO decision and an approved M3-01
 contract. The DNS layer joins M3 or a later milestone only after #42 PASS.
 
@@ -342,7 +342,7 @@ The bounded product/technical validation is tracked separately in
 AB-01's voluntary product check can run inside M2-04's E1 and E3, so participants are recruited
 only once; the Owner decides.
 
-## M2-04 — Product discovery gate (proposed by D14)
+## M2-04 — Product discovery gate (approved by D14)
 
 Answer the questions that decide whether to build anything, cheaply and without code: do people
 want a private, non-shaming companion, do they use it at the urge moment, and do they trust it?
@@ -373,7 +373,7 @@ Open Owner decisions OD1–OD14 from the baseline are tracked in #68.
 
 # M3 — Recovery Core V1 (Conditional)
 
-> Renamed from "Protection Core V1" by D14 (proposed). The GitHub milestone title needs the same
+> Renamed from "Protection Core V1" by approved D14. The GitHub milestone title needs the same
 > rename.
 
 ## Goal
