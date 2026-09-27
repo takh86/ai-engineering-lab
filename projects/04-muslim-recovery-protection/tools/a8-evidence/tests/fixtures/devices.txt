@@ -1,0 +1,6 @@
+List of devices attached
+SYNTHETIC_USB device usb:1-4 product:a56xnaeea model:SM_A566B device:a56x transport_id:1
+192.0.2.10:37001 device product:a56xnaeea model:SM_A566B device:a56x transport_id:2
+adb-SYNTHETIC-abc._adb-tls-connect._tcp device product:a56xnaeea model:SM_A566B device:a56x transport_id:3
+SYNTHETIC_LOCKED unauthorized transport_id:4
+SYNTHETIC_OFFLINE offline transport_id:5

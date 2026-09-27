@@ -1,0 +1,26 @@
+name: Project 04 A8 evidence tool tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "projects/04-muslim-recovery-protection/tools/a8-evidence/**"
+      - ".github/workflows/project-04-a8-evidence-tool.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-tool-tests:
+    name: Synthetic tool tests (${{ matrix.shell }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shell: [powershell, pwsh]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Run synthetic tests without a device
+        shell: ${{ matrix.shell }}
+        run: ./projects/04-muslim-recovery-protection/tools/a8-evidence/tests/Test-A8Evidence.ps1
