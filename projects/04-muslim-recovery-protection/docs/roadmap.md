@@ -17,11 +17,16 @@ The project must continue to preserve the public product framing in `problem.md`
 opt-in self-protection tool for consenting adults on their own devices. It is not a surveillance,
 parental-control, or third-party-monitoring system.
 
-## 2. Current source of truth — 2026-09-26
+## 2. Current source of truth — 2026-09-27
 
-Checked against `main` at `6e3349b` (PR #38) and the GitHub issues, milestones, pull requests and
-Actions runs on 2026-09-26. GitHub remains the live tracker: if it disagrees with this section,
-GitHub wins and this section needs an update.
+Checked against `main` at `6b0212f` (PR #59) and the GitHub issues, milestones and pull requests on
+2026-09-27. GitHub remains the live tracker: if it disagrees with this section, GitHub wins and
+this section needs an update.
+
+**Product direction (proposed in D14):** the [recovery-first product baseline](recovery-first-product-baseline.md)
+makes the urge moment, not the filter, the product. It adds a product discovery gate (M2-04)
+before any build and turns M3 into Recovery Core V1. The Owner approved the direction in
+conversation on 2026-09-27; the GitHub record is pending on the PR that adds D14.
 
 ### M1 — CLOSED
 
@@ -45,14 +50,22 @@ GitHub wins and this section needs an update.
 
 - M2-01 threat model: complete (PR #33; #20 closed).
 - M2-02 architecture options baseline: complete (PR #34; #21 closed).
-- M2-03: G0 complete; verification pending. Parent #22 is split into #39 → #40 → #41 → #42;
-  their state is in the M2-03 section below.
+- M2-03: G0 complete. #40 execution started on 2026-09-27 and is paused at V1-CELL. Parent #22
+  is split into #39 → #40 → #41 → #42; their state is in the M2-03 section below.
 - A8 is a verification candidate only. No production architecture is selected.
+- AB-01 (#61) validates the proposed app interruption (PR #60).
+- M2-04 (#63) is the product discovery gate (E1–E3) proposed by D14. Nothing in it has run.
 
 ### M3–M6 — BLOCKED
 
-M3 (#23) is blocked by the final M2 ADR; M4–M6 (#24–#26) are blocked in sequence behind it. Their
-child issues (#43–#54) are marked BLOCKED on GitHub and authorize no work.
+On GitHub today, #23 is still "Protection Core V1," blocked by the final M2 ADR (#42), and
+#24–#26/#43–#54 are unchanged from their pre-D14 wording — an earlier revision of this PR had
+already edited them to the D14 state before Owner approval; that was a human-gate violation
+(§ below, and the baseline document §9/§11) and has been corrected by restoring their text. If
+D14 is approved, M3 would be renamed to "Recovery Core V1" and re-gated on the M2-04 GO decision
+and an approved M3-01 contract instead, with L1, L2 and L2b each joining only after their own
+gate; M4–M6 would follow in sequence behind M3. Until that approval and sync, #23–#26/#43–#54
+authorize no work under either their current or their proposed wording.
 
 ### Source-of-truth rule
 
@@ -121,11 +134,11 @@ Preferred convention:
 | Milestone | Outcome | Status | Human gate |
 |---|---|---|---|
 | M1 | Establish real evidence for the DNS-only feasibility hypothesis and its bypass limits | **CLOSED** (2026-09-26) | Decide what the evidence permits us to claim and whether the project continues — decided: continue to M2 |
-| M2 | Make an explicit architecture + truthful product-claim decision from M1 evidence | **ACTIVE** — M2-01 and M2-02 complete; M2-03 (#39 → #42) pending | Approve one path, narrow scope, investigate further, or stop |
-| M3 | Implement and verify the **approved** Protection Core V1 | CONDITIONAL — **BLOCKED** until the final M2 ADR | Approve verified protection semantics before productization |
-| M4 | Build the MVP user experience around the verified protection core | CONDITIONAL | Approve product usability and truthful user-facing states |
-| M5 | Security, quality, compatibility, and release engineering hardening | CONDITIONAL | Approve release candidate |
-| M6 | Controlled pilot, evidence review, and portfolio/release decision | CONDITIONAL | Approve broader release or another iteration |
+| M2 | Make explicit architecture, truthful-claim and product-validation decisions before any build | **ACTIVE** — M2-01, M2-02 and G0 complete; #40 in execution; AB-01 (#61) and M2-04 (#63) not started | Per layer: approve, narrow, investigate further or stop. For the product: GO, PIVOT or STOP (M2-04). |
+| M3 | Implement and verify **Recovery Core V1** (L0), plus L1 and L2 only if their gates passed (D14) | CONDITIONAL — **BLOCKED** until the M2-04 GO decision and an approved M3-01 contract | Approve the recovery core and per-layer truthful states before productization |
+| M4 | Build the German/Arabic MVP experience around the verified recovery core and approved layers | CONDITIONAL | Approve product usability and truthful user-facing states |
+| M5 | Security, quality, compatibility, Play declarations and release engineering hardening | CONDITIONAL | Approve release candidate |
+| M6 | Controlled pilot in Germany (DE/AR), evidence review, and portfolio/release decision | CONDITIONAL | Approve broader release or another iteration |
 
 No calendar dates are committed until capacity and the previous gate are known.
 
@@ -296,18 +309,22 @@ The Tech Lead records one explicit decision:
 
 Only after that decision is accepted may M3 implementation tasks be decomposed.
 
-Status (2026-09-26): G0 complete; device verification pending. Parent issue #22 is split into four steps, in order:
+**Scope under D14 (proposed):** M2-03 decides the DNS layer (L2). It no longer decides alone when
+M3 starts: the Recovery Core V1 entry depends on the M2-04 GO decision and an approved M3-01
+contract. The DNS layer joins M3 or a later milestone only after #42 PASS.
+
+Status (2026-09-27): G0 complete; device verification in progress. Parent issue #22 is split into four steps, in order:
 
 | Issue | Step | State |
 |---|---|---|
 | #39 | M2-03A — human gate / G0 | **Closed as completed.** The Tech Lead recorded M2-03A and approved H18 for verification only, H19a, H19b and H21 in [#39](https://github.com/takh86/ai-engineering-lab/issues/39). No production decision. |
-| #40 | M2-03B — A8 verification V0–V13 | **Pre-execution.** G0 complete; PR #59 runbook merged. Device/environment and as-found settings still need recording. No device row executed. |
+| #40 | M2-03B — A8 verification V0–V13 | **In execution, paused by the Tech Lead at V1-CELL** (2026-09-27). Recorded in #40: V0 VALID; V1-WIFI NOT MET under the frozen rule, because `dumpsys dnsresolver` was unavailable. No row is PASS and V2 has not started. PR #62 proposes a read-only evidence collector. |
 | #41 | M2-03C — T2 friction validation | Open; coordinate with #40 after the execution setup. No friction result recorded. |
-| #42 | M2-03D — evidence synthesis + final architecture ADR | Blocked by #40 and #41. |
+| #42 | M2-03D — evidence synthesis + final architecture ADR | Blocked by #40 and #41. Under D14, it decides the DNS layer (L2) only. |
 
 Decision package: [`m2-03-architecture-adr.md`](m2-03-architecture-adr.md). A8 is not approved for
-production, no production architecture is selected, and M3 stays blocked until #42 records the final
-ADR.
+production, and no production architecture is selected. The DNS layer stays out of any build until
+#42 records the final ADR.
 
 ### Later product-scope decision — voluntary app blocking
 
@@ -322,23 +339,56 @@ separately before code, without silently treating the historical M1 exclusions a
 The exact architecture boundary still needs the Owner's GitHub decision record.
 The bounded product/technical validation is tracked separately in
 [issue #61](https://github.com/takh86/ai-engineering-lab/issues/61); it does not block #40/#41.
+AB-01's voluntary product check can run inside M2-04's E1 and E3, so participants are recruited
+only once; the Owner decides.
+
+## M2-04 — Product discovery gate (proposed by D14)
+
+Answer the questions that decide whether to build anything, cheaply and without code: do people
+want a private, non-shaming companion, do they use it at the urge moment, and do they trust it?
+Design, pre-registered thresholds and stop criteria are in
+[`recovery-first-product-baseline.md`](recovery-first-product-baseline.md) §8. The Owner may adjust
+thresholds **before** execution, never after results. Parent issue: #63.
+
+| Issue | Step | State |
+|---|---|---|
+| #64 | M2-04A — E1 interviews and anonymous survey (DE/AR) | Not started |
+| #65 | M2-04B — E2 landing pages: positioning and name test | Not started |
+| #66 | M2-04C — E3 four-week no-code concierge | Not started; requires clinically reviewed materials and ethics safeguards (18+, consent, minimal data, crisis resources) |
+| #67 | M2-04D — synthesis and Owner GO / PIVOT / STOP decision | Blocked by E1–E3 and AB-01 |
+
+Open Owner decisions OD1–OD14 from the baseline are tracked in #68.
 
 ## Exit criteria
 
 - Threat model approved.
 - Truthful product claim approved.
-- Architecture ADR accepted.
+- M2-04 decision recorded (GO / PIVOT / STOP) with the approved MVP scope.
+- Per-layer decisions recorded: L2 through the #42 ADR, or L2 explicitly kept out of the MVP
+  while its verification continues; L1 through PR #60's GitHub record and the AB-01 result.
 - M3 scope and non-goals approved.
 - Verification strategy defined before implementation.
 
 ---
 
-# M3 — Protection Core V1 (Conditional)
+# M3 — Recovery Core V1 (Conditional)
+
+> Renamed from "Protection Core V1" by D14 (proposed). The GitHub milestone title needs the same
+> rename.
 
 ## Goal
 
-Implement the architecture explicitly approved in M2 and establish objective runtime criteria for
-when protection can be reported as operational.
+Implement the on-device recovery core (L0) that M2-04 validated, with truthful per-layer status.
+Add app interruption (L1) and DNS guidance (L2) only if each passed its own gate, and establish
+objective runtime criteria for when each layer may report itself as active.
+
+## Entry (D14)
+
+- M2-04 decision is GO, with an approved MVP scope.
+- M3-01 task contract approved by the Tech Lead.
+- L1 in scope only after PR #60's GitHub record, a passing AB-01 (#61) result and its own task
+  contract.
+- L2 in scope only after #42 records PASS for the claimed configuration.
 
 ## Planning constraints
 
@@ -355,27 +405,33 @@ No M3 issue may assume:
 - backend;
 - production rule distribution;
 - Always-on behavior;
+- a protection layer whose own gate has not passed;
+- any feature on the baseline's reject list (§5);
 
-unless the M2 ADR explicitly authorizes that capability.
+unless the relevant M2 decision explicitly authorizes that capability.
 
 ## Expected work packages
 
-After the M2 decision, decompose M3 into bounded issues for:
+After the M2-04 decision, decompose M3 into bounded issues for:
 
-1. protection-core implementation;
-2. runtime truth / `filteringOperational` semantics;
-3. lifecycle and recovery behavior required by the approved threat model;
-4. rule/configuration source required by the approved scope;
-5. automated tests;
-6. physical-device coverage tests;
-7. security/privacy review;
-8. architecture documentation.
+1. L0 recovery core: Help now, if–then plans, lapse reflection, weekly review, optional local
+   notes;
+2. per-layer runtime truth: Filter Active and App Blocking Active stay separate, and no
+   undifferentiated Protected state;
+3. L1 app interruption, only if approved;
+4. L2 DNS guidance and check, only if approved;
+5. lifecycle behavior required by the approved threat model;
+6. automated tests;
+7. physical-device tests for each included layer;
+8. security/privacy review;
+9. architecture documentation.
 
 ## Exit criteria
 
-- Approved protection behavior works on the target matrix.
-- Unsupported paths are represented truthfully.
-- No false Protected state is reproducible in required scenarios.
+- The recovery core works with every protection layer absent, revoked or failing (H12).
+- Each included layer works on its target matrix, and unsupported paths are represented
+  truthfully.
+- No false active or Protected state is reproducible in required scenarios.
 - Automated and device verification pass.
 - Architecture and decision records match the implementation.
 
@@ -385,21 +441,25 @@ After the M2 decision, decompose M3 into bounded issues for:
 
 ## Goal
 
-Turn the verified protection core into an understandable, honest, usable Android MVP.
+Turn the verified recovery core and approved layers into an understandable, honest, usable Android
+MVP for German- and Arabic-speaking users (D14; first market per OD11).
 
 ## Expected work packages
 
-- onboarding and consent flow;
-- start/stop/recovery UX;
-- clear protection / degraded / unsupported / error states;
+- onboarding and consent flow, with setup in a calm state;
+- Help now reachable from the home screen and, if L1 is approved, from the interruption;
+- clear active / degraded / unsupported / error states for each included layer;
 - local settings required by the approved MVP;
 - user-facing limitation and privacy explanations;
+- German and Arabic copy in a human, non-preaching voice;
+- regional referral directory (L4);
+- discreet presentation if OD2 is approved; optional faith content if OD9 is approved;
 - accessible Compose UI (ordinary UI accessibility; this does **not** authorize Android
   `AccessibilityService`);
 - product-level acceptance testing.
 
-Backend, analytics, accountability, payments, and content-library features remain separate decisions,
-not implicit M4 requirements.
+Backend, analytics, accountability, payments (OD10), and content-library features remain separate
+decisions, not implicit M4 requirements.
 
 ## Exit criteria
 
@@ -423,8 +483,13 @@ Produce a reproducible, reviewable release candidate rather than a developer pro
 - integration/instrumentation tests where valuable;
 - dependency and security review;
 - Android permission / manifest review;
-- privacy and data-flow review;
-- compatibility matrix across the supported Android range;
+- Play declarations and in-app consent for the permissions that L1 actually selects (Usage
+  Access, overlay, any foreground-service type, and Accessibility only if selected), tested on a
+  closed-testing track before release;
+- privacy and data-flow review; an open-source core and an independent data-flow review if OD7 is
+  approved;
+- compatibility matrix across the supported Android range, including OEM background limits and
+  Advanced Protection for L1;
 - lifecycle, battery, performance and resilience checks;
 - reproducible release/signing process;
 - release checklist and rollback criteria.
@@ -447,12 +512,15 @@ Any telemetry, crash reporting, or analytics requires a separate privacy/product
 ## Goal
 
 Validate the product with controlled real-user feedback and publish engineering evidence without
-overselling the system.
+overselling the system. Under D14 the pilot runs in Germany (German and Arabic). Its feasibility
+and no-harm criteria (use at the urge moment, week-4 retention, no rise in shame or distress) are
+pre-registered from E3 before recruitment. It makes no efficacy claim.
 
 ## Expected work packages
 
 - controlled pilot plan;
 - explicit consent and privacy boundaries;
+- pre-registered feasibility and no-harm criteria, with a qualified clinical reviewer;
 - structured feedback collection;
 - issue triage and severity rules;
 - pilot exit report;
@@ -480,7 +548,9 @@ overselling the system.
 Use progressive elaboration:
 
 - M1 and M2 tasks are detailed now because they are actionable.
-- M3–M6 stay as milestone trackers until their entry gates pass.
+- M3–M6 stay as milestone trackers until their entry gates pass. D14 rewords the existing
+  trackers (#23–#26, #43–#54) to match the recovery-first baseline; it adds no implementation
+  issues.
 - Do **not** create dozens of speculative implementation issues for an architecture that has not
   been approved yet.
 - At each milestone gate, decompose only the next milestone into small reviewable tasks.

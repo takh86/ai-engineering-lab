@@ -22,6 +22,12 @@ This does not change this ADR's A8 verification criteria, G0 decisions, or produ
 The H16/A7b exclusion of Accessibility for URL inspection is not a decision about the new
 package-level candidate. The new permission and coverage gate remains conditional.
 
+**Recovery-first addendum (2026-09-27, proposed in D14):** Under the
+[recovery-first product baseline](recovery-first-product-baseline.md), this ADR's final decision
+(#42) covers the DNS layer (L2). The Recovery Core V1 (M3) starts after the M2-04 product
+discovery decision and an approved M3-01 contract. The DNS layer joins a build only after #42
+PASS. A8's verification criteria, the frozen runbook and the G0 decisions are unchanged.
+
 ---
 
 ## 1. Inputs

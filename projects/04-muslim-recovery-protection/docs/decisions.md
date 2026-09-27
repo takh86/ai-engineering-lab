@@ -278,6 +278,75 @@ and backend surveillance. A7b/H16 excluded Accessibility **URL detection**, not 
 package-level experiment. A8 remains verification-only; M3 implementation and Play distribution
 need their own evidence and gate. No M1 non-goal or historical evidence is retroactively changed.
 
+## D14 — Recovery-first product baseline; discovery before build
+
+**Status (updated 2026-09-27):** The overall direction was approved by the Owner in the project
+conversation on 2026-09-27. **D14 itself is still PROPOSED, not approved.** The Owner's Red-Team
+review on [PR #69](https://github.com/takh86/ai-engineering-lab/pull/69#issuecomment-5853232456)
+found the E2/E3 research design confounded and unable to measure its own criteria, undefined
+success/failure gray zones, an unquotaed language sample, and — separately — that an earlier
+revision of this PR had already mutated 16 live GitHub tracker issues to reflect D14 before
+approval. That last finding has been corrected (16 issues restored; see AI contribution below);
+the research-design findings have been fixed in the baseline document (§8–§9 there). A
+[second review](https://github.com/takh86/ai-engineering-lab/pull/69#issuecomment-5853885601)
+confirmed the direction survives the red team and narrowed the remaining work to four items —
+the execution issues #63–#67 not yet matching the fixed designs, E1's monetization gate still
+combining two signals with OR, E2's missing per-language attribution, and #68's stale body — all
+now fixed (§8–§9, §11, and issue #68 directly). A further Owner verification pass is still
+required before D14 can be approved. Separately, the Owner has
+**already decided** OD1–OD9, OD11 and OD13, and approved a specific MVP product-scope expansion
+(Web Guard, secure notes, modes, a self-protection-monitoring boundary, screen reading and
+uninstall-prevention investigation, each with mechanism explicitly deferred), via
+[issue #68](https://github.com/takh86/ai-engineering-lab/issues/68). Those decisions stand on
+their own and do not wait on D14's overall approval. OD10, OD12 and OD14 remain open.
+
+**Decision proposed for repository approval:** Adopt the
+[recovery-first product baseline](recovery-first-product-baseline.md). The urge moment, not the
+filter, is the product. The product is organized in layers L0–L4 (plus L2b Web Guard) with
+independent status, follows the adopt/adapt/approved-scope/reject feature ledger, and runs a
+pre-registered product discovery gate (M2-04: E1–E3) before any M3 build. M3 would become
+**Recovery Core V1**, starting after the M2-04 GO decision and an approved M3-01 contract, not
+after the DNS-layer ADR. App interruption (L1), DNS guidance (L2) and Web Guard (L2b) would each
+join only after their own gate: PR #60 plus AB-01 for L1, #40–#42 for L2, and a new architecture
+decision for L2b.
+
+**Why:** M2-01 H6 and H12 already made the product recovery-first, but the roadmap still gated
+every build on the filter decision and deferred research into the recovery layer's value (U13) to
+M4/M6. The 2026-09-26 evaluation found that filtering is a free commodity, the Muslim recovery
+segment is crowded, no competitor has published efficacy evidence, and retention is the main
+risk. Learning whether people use private help at the urge moment is cheaper and more decisive
+than further filter engineering.
+
+**Consequences (once approved — not yet in effect):**
+
+- U13 would move from M4/M6 research to a gate before M3.
+- #42 would decide L2 only. A8's AC/RJ criteria, the frozen V0–V13 runbook and #40/#41 are
+  unchanged regardless.
+- H4–H12, D1–D13 and AB1–AB7 are unchanged. This entry approves no permission, provider,
+  backend, payment flow or release claim.
+- The reject list no longer includes uninstall prevention, screen reading or URL/keyword
+  monitoring **as product intent** — those are now approved MVP scope with mechanism deferred
+  (issue #68; see the baseline document §5). The mechanisms that would implement them (Device
+  Owner/Admin, root, Settings-blocking, window-content retrieval beyond a specific approved
+  feature's need, or any third-party reporting) remain rejected/excluded.
+- **The GitHub milestone/issue trackers do NOT yet follow this entry.** They were briefly edited
+  to do so before Owner approval, which the Red-Team review identified as a human-gate violation;
+  they have been restored to their pre-D14 gate wording with an explicit "proposed, not yet in
+  effect" note (see AI contribution below). They will be synced only after the Owner records
+  "D14 = APPROVE," including the milestone rename to "M3 — Recovery Core V1."
+
 ## AI contribution
 
-This document, the surrounding scaffolding, and the initial project structure were AI-implemented under explicit Tech Lead constraints (see the M1-01 authorization). The Tech Lead owns the decisions themselves; AI recorded them as directed and did not originate the architecture direction. D11's implementation details (address pair, `allowFamily(AF_INET6)`, REFUSED for `InvalidInput`, the periodic Private DNS re-check, tearing the VPN down on runtime failure) were chosen by AI within the approved contract and are flagged for human review in the M1-05 PR.
+This document, the surrounding scaffolding, and the initial project structure were AI-implemented under explicit Tech Lead constraints (see the M1-01 authorization). The Tech Lead owns the decisions themselves; AI recorded them as directed and did not originate the architecture direction. D11's implementation details (address pair, `allowFamily(AF_INET6)`, REFUSED for `InvalidInput`, the periodic Private DNS re-check, tearing the VPN down on runtime failure) were chosen by AI within the approved contract and are flagged for human review in the M1-05 PR. D14 differs: its product direction was proposed by AI (Claude's 2026-09-27 design and red-team answer) and approved by the Owner in conversation; the Owner's GitHub record still decides D14 itself.
+
+**Process mistake and correction (2026-09-27):** after drafting D14, AI edited 16 live GitHub
+tracker issues (#19, #22, #23, #24, #25, #26, #42, #43, #44, #45, #46, #47, #48, #50, #51, #52) to
+state the D14 restructuring as already in effect, while the PR adding D14 still said it was
+pending approval. The Owner's Red-Team review identified this as a human-gate violation: AI must
+not change a live tracker's operative gate before the Owner approves the change it describes. All
+16 issues were restored to their pre-D14 text with an explicit "proposed, not yet in effect" note
+on 2026-09-27, in the same session. Separately, AI fixed the flagged research-design gaps in E2
+and E3 (confounded experiment design; a longitudinal study calling itself "anonymous") in the
+baseline document itself, and folded the Owner's verified GitHub decisions (OD1–OD9, OD11, OD13,
+and the MVP-scope expansion) into it by citation, without inventing the two decisions the Owner
+explicitly left open (OD1+OD2 presentation, OD4+Help Now access).
