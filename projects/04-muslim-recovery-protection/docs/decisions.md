@@ -278,6 +278,38 @@ and backend surveillance. A7b/H16 excluded Accessibility **URL detection**, not 
 package-level experiment. A8 remains verification-only; M3 implementation and Play distribution
 need their own evidence and gate. No M1 non-goal or historical evidence is retroactively changed.
 
+## D14 — Recovery-first product baseline; discovery before build
+
+**Status:** Direction approved by the Owner in the project conversation (2026-09-27). The GitHub
+decision record is pending on the PR that adds this entry. The open decisions OD1–OD14 are not
+approved.
+
+**Decision proposed for repository approval:** Adopt the
+[recovery-first product baseline](recovery-first-product-baseline.md). The urge moment, not the
+filter, is the product. The product is organized in layers L0–L4 with independent status, follows
+the adopt/adapt/reject feature ledger, and runs a pre-registered product discovery gate (M2-04:
+E1–E3) before any M3 build. M3 becomes **Recovery Core V1**. It starts after the M2-04 GO decision
+and an approved M3-01 contract, not after the DNS-layer ADR. App interruption (L1) and DNS
+guidance (L2) join only after their own gates: PR #60 plus AB-01 for L1, and #40–#42 for L2.
+
+**Why:** M2-01 H6 and H12 already made the product recovery-first, but the roadmap still gated
+every build on the filter decision and deferred research into the recovery layer's value (U13) to
+M4/M6. The 2026-09-26 evaluation found that filtering is a free commodity, the Muslim recovery
+segment is crowded, no competitor has published efficacy evidence, and retention is the main
+risk. Learning whether people use private help at the urge moment is cheaper and more decisive
+than further filter engineering.
+
+**Consequences:**
+
+- U13 moves from M4/M6 research to a gate before M3.
+- #42 decides L2 only. A8's AC/RJ criteria, the frozen V0–V13 runbook and #40/#41 are unchanged.
+- H4–H12, D1–D13 and AB1–AB7 are unchanged. This entry approves no permission, provider,
+  backend, payment flow or release claim.
+- The reject list (monitoring, uninstall prevention, screen reading, AI therapist, an in-app
+  community in the MVP, cure claims) restates existing boundaries for product planning.
+- The M3–M6 tracker wording follows this entry. The GitHub milestone "M3 — Protection Core V1"
+  needs renaming to "M3 — Recovery Core V1".
+
 ## AI contribution
 
-This document, the surrounding scaffolding, and the initial project structure were AI-implemented under explicit Tech Lead constraints (see the M1-01 authorization). The Tech Lead owns the decisions themselves; AI recorded them as directed and did not originate the architecture direction. D11's implementation details (address pair, `allowFamily(AF_INET6)`, REFUSED for `InvalidInput`, the periodic Private DNS re-check, tearing the VPN down on runtime failure) were chosen by AI within the approved contract and are flagged for human review in the M1-05 PR.
+This document, the surrounding scaffolding, and the initial project structure were AI-implemented under explicit Tech Lead constraints (see the M1-01 authorization). The Tech Lead owns the decisions themselves; AI recorded them as directed and did not originate the architecture direction. D11's implementation details (address pair, `allowFamily(AF_INET6)`, REFUSED for `InvalidInput`, the periodic Private DNS re-check, tearing the VPN down on runtime failure) were chosen by AI within the approved contract and are flagged for human review in the M1-05 PR. D14 differs: its product direction was proposed by AI (Claude's 2026-09-27 design and red-team answer) and approved by the Owner in conversation. The Owner's GitHub record decides it.
