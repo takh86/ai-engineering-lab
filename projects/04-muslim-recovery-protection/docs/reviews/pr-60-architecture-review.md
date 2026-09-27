@@ -16,6 +16,51 @@
 > win — [M2-01 H4–H12](../m2-01-approved-threat-model.md), the
 > [M2-02 baseline](../m2-02-architecture-options.md), and [D1–D12](../decisions.md).
 
+---
+
+## Update — re-checked against PR #60 head `9c791cff` (2026-09-27)
+
+The body of this report reviewed head `81df2cb`. PR #60 has since advanced by 10 reconciliation
+commits to head **`9c791cff7412ba4d1009d8c6e0b4bfc42e88bdce`** (title changed to "docs(04):
+reconcile app blocking with approved recovery-first baseline"). This section records what those
+commits changed relative to the findings below. It does not restate or reverse the original review.
+
+**Independent CI / mergeability check (API, this pass — not taken from the PR thread):**
+
+- GitHub Actions workflow **"Project 04 M1-07 Verification Gate"** (`.github/workflows/project-04-m1-07-verification.yml`),
+  run #42 on head `9c791cff` → **`completed / success`** (green on the exact current head).
+- The legacy commit-status API returns `state=pending, total_count=0` — i.e. **no** legacy status
+  contexts exist (this repo gates via the Actions check, not legacy statuses), so nothing is
+  blocking there. PR `mergeable_state` was `clean` on the last fetch.
+- Still documentation-only: 11 files, README/`docs/` only; no `android/`, manifest, Gradle or
+  workflow change.
+
+**Finding disposition at `9c791cff`:**
+
+| Finding | Disposition | Evidence at `9c791cff` |
+|---|---|---|
+| **AB-1** escape invariants | **RESOLVED** | AB3 now requires an "explained, **bounded** escape path" and states a crash/restart/interruption loop "must not trap the owner". |
+| **AB-4** coverage register | **RESOLVED** | §4 now mandates an explicit L1 register classifying each tested path **COVERED / DETECTED / DISCLOSED / UNKNOWN** before any claim. |
+| **RF-1** H5/H9 amendment gate for sensitive scope | **RESOLVED** | Adopted as the named **"Conservative Gate"** (AB3/AB5/AB7 + operative-boundary paragraph + PR body): no design/spike/contract for Web Guard keyword/screen-content, screen reading, or uninstall-resistance until the affected H9/H5 boundary is explicitly reopened/amended plus a dedicated security/privacy/Play review. |
+| **RF-4** OD6 HYBRID within owner-escape | **RESOLVED** | AB2 now states the HYBRID policy (normal: interruption→Help/Home→Continue possible; emergency: temporary hard block for the user-configured window) with both modes preserving Home, emergency calling, uninstall and essential functions; timing/escape/failure evidence-gated by AB-01. |
+| **G-1** PR title/scope vs. bundled D14 | **RESOLVED** | Title changed and body now states the PR lands D13 (proposed) + the already-approved D14 baseline. |
+| **AB-2** Accessibility fallback stays truthful-unavailable | **HOLDS / strengthened** | AB6 is now scoped to the "L1 AB-01 spike only", package-only, "no window-content retrieval, text/key filtering or screenshots"; a denied/revoked grant = Inactive/Unavailable, never green. |
+| **AB-3** "App Blocking Active" computed, not merged into `ProtectionState`/`ProtectionSignals` (D8) | **OPEN — carry to L1 task contract** | §4 describes computed semantics but still does not cite D8's rule against merging new state into those types. |
+| **RF-3** P8 self-protection bounded by construction (opt-in, no egress, no raw-content persistence, guaranteed escape) | **OPEN — carry to task contract** | Conservative Gate defers the mechanism; the by-construction acceptance items belong to the future contract, not yet written. |
+| **RF-2** uninstall-prevention framed as expected-negative | **PARTIAL** | Now hard-gated behind an explicit H5 reopening; the "expected to disclose non-compliance" framing lives in the baseline §5, not the AB doc — acceptable. |
+| **RF-5** OD4 biometric lock vs. fast Help-Now | **OPEN (as before)** | Routed to the M3/M4 contract; unchanged by this PR. |
+| **G-2 / G-3** provenance self-containment; no-pre-approval-tracker-edit standing rule | **PARTIAL** | D14 now recorded on-branch; the R14 incident was corrected and the Conservative Gate is in place, but a durable AGENTS.md guardrail is still worth adding. |
+| **G-4** G0 wording only re-stated, not moved | **NOT re-verified this pass** | The ADR sync commits touched D14/G0 wording; a line-level diff of `m2-03-architecture-adr.md` at the new head was not done here. |
+
+**Net at `9c791cff`:** the substantive architecture findings (AB-1, AB-4, RF-1, RF-4, G-1) are
+addressed. What remains is either implementation-contract-stage (AB-3, RF-3, RF-5) or hygiene
+(G-2, G-3, G-4). The single outstanding **human** action is the Owner's explicit
+**APPROVE / REJECT / CHANGE** decision on D13 / AB1–AB7; the PR-thread "final verification" is an
+AI-authored verification note, not that decision, and the PR's own acceptance checkbox for it
+remains unchecked.
+
+---
+
 ## How to read this report
 
 **Evidence labels.** Every statement rests on one of these:
