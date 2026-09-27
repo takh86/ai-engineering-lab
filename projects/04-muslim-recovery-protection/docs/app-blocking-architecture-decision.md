@@ -21,7 +21,7 @@ product hypothesis worth testing is the **connection between interruption and lo
 with an optional in-app commitment delay. The recovery flow is not implemented or clinically
 validated; this decision makes no treatment-outcome claim.
 
-| ID | Approved boundary |
+| ID | Proposed boundary for Owner decision |
 |---|---|
 | AB1 | Adults opt in, choose specific installed apps and the active schedule in a calm state. Installation alone blocks nothing. Recovery works if either protection layer is absent. |
 | AB2 | App interruption follows the Owner-approved **HYBRID** policy. **Normal protection:** a selected-app foreground transition triggers a prompt interruption with **Help now / Home** and, after the approved pause/help flow, **Continue may remain available**. **Emergency “I'm at risk now” mode:** selected apps are under a temporary hard block for the user-configured active window, with no Continue into those selected apps during that window. Both modes preserve Home, emergency calling and essential/system functions. Exact timing, escape and failure semantics remain evidence-gated by AB-01 and the later task contract. Android can briefly display the target first; no pre-launch or force-stop guarantee is made. |
