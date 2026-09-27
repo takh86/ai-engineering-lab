@@ -23,10 +23,10 @@ Checked against `main` at `6b0212f` (PR #59) and the GitHub issues, milestones a
 2026-09-27. GitHub remains the live tracker: if it disagrees with this section, GitHub wins and
 this section needs an update.
 
-**Product direction (D14 APPROVED):** the [recovery-first product baseline](recovery-first-product-baseline.md)
-makes the urge moment, not the filter, the product. It adds a product discovery gate (M2-04)
-before any build and turns M3 into Recovery Core V1. The Owner approved the direction in
-conversation and explicitly approved by the Owner on GitHub on 2026-09-27.
+**Product direction (D14 APPROVED; sequencing superseded by D15):** the [recovery-first product baseline](recovery-first-product-baseline.md)
+keeps the urge moment, not the filter, as the product. D15 cancels M2-04 / E1–E3 as mandatory
+pre-build discovery and adopts **Build → Release → Measure → Iterate**. M3 is Recovery Core V1 and
+may now enter M3-01 specification.
 
 ### M1 — CLOSED
 
@@ -54,18 +54,14 @@ conversation and explicitly approved by the Owner on GitHub on 2026-09-27.
   is split into #39 → #40 → #41 → #42; their state is in the M2-03 section below.
 - A8 is a verification candidate only. No production architecture is selected.
 - D13 / AB1–AB7 is approved. AB-01 (#61) now validates the technical viability and truthful claim ceiling of L1 app interruption.
-- M2-04 (#63) is the product discovery gate (E1–E3) approved by D14. Nothing in it has run.
+- M2-04 (#63) and E1–E3 (#64–#67) were **closed unexecuted / superseded by D15**. They are not market evidence.
 
-### M3–M6 — BLOCKED
+### M3–M6 — CONDITIONAL
 
-On GitHub today, #23 is still "Protection Core V1," blocked by the final M2 ADR (#42), and
-#24–#26/#43–#54 are unchanged from their pre-D14 wording — an earlier revision of this PR had
-already edited them to the D14 state before Owner approval; that was a human-gate violation
-(§ below, and the baseline document §9/§11) and has been corrected by restoring their text. If
-D14 is approved, M3 would be renamed to "Recovery Core V1" and re-gated on the M2-04 GO decision
-and an approved M3-01 contract instead, with L1, L2 and L2b each joining only after their own
-gate; M4–M6 would follow in sequence behind M3. Until that approval and sync, #23–#26/#43–#54
-authorize no work under either their current or their proposed wording.
+M3 is now **Recovery Core V1** and #43 is ready for specification. D15 removed M2-04/#67 as an
+entry gate. Production implementation remains blocked until the Tech Lead approves M3-01. L1,
+L2 and L2b still join only after their own architecture/evidence gates. M4 and M5 follow the
+verified build; M6 is the controlled Google Play release and real-world iteration loop.
 
 ### Source-of-truth rule
 
@@ -134,11 +130,11 @@ Preferred convention:
 | Milestone | Outcome | Status | Human gate |
 |---|---|---|---|
 | M1 | Establish real evidence for the DNS-only feasibility hypothesis and its bypass limits | **CLOSED** (2026-09-26) | Decide what the evidence permits us to claim and whether the project continues — decided: continue to M2 |
-| M2 | Make explicit architecture, truthful-claim and product-validation decisions before any build | **ACTIVE** — M2-01, M2-02 and G0 complete; #40 in execution; AB-01 (#61) and M2-04 (#63) not started | Per layer: approve, narrow, investigate further or stop. For the product: GO, PIVOT or STOP (M2-04). |
-| M3 | Implement and verify **Recovery Core V1** (L0), plus L1 and L2 only if their gates passed (D14) | CONDITIONAL — **BLOCKED** until the M2-04 GO decision and an approved M3-01 contract | Approve the recovery core and per-layer truthful states before productization |
+| M2 | Make explicit architecture and truthful-claim decisions before each implementation scope | **ACTIVE** — M2-01, M2-02 and G0 complete; #40 in execution; D13 approved; former M2-04 closed unexecuted by D15 | Per layer: approve, narrow, investigate further or stop. |
+| M3 | Implement and verify **Recovery Core V1** (L0), plus L1/L2 only if their gates passed | **READY FOR M3-01 SPECIFICATION**; implementation blocked until the M3-01 contract is approved | Approve the bounded task contract, then the verified recovery core and any included layer |
 | M4 | Build the German/Arabic MVP experience around the verified recovery core and approved layers | CONDITIONAL | Approve product usability and truthful user-facing states |
 | M5 | Security, quality, compatibility, Play declarations and release engineering hardening | CONDITIONAL | Approve release candidate |
-| M6 | Controlled pilot in Germany (DE/AR), evidence review, and portfolio/release decision | CONDITIONAL | Approve broader release or another iteration |
+| M6 | Controlled Google Play release in Germany (DE/AR), real-world evidence and iteration | CONDITIONAL | Approve staged release, then V1.1 / iterate / stop from released-product evidence |
 
 No calendar dates are committed until capacity and the previous gate are known.
 
@@ -309,9 +305,9 @@ The Tech Lead records one explicit decision:
 
 Only after that decision is accepted may M3 implementation tasks be decomposed.
 
-**Scope under D14 (APPROVED):** M2-03 decides the DNS layer (L2). It no longer decides alone when
-M3 starts: the Recovery Core V1 entry depends on the M2-04 GO decision and an approved M3-01
-contract. The DNS layer joins M3 or a later milestone only after #42 PASS.
+**Scope under D14 + D15:** M2-03 decides the DNS layer (L2) only. D15 removes the M2-04 GO
+dependency for Recovery Core V1. M3 enters through an approved M3-01 contract. The DNS layer joins
+M3 or a later milestone only after #42 supports the claimed configuration.
 
 Status (2026-09-27): G0 complete; device verification in progress. Parent issue #22 is split into four steps, in order:
 
@@ -339,23 +335,21 @@ separately before code, without silently treating the historical M1 exclusions a
 The exact architecture boundary is now approved as D13 / AB1–AB7. Mechanism selection remains evidence-gated.
 The bounded product/technical validation is tracked separately in
 [issue #61](https://github.com/takh86/ai-engineering-lab/issues/61); it does not block #40/#41.
-AB-01's voluntary product check can run inside M2-04's E1 and E3, so participants are recruited
-only once; the Owner decides.
+D15 canceled the participant/product-check portion of AB-01. #61 is now a bounded technical-only
+L1 viability spike, gated by its own approved task contract.
 
-## M2-04 — Product discovery gate (approved by D14)
+## M2-04 — Pre-build discovery gate — SUPERSEDED BY D15
 
-Answer the questions that decide whether to build anything, cheaply and without code: do people
-want a private, non-shaming companion, do they use it at the urge moment, and do they trust it?
-Design, pre-registered thresholds and stop criteria are in
-[`recovery-first-product-baseline.md`](recovery-first-product-baseline.md) §8. The Owner may adjust
-thresholds **before** execution, never after results. Parent issue: #63.
+The D14 E1/E2/E3 protocols are retained in history for traceability, but **were never executed**.
+On 2026-09-27 the Owner chose Build → Release → Measure → Iterate and closed #63–#67 unexecuted.
+They must not be treated as SUCCESS, FAILURE, INCONCLUSIVE or market evidence.
 
-| Issue | Step | State |
+| Issue | Historical step | State |
 |---|---|---|
-| #64 | M2-04A — E1 interviews and anonymous survey (DE/AR) | Not started |
-| #65 | M2-04B — E2 landing pages: positioning and name test | Not started |
-| #66 | M2-04C — E3 four-week no-code concierge | Not started; requires clinically reviewed materials and ethics safeguards (18+, consent, minimal data, crisis resources) |
-| #67 | M2-04D — synthesis and Owner GO / PIVOT / STOP decision | Blocked by E1–E3 and AB-01 |
+| #64 | E1 interviews/survey | **CLOSED — not executed / superseded** |
+| #65 | E2 landing pages | **CLOSED — not executed / superseded** |
+| #66 | E3 concierge | **CLOSED — not executed / superseded** |
+| #67 | discovery synthesis | **CLOSED — not executed / superseded** |
 
 Open Owner decisions OD1–OD14 from the baseline are tracked in #68.
 
@@ -363,7 +357,7 @@ Open Owner decisions OD1–OD14 from the baseline are tracked in #68.
 
 - Threat model approved.
 - Truthful product claim approved.
-- M2-04 decision recorded (GO / PIVOT / STOP) with the approved MVP scope.
+- D15 recorded as the Owner's replacement for the pre-build discovery gate; no E1/E2/E3 evidence is required for M3 entry.
 - Per-layer decisions recorded: L2 through the #42 ADR, or L2 explicitly kept out of the MVP
   while its verification continues; L1 through the now-satisfied D13 approval plus the AB-01 result and its own approved task contract.
 - M3 scope and non-goals approved.
@@ -378,13 +372,12 @@ Open Owner decisions OD1–OD14 from the baseline are tracked in #68.
 
 ## Goal
 
-Implement the on-device recovery core (L0) that M2-04 validated, with truthful per-layer status.
+Implement the approved on-device recovery core (L0) with truthful per-layer status. D15 intentionally moves product validation to the released-product learning loop.
 Add app interruption (L1) and DNS guidance (L2) only if each passed its own gate, and establish
 objective runtime criteria for when each layer may report itself as active.
 
-## Entry (D14)
+## Entry (D14 + D15)
 
-- M2-04 decision is GO, with an approved MVP scope.
 - M3-01 task contract approved by the Tech Lead.
 - L1 in scope only after the now-satisfied D13 approval, a passing AB-01 (#61) result and its own
   approved task contract.
@@ -412,7 +405,7 @@ unless the relevant M2 decision explicitly authorizes that capability.
 
 ## Expected work packages
 
-After the M2-04 decision, decompose M3 into bounded issues for:
+After M3-01 is approved, decompose M3 into bounded, reviewable implementation issues for:
 
 1. L0 recovery core: Help now, if–then plans, lapse reflection, weekly review, optional local
    notes;
@@ -507,24 +500,24 @@ Any telemetry, crash reporting, or analytics requires a separate privacy/product
 
 ---
 
-# M6 — Controlled Pilot & Portfolio Evidence
+# M6 — Controlled Google Play Release & Real-World Iteration
 
 ## Goal
 
-Validate the product with controlled real-user feedback and publish engineering evidence without
-overselling the system. Under D14 the pilot runs in Germany (German and Arabic). Its feasibility
-and no-harm criteria (use at the urge moment, week-4 retention, no rise in shame or distress) are
-pre-registered from E3 before recruitment. It makes no efficacy claim.
+Release the verified MVP through a controlled Google Play rollout in Germany (German and Arabic),
+learn from real production defects/usage/feedback, and iterate without overstating efficacy or
+protection. D15 moves product learning here instead of requiring pre-build E1/E2/E3.
 
 ## Expected work packages
 
-- controlled pilot plan;
-- explicit consent and privacy boundaries;
-- pre-registered feasibility and no-harm criteria, with a qualified clinical reviewer;
-- structured feedback collection;
+- staged Google Play release plan;
+- Play Data Safety / privacy / permission declarations matching actual behavior;
+- support and feedback channel;
+- release telemetry inventory using platform-provided evidence first;
+- separate privacy decision before any new analytics/telemetry SDK or user-level tracking;
 - issue triage and severity rules;
-- pilot exit report;
-- release/no-release decision;
+- rollback/support plan;
+- V1.1 / iterate / stop decision;
 - professional Project 04 README refresh;
 - architecture diagrams;
 - test/CI evidence;
@@ -534,7 +527,7 @@ pre-registered from E3 before recruitment. It makes no efficacy claim.
 
 ## Exit criteria
 
-- Pilot findings are documented.
+- Released-product findings and production defects are documented.
 - Release blockers are resolved or explicitly accepted by the Tech Lead.
 - Product claims remain within verified coverage.
 - Portfolio documentation shows:
@@ -548,9 +541,7 @@ pre-registered from E3 before recruitment. It makes no efficacy claim.
 Use progressive elaboration:
 
 - M1 and M2 tasks are detailed now because they are actionable.
-- M3–M6 stay as milestone trackers until their entry gates pass. D14 rewords the existing
-  trackers (#23–#26, #43–#54) to match the recovery-first baseline; it adds no implementation
-  issues.
+- M3–M6 stay as milestone trackers until their entry gates pass. D15 makes #43 immediately actionable for specification, while later milestones remain progressively elaborated.
 - Do **not** create dozens of speculative implementation issues for an architecture that has not
   been approved yet.
 - At each milestone gate, decompose only the next milestone into small reviewable tasks.
