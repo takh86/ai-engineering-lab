@@ -17,7 +17,8 @@ select a production architecture or authorize M3 work. Where it and its sources 
 
 **Later product-scope proposal (2026-09-26):** The Owner approved the voluntary app-blocking
 direction in conversation; the exact [package-level architecture boundary](app-blocking-architecture-decision.md)
-is under review in PR #60, pending a GitHub human decision record.
+is approved as D13 / AB1–AB7. Mechanism selection and production claims remain gated by AB-01,
+a bounded task contract, device evidence and later Play-policy review.
 This does not change this ADR's A8 verification criteria, G0 decisions, or production status.
 The H16/A7b exclusion of Accessibility for URL inspection is not a decision about the new
 package-level candidate. The new permission and coverage gate remains conditional.

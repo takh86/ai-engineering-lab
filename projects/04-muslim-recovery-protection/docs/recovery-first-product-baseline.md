@@ -18,7 +18,7 @@
 >
 > **What it does not change:** H4–H12 ([M2-01](m2-01-approved-threat-model.md)) remain operative unless explicitly reopened by a later Owner decision, and the
 > [M2-02 baseline](m2-02-architecture-options.md), A8's AC/RJ criteria, the frozen V0–V13
-> runbook (PR #59), AB1–AB7 ([PR #60](app-blocking-architecture-decision.md), pending), D1–D13,
+> runbook (PR #59), approved D13 / AB1–AB7 ([PR #60](app-blocking-architecture-decision.md)), D1–D13,
 > or any Android code. It approves no production architecture, permission, DNS provider,
 > backend or release claim. The newly-approved MVP-scope items (§5) are product intent only —
 > none of them approves a specific Android mechanism, and none silently widens PR #60.
@@ -94,7 +94,7 @@ impossible together, that returns to the Owner.
 | Layer | What it does | Current state | Gate before build |
 |---|---|---|---|
 | **L0 Recovery core** (on-device) | Help now (60–120 s), if–then plans, non-shaming lapse reflection without reset, weekly review. A mode choice — **Recovery Mode** or **Recovery + Faith Mode** (opt-in, OD9) — and **optional secure free-text notes** (B2, local-first; sensitive-data handling, biometric protection and backup behavior specified before implementation). "I'm at risk now" (OD5, user-configurable duration). | Not built. The content brief is a DRAFT. | M2-04 GO, clinical review of the content, M3-01 contract |
-| **L1 App interruption** ([PR #60](app-blocking-architecture-decision.md)) | A selected app opens in a risk window → interruption → Help now, Home or trusted person. Normal mode: pause → Help now → continue may be available. "At risk now" mode: hard block during the active window (OD6 = HYBRID). Commitment delay inside the app only (AB3). | Proposed. Mechanism UNKNOWN. | Owner's GitHub record on PR #60, AB-01 (#61), task contract, Play review |
+| **L1 App interruption** ([PR #60](app-blocking-architecture-decision.md)) | A selected app opens in a risk window → interruption → Help now, Home or trusted person. Normal mode: pause → Help now → continue may be available. "At risk now" mode: hard block during the active window (OD6 = HYBRID). Commitment delay inside the app only (AB3). | **D13 product/architecture boundary APPROVED. Mechanism UNKNOWN.** | AB-01 (#61), bounded task contract, device evidence, Play review |
 | **L2 DNS filter guidance** (A8) | Private DNS setup guidance, "check now" and a truthful Filter Active state | Verification candidate. #40 is in execution, paused at V1-CELL. | #40, #41 and #42 PASS for the claimed configuration |
 | **L2b Web Guard — domain & keyword blocking** (new, Owner-approved product scope, [#68](https://github.com/takh86/ai-engineering-lab/issues/68#issuecomment-5853562123)) | Custom domain/website blocking, and keyword blocking in Arabic and English where technically feasible, with a truthful coverage state distinct from L2's | Product scope approved. **Mechanism UNKNOWN and not DNS** — a new architecture/security/Play-policy decision, separate from AB1–AB7 (§5). | That new decision, a technical spike on Arabic/English matching, and its own task contract |
 | **L3 Complementary guidance** (content only, DECIDED IN MVP, OD13) | How to use SafeSearch, HaramBlur in Firefox and router DNS, with third-party disclaimers | Idea, now in-scope for MVP | Content review before release |
@@ -449,7 +449,7 @@ the commercial ambition. Failed retention or safety in E3 → STOP the recovery 
 - M2 would gain M2-04, the discovery gate (#63), and AB-01 (#61). #40–#42 would continue unchanged
   as the DNS-layer (L2) track; L2b Web Guard would need its own new architecture decision (§5).
 - **M3 would become "Recovery Core V1."** It would start after the M2-04 GO decision and an
-  approved M3-01 contract, not after the L2 ADR. L1 would join M3 only after PR #60's GitHub
+  approved M3-01 contract, not after the L2 ADR. L1 would join M3 only after D13 approval (now satisfied), AB-01's
   record, AB-01 and its own task contract. L2 would join only after #42 PASS. L2b would join only
   after its own new architecture/security/Play-policy decision.
 - M4 would add German and Arabic copy, the referral directory, the user-selectable presentation
@@ -556,4 +556,4 @@ pre-existing ones); E1's monetization gate still combined two different signals 
 E2 held language constant by visitor choice but did not stratify randomization or report
 per-language results, so an aggregate win could have hidden an opposite German/Arabic result;
 and #68's own body had not been updated to match the Owner's comments on it. All four are fixed
-here and in the linked issues. D14 itself remains pending a further Owner verification pass.
+here and in the linked issues. D14 was subsequently explicitly approved by the Owner on 2026-09-27.

@@ -11,10 +11,11 @@ Snapshot: 2026-09-27. GitHub milestones and issues are the live tracker; [`docs/
 - **Product direction (2026-09-27, D14 APPROVED):** the [recovery-first product baseline](docs/recovery-first-product-baseline.md). The urge moment, not the filter, is the product. A no-code product discovery gate (M2-04: interviews and survey, landing pages, a four-week concierge test) runs before any build.
 - **M3 onward: BLOCKED.** Under D14, M3 becomes Recovery Core V1 and starts only after the M2-04 GO decision and an approved M3-01 contract. App interruption and DNS guidance join only after their own gates (PR #60 with AB-01 #61, and #40–#42).
 
-The Owner approved a **voluntary app-blocking direction** after the DNS baseline: selected-app
-interruption and private recovery help. The [exact architecture boundary in PR #60](docs/app-blocking-architecture-decision.md)
-still needs a GitHub human decision record; the mechanism, permission choice and coverage claim
-require a separate device and Play-policy gate.
+The Owner approved **D13 / AB1–AB7** for voluntary app interruption after the DNS baseline:
+selected-app interruption and private recovery help. The
+[approved architecture boundary](docs/app-blocking-architecture-decision.md) is now canonical.
+The mechanism, permission choice and coverage claim still require AB-01 evidence, a bounded task
+contract, and later device/Play-policy gates.
 No app blocker exists in the current Android build; this decision does not approve A8 for production.
 
 `ProtectionState.Protected` remains unreachable at runtime by construction: `filteringOperational` is hardcoded `false` (D8, D11). Nothing in the app is verified protection.

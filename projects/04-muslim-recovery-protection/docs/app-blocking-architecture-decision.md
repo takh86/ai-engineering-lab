@@ -1,9 +1,9 @@
 # Voluntary app blocking — product and architecture decision
 
-> **Decision state:** The Owner approved the product direction and the previous bounded proposal
-> in the project conversation on 2026-09-26. **GitHub human decision record is pending on PR #60.**
-> This document is the proposed architecture boundary for that review. Implementation and Play
-> release are conditional on the gates below.
+> **Decision state: D13 / AB1–AB7 APPROVED by the Owner on 2026-09-27.**
+> Canonical approval record: PR #60 comment 5855067908, after the reconciled PR #60 was merged.
+> This document is the approved L1 architecture boundary. Implementation, mechanism selection and
+> Play release remain conditional on the gates below.
 > No Android code or device setting was changed by this decision.
 
 ## 1. Context and scope
@@ -21,7 +21,7 @@ product hypothesis worth testing is the **connection between interruption and lo
 with an optional in-app commitment delay. The recovery flow is not implemented or clinically
 validated; this decision makes no treatment-outcome claim.
 
-| ID | Proposed boundary for Owner decision |
+| ID | Approved D13 boundary |
 |---|---|
 | AB1 | Adults opt in, choose specific installed apps and the active schedule in a calm state. Installation alone blocks nothing. Recovery works if either protection layer is absent. |
 | AB2 | App interruption follows the Owner-approved **HYBRID** policy. **Normal protection:** a selected-app foreground transition triggers a prompt interruption with **Help now / Home** and, after the approved pause/help flow, **Continue may remain available**. **Emergency “I'm at risk now” mode:** selected apps are under a temporary hard block for the user-configured active window, with no Continue into those selected apps during that window. Both modes preserve Home, emergency calling and essential/system functions. Exact timing, escape and failure semantics remain evidence-gated by AB-01 and the later task contract. Android can briefly display the target first; no pre-launch or force-stop guarantee is made. |
@@ -34,7 +34,7 @@ validated; this decision makes no treatment-outcome claim.
 H5 and H9 remain the operative approved boundaries for L1. The Owner selected a **Conservative Gate** on 2026-09-27: any D14-sensitive exploration that would touch uninstall resistance (H5) or screen-content inspection (H9) must first reopen/amend the affected boundary and pass a dedicated security/privacy/Play review. The M2-02 H16/A7b exclusion
 addresses **Accessibility as a URL detector**; AB6 considers package-only app blocking. D1's
 condition requires a new architecture review and explicit human approval. The Owner approved the
-direction in conversation; the exact GitHub architecture boundary is still under review in PR #60.
+direction in conversation; the exact GitHub architecture boundary is now approved as D13 / AB1–AB7.
 
 ## 2. Minimal boundaries and interfaces
 
@@ -116,7 +116,7 @@ actual purpose from the user.
 
 ## 5. Acceptance and rejection before implementation or release
 
-The Owner-approved product direction is a candidate for the GitHub architecture gate. Before production code, perform a small user/product check: ask which apps people would choose, whether they understand and accept each permission explanation, whether the **normal** interruption actually leads to Help now, and whether the already-decided **emergency temporary hard-block** semantics are understandable and usable. The product check does not re-open OD6 or choose between normal and emergency product policy. A voluntary, manual Digital Wellbeing Focus Mode plus recovery shortcut can
+The Owner-approved D13 architecture boundary is recorded. Before production code, perform a small user/product check: ask which apps people would choose, whether they understand and accept each permission explanation, whether the **normal** interruption actually leads to Help now, and whether the already-decided **emergency temporary hard-block** semantics are understandable and usable. The product check does not re-open OD6 or choose between normal and emergency product policy. A voluntary, manual Digital Wellbeing Focus Mode plus recovery shortcut can
 test that last hypothesis cheaply; it is not evidence that our technical blocker works. The
 recovery content brief remains a draft and requires its own appropriate review before clinical
 or effectiveness claims.

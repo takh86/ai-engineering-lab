@@ -26,7 +26,7 @@ this section needs an update.
 **Product direction (D14 APPROVED):** the [recovery-first product baseline](recovery-first-product-baseline.md)
 makes the urge moment, not the filter, the product. It adds a product discovery gate (M2-04)
 before any build and turns M3 into Recovery Core V1. The Owner approved the direction in
-conversation on 2026-09-27; the GitHub record is pending on the PR that adds D14.
+conversation and explicitly approved by the Owner on GitHub on 2026-09-27.
 
 ### M1 — CLOSED
 
@@ -53,7 +53,7 @@ conversation on 2026-09-27; the GitHub record is pending on the PR that adds D14
 - M2-03: G0 complete. #40 execution started on 2026-09-27 and is paused at V1-CELL. Parent #22
   is split into #39 → #40 → #41 → #42; their state is in the M2-03 section below.
 - A8 is a verification candidate only. No production architecture is selected.
-- AB-01 (#61) validates the proposed app interruption (PR #60).
+- D13 / AB1–AB7 is approved. AB-01 (#61) now validates the technical viability and truthful claim ceiling of L1 app interruption.
 - M2-04 (#63) is the product discovery gate (E1–E3) approved by D14. Nothing in it has run.
 
 ### M3–M6 — BLOCKED
@@ -328,15 +328,15 @@ production, and no production architecture is selected. The DNS layer stays out 
 
 ### Later product-scope decision — voluntary app blocking
 
-On 2026-09-26 the Owner approved the bounded direction in
-the project conversation. PR #60 proposes the exact
+On 2026-09-26 the Owner approved the bounded direction in the project conversation, and on
+2026-09-27 formally approved D13 / AB1–AB7 after PR #60 was reconciled and merged. The
 [`app-blocking architecture`](app-blocking-architecture-decision.md): selected-app
 interruption plus local recovery help, separately from DNS. A physical-device permission and
 latency spike must choose between the Usage Access/overlay and narrow Accessibility candidates;
 Play review and truthful claims are required before release. This does not amend A8's AC/RJ
 criteria or unblock the final production ADR. An app-blocking task contract must be approved
 separately before code, without silently treating the historical M1 exclusions as current scope.
-The exact architecture boundary still needs the Owner's GitHub decision record.
+The exact architecture boundary is now approved as D13 / AB1–AB7. Mechanism selection remains evidence-gated.
 The bounded product/technical validation is tracked separately in
 [issue #61](https://github.com/takh86/ai-engineering-lab/issues/61); it does not block #40/#41.
 AB-01's voluntary product check can run inside M2-04's E1 and E3, so participants are recruited
@@ -365,7 +365,7 @@ Open Owner decisions OD1–OD14 from the baseline are tracked in #68.
 - Truthful product claim approved.
 - M2-04 decision recorded (GO / PIVOT / STOP) with the approved MVP scope.
 - Per-layer decisions recorded: L2 through the #42 ADR, or L2 explicitly kept out of the MVP
-  while its verification continues; L1 through PR #60's GitHub record and the AB-01 result.
+  while its verification continues; L1 through the now-satisfied D13 approval plus the AB-01 result and its own approved task contract.
 - M3 scope and non-goals approved.
 - Verification strategy defined before implementation.
 
@@ -386,8 +386,8 @@ objective runtime criteria for when each layer may report itself as active.
 
 - M2-04 decision is GO, with an approved MVP scope.
 - M3-01 task contract approved by the Tech Lead.
-- L1 in scope only after PR #60's GitHub record, a passing AB-01 (#61) result and its own task
-  contract.
+- L1 in scope only after the now-satisfied D13 approval, a passing AB-01 (#61) result and its own
+  approved task contract.
 - L2 in scope only after #42 records PASS for the claimed configuration.
 
 ## Planning constraints
