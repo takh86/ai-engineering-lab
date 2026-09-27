@@ -156,6 +156,12 @@ function ConvertTo-A8ReviewText {
     $lineNumber = 0
     foreach ($line in ($Text -split '\r?\n')) {
         $lineNumber++
+        # A free-form identity value can contain text resembling a Private DNS field.
+        # Omit the whole line before parsing; never echo any part of that value.
+        if ($line -match '(?i)(?:^|[\s,{])(?:SSID|BSSID|MAC|MacAddress|subscriberId|IMSI|IMEI|ICCID|serial|account|phone|owner(?:Uid)?)\s*[:=]') {
+            $result.Add(('L{0}: [OMITTED identity-bearing line; inspect raw locally]' -f $lineNumber))
+            continue
+        }
         # Do not mistake quoted SSIDs or other quoted free text for field names.
         $line = [regex]::Replace($line, '"(?:\\.|[^"\\])*"', '[OMITTED quoted text]')
         $parts = New-Object 'System.Collections.Generic.List[string]'
