@@ -58,9 +58,14 @@ conversation on 2026-09-27; the GitHub record is pending on the PR that adds D14
 
 ### M3–M6 — BLOCKED
 
-Under D14, M3 (#23, Recovery Core V1) is blocked until the M2-04 GO decision and an approved M3-01
-contract. L1 and L2 join it only after their own gates. M4–M6 (#24–#26) are blocked in sequence
-behind M3. Their child issues (#43–#54) are marked BLOCKED on GitHub and authorize no work.
+On GitHub today, #23 is still "Protection Core V1," blocked by the final M2 ADR (#42), and
+#24–#26/#43–#54 are unchanged from their pre-D14 wording — an earlier revision of this PR had
+already edited them to the D14 state before Owner approval; that was a human-gate violation
+(§ below, and the baseline document §9/§11) and has been corrected by restoring their text. If
+D14 is approved, M3 would be renamed to "Recovery Core V1" and re-gated on the M2-04 GO decision
+and an approved M3-01 contract instead, with L1, L2 and L2b each joining only after their own
+gate; M4–M6 would follow in sequence behind M3. Until that approval and sync, #23–#26/#43–#54
+authorize no work under either their current or their proposed wording.
 
 ### Source-of-truth rule
 
