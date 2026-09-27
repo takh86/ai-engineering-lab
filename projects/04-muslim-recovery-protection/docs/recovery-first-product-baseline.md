@@ -1,10 +1,15 @@
 # Recovery-first product baseline
 
 > **Decision state (updated 2026-09-27):** The Owner approved the recovery-first direction in
-> conversation on 2026-09-27. **D14 itself is still PROPOSED, not approved.** The Owner's Red-Team
-> review on this PR ([comment](https://github.com/takh86/ai-engineering-lab/pull/69#issuecomment-5853232456))
-> found three blocking design/process gaps and required a revision plus a second review before
-> D14 can be approved; this revision addresses them (§8, §9, §11). Separately, the Owner has
+> conversation on 2026-09-27. **D14 itself is still PROPOSED, not approved.** The first Red-Team
+> review ([comment](https://github.com/takh86/ai-engineering-lab/pull/69#issuecomment-5853232456))
+> found three blockers, fixed in the prior revision. A **second** review
+> ([comment](https://github.com/takh86/ai-engineering-lab/pull/69#issuecomment-5853885601))
+> confirmed the direction survives the red team, and narrowed the remaining work to four items —
+> the execution issues (#63–#67) not yet matching this document, the E1 monetization gate still
+> combining two signals with OR, E2's per-language attribution, and #68's stale body — all fixed
+> in this revision (§8, §9, §11, and issue #68 directly). A further Owner verification pass is
+> still pending before D14 = APPROVE. Separately, the Owner has
 > **already decided** several open items (OD1–OD9, OD11, OD13) and approved a specific MVP
 > product-scope expansion (Web Guard, secure notes, modes, a monitoring boundary, screen reading
 > and uninstall-prevention for self-protection) via GitHub comments on
@@ -260,16 +265,23 @@ after seeing results.
   text and the "Filter/Web Guard Active" status text; **subscription willingness-to-pay and
   donation/supporter intent, asked and reported as two separate figures** (High-6 fix), not one
   blended number; how important iOS is.
-- **Success:** ≥ 40% (Germany, combined DE+AR) tried and left a tool or are dissatisfied with
-  alternatives, **and** ≥ 30% rank "privacy, no monitoring" or "no shame" in their top three
-  reasons, **and** ≥ 70% interpret the status text correctly, **and** ≥ 25% show either
-  subscription willingness ≥ 3 €/month or donation intent ≥ 20 €/year (each figure reported on
-  its own for OD10, not merged).
+- **Success (demand/trust/understanding only — High-6 fix, second review):** ≥ 40% (Germany,
+  combined DE+AR) tried and left a tool or are dissatisfied with alternatives, **and** ≥ 30% rank
+  "privacy, no monitoring" or "no shame" in their top three reasons, **and** ≥ 70% interpret the
+  status text correctly.
 - **Failure:** < 20% dissatisfied, **or** < 50% correct interpretation, **or** > 50% reject the
   data flow after explanation.
 - **Inconclusive** (any result strictly between success and failure on any criterion): one
   extension of up to +50% more respondents or +1 week, whichever comes first; then the Owner
   decides directly.
+- **Monetization signal — reported, NOT part of this SUCCESS/FAILURE/INCONCLUSIVE gate (fixed
+  per the second Red-Team review: an OR between two different economic behaviors must not decide
+  demand-validation on its own).** Report, as two separate figures, never combined by OR into one
+  pass/fail bit: (a) subscription willingness-to-pay ≥ 3 €/month, and (b) donation/supporter
+  intent ≥ 20 €/year. Both figures feed OD10 (still open) directly; neither alone, nor their sum,
+  determines E1's own GO/PIVOT/STOP reading. A rough guide for OD10, not a threshold for E1: low
+  (a) with higher (b) points toward a donation/sponsorship model over a subscription; low on both
+  is a genuine monetization warning regardless of how E1's core three criteria read.
 - **Caveat:** stated preference overstates willingness to pay. E2 measures behaviour.
 
 ### E2 — Landing pages, run as two sequential single-variable phases (#65)
@@ -277,20 +289,36 @@ after seeing results.
 > **Redesigned to fix Blocker 3.** The previous single test varied name, language and positioning
 > at once, so a conversion difference could not be attributed to any one of them.
 
-**Phase 2a — Positioning (name and language held constant).** One neutral placeholder name; a
-language toggle on the page itself (not by channel) so language is the visitor's own choice, not
-a hidden confound. Visitors are **randomly assigned** (not by channel or time period) to
-positioning A ("private, honest, non-shaming") or B ("Islamic recovery program"). Freeze before
-launch: the randomization method, a minimum of ≥ 300 valid visits per arm before comparing,
-duplicate/bot exclusion (reject repeat sign-ups from the same contact within a short window;
-exclude sub-5-second sessions), and traffic-source logging (reported per source, to catch channel
-effects). Community traffic and partner referrals only — no ad targeting based on religion (DSA
-Art. 26(3)). A minimal waitlist; an honest "not available yet" pay-intent button.
+**Phase 2a — Positioning (name held constant; language stratified, not pooled — High-C fix,
+second review).** One neutral placeholder name; a language toggle on the page itself (not by
+channel) so language is the visitor's own choice, not a hidden confound. **Randomization is
+stratified by language:** a visitor's DE or AR choice puts them into that language's own
+independent 50/50 random assignment to positioning A ("private, honest, non-shaming") or B
+("Islamic recovery program") — DE and AR each run their own randomization, not one pooled draw.
+Freeze before launch: the randomization method per language, a combined minimum of ≥ 300 valid
+visits per arm before comparing the aggregate, **and** a per-language minimum of ≥ 100 valid
+visits per arm before that language's own comparison is treated as informative (below it, that
+language's result is data-insufficient/inconclusive on its own, though it still counts toward the
+aggregate), duplicate/bot exclusion (reject repeat sign-ups from the same contact within a short
+window; exclude sub-5-second sessions), and traffic-source logging (reported per source, to catch
+channel effects). Community traffic and partner referrals only — no ad targeting based on
+religion (DSA Art. 26(3)). A minimal waitlist; an honest "not available yet" pay-intent button.
 
-- **Success:** the winning arm converts ≥ 8% from community traffic **and** ≥ 1.2× the other arm.
-- If the losing arm is "Islamic recovery program" and it converts ≥ 1.5× the other, that itself is
-  a signal that explicit religious demand is stronger than assumed — a positioning decision for
-  the Owner, not an automatic override of OD9's opt-in Faith Mode framing.
+- **Report separately, always:** aggregate conversion and ratio, plus DE-only and AR-only
+  conversion and ratio (once each clears its own per-language minimum).
+- **Success:** the winning arm converts ≥ 8% from community traffic **and** ≥ 1.2× the other arm
+  on the aggregate, **and** DE and AR do not disagree on which arm wins once both clear their
+  per-language minimum (a same-direction result in both, even if the margin differs, counts as
+  agreement).
+- **Language disagreement override:** if DE and AR each clear their per-language minimum and point
+  to *opposite* winning arms, that overrides a plain aggregate "success" call. This is escalated
+  to the Owner as a language-specific positioning question — proceed to Phase 2b only with the
+  Owner's explicit choice of which language's result to act on, or run a language-specific
+  Phase 2b for each. It is not resolved by picking the aggregate winner mechanically.
+- If the losing arm is "Islamic recovery program" and it converts ≥ 1.5× the other (aggregate or
+  either language), that itself is a signal that explicit religious demand is stronger than
+  assumed — a positioning decision for the Owner, not an automatic override of OD9's opt-in Faith
+  Mode framing.
 - **Failure:** combined arms < 50 sign-ups with ≥ 1,000 total visits, **or** > 5 €/sign-up if paid
   promotion is used.
 - **Inconclusive:** one extension of up to 2 more weeks or 50% more traffic, whichever first; then
@@ -299,13 +327,15 @@ Art. 26(3)). A minimal waitlist; an honest "not available yet" pay-intent button
 
 **Phase 2b — Presentation (runs only if Phase 2a = success; the winning positioning held
 constant).** Visitors are randomly assigned to an explicit-presentation vs a discreet/neutral
-variant of the *same* winning page. Same freeze rules as 2a (allocation, minimum visits,
+variant of the *same* winning page, with the **same language stratification as Phase 2a**
+(independent DE/AR randomization, aggregate + per-language reporting, per-language minimum, and
+the same language-disagreement override). Same freeze rules as 2a (allocation, minimum visits,
 exclusion). **Note:** OD1 already decided the product's canonical name is explicit; this phase
 measures a landing-page/marketing-copy effect, not a re-litigation of OD1 — its result informs
 copy strategy and OD2's on-device default, not the product's public identity.
 
 - **Success/failure/inconclusive:** same ratio logic as Phase 2a, applied to the presentation
-  variants.
+  variants, including the language-disagreement override.
 
 **Safeguards (both phases):** honest disclosure, a GDPR privacy notice, no payment data
 collected, waitlist deleted if the project stops. **Cost/time:** tens of euros; up to 8 weeks
@@ -393,6 +423,10 @@ once. The Owner decides.
 | R19 | "Paying and donating are conflated into one threshold" (High 6) | E1 and E2 report subscription-WTP and donation/supporter-intent as two separate figures (§7, §8) | Still unresolved: which signal actually predicts OD10's pricing decision. Test: E1's two figures, read together in #67 |
 | R20 | "The North Star metric isn't observable under the stated privacy architecture" (Medium 7) | Redefined as a local per-user metric by default; a product-wide aggregate needs its own separate opt-in research decision (§6) | Still unresolved: whether periodic surveys are an acceptable substitute for a live metric. Test: the Owner's read of E1's first wave |
 | R21 | "Small-n E3 thresholds sound precise but are statistically fragile" (Medium 8) | Report exact counts beside percentages; treat single-participant swings as a qualitative flag, not proof; E3 stays a feasibility check (§8) | Still unresolved: whether this framing survives an actually ambiguous E3 result. Test: E3's week-4 synthesis |
+| R22 | **"The execution issues (#63–#67) still contain the old, rejected protocols"** ([second review](https://github.com/takh86/ai-engineering-lab/pull/69#issuecomment-5853885601), Blocker A, found 2026-09-27) | #64, #65, #66 rewritten to match this document exactly (quotas, phases, pseudonymous design); #63 and #67's `met/not met/incomplete` wording replaced with `SUCCESS/FAILURE/INCONCLUSIVE` | Still unresolved: keeping the issues and this document in sync on every future edit. Test: the next time either changes |
+| R23 | "E1's GO gate still combines subscription-WTP and donation intent with OR" (High B) | Removed monetization from E1's SUCCESS/FAILURE/INCONCLUSIVE gate entirely; both figures are now reported separately and feed OD10 directly, never blended into a pass/fail bit (§8) | Still unresolved: whether reporting-only signals get read carefully rather than skipped. Test: the #67 synthesis actually citing both figures for OD10 |
+| R24 | "E2 doesn't actually hold language constant, and an aggregate win could hide opposite DE/AR results" (High C) | Randomization stratified by language (independent DE/AR draws), per-language reporting and minimum, and a disagreement override that escalates to the Owner instead of averaging away a split result (§8) | Still unresolved: whether per-language traffic in practice clears even the lower ≥100/arm minimum. Test: Phase 2a's first two weeks, by language |
+| R25 | "#68's issue body is stale relative to the Owner's own comments on it" (Medium D) | #68's body rewritten to show OD1–OD9, OD11, OD13 as DECIDED with comment-ID links, OD10/12/14 as OPEN; the outdated OD1-in-E2 instruction removed | Resolved as a one-time sync, but recurs if a future OD is decided by comment without a body update. Test: the next OD decision |
 
 ## 10. What success means
 
@@ -517,3 +551,13 @@ AI must not change a live tracker's operative gate before the Owner approves the
 describes. All 16 issues were restored to their pre-D14 text with an explicit "proposed, not yet
 in effect" note on 2026-09-27, in the same session that produced this revision. No device test,
 user research or competitor app installation was performed for this document.
+
+**Second review (2026-09-27).** The Owner's second Red-Team pass confirmed the direction survives
+and found four narrower gaps, fixed in this revision (§9, R22–R25): the execution issues #63–#67
+had not been synchronized with the fixed E1/E2/E3 designs (a repeat of the same
+propose-vs-live-tracker gap as Blocker 1, this time in the newly-created issues rather than
+pre-existing ones); E1's monetization gate still combined two different signals with an OR;
+E2 held language constant by visitor choice but did not stratify randomization or report
+per-language results, so an aggregate win could have hidden an opposite German/Arabic result;
+and #68's own body had not been updated to match the Owner's comments on it. All four are fixed
+here and in the linked issues. D14 itself remains pending a further Owner verification pass.

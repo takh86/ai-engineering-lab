@@ -287,8 +287,13 @@ found the E2/E3 research design confounded and unable to measure its own criteri
 success/failure gray zones, an unquotaed language sample, and — separately — that an earlier
 revision of this PR had already mutated 16 live GitHub tracker issues to reflect D14 before
 approval. That last finding has been corrected (16 issues restored; see AI contribution below);
-the research-design findings have been fixed in the baseline document (§8–§9 there). A second,
-Red-Team-cleared review is required before D14 can be approved. Separately, the Owner has
+the research-design findings have been fixed in the baseline document (§8–§9 there). A
+[second review](https://github.com/takh86/ai-engineering-lab/pull/69#issuecomment-5853885601)
+confirmed the direction survives the red team and narrowed the remaining work to four items —
+the execution issues #63–#67 not yet matching the fixed designs, E1's monetization gate still
+combining two signals with OR, E2's missing per-language attribution, and #68's stale body — all
+now fixed (§8–§9, §11, and issue #68 directly). A further Owner verification pass is still
+required before D14 can be approved. Separately, the Owner has
 **already decided** OD1–OD9, OD11 and OD13, and approved a specific MVP product-scope expansion
 (Web Guard, secure notes, modes, a self-protection-monitoring boundary, screen reading and
 uninstall-prevention investigation, each with mechanism explicitly deferred), via
