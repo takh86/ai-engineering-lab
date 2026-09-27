@@ -12,6 +12,13 @@ Consenting adult users who opt in to self-imposed content filtering on a device 
 
 A trustworthy version of this tool needs to be honest about its real technical limits (what it can and cannot block, and how it can be bypassed) rather than overselling protection it cannot deliver.
 
+## Product direction (2026-09-27, D14 APPROVED)
+
+The hardest moment is the urge itself. Existing tools block silently, monitor the user, or wait
+for the user to open them. This product is built around that moment: private help, triggered when
+possible by an interruption of apps the user chose, alongside optional protection layers whose
+limits are stated truthfully. See [`recovery-first-product-baseline.md`](recovery-first-product-baseline.md).
+
 ## Out of scope for this document
 
 Personal motivations, individual user history, and religious commentary are intentionally excluded from engineering documentation. The product mission above is the complete public framing.

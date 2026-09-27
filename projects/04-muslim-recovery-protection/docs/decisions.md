@@ -257,6 +257,78 @@ match differ from the captured network, which would stop every session right aft
 `ProtectionState.Protected` stays unreachable. No new permission or route is introduced. The
 monitor is a session-scoped reporter under the existing lifecycle authority (`VpnLifecycleController`).
 
+## D13 — Voluntary app blocking is an approved, bounded product direction
+
+**Status:** Product direction approved in the project conversation (2026-09-26). Architecture
+boundary proposed in PR #60; the Owner's GitHub decision record is pending. Enforcement method
+and production claim remain subject to device and Play-policy gates.
+
+**Decision proposed for repository approval:** An opt-in local blocker for user-selected apps with
+a rapid interruption and direct access to recovery help. The [app-blocking decision](app-blocking-architecture-decision.md)
+records AB1–AB7, its data and permission boundaries, and its rejection tests. Usage Access plus
+overlay and narrow package-only Accessibility are candidates to compare, not implemented features.
+
+**Why:** The M2-02 DNS candidate cannot interrupt use of an entire selected app. This is a new,
+complementary product requirement, explicitly approved after the M2-02 baseline. It satisfies D1's
+requirement for a new review; the Owner's final GitHub record must approve its exact boundary
+before AccessibilityService is selected or implemented outside M1.
+
+**Consequences:** H5 and H8 still exclude OS locks; H9 still excludes browsing/hostname histories
+and backend surveillance. A7b/H16 excluded Accessibility **URL detection**, not this narrower
+package-level experiment. A8 remains verification-only; M3 implementation and Play distribution
+need their own evidence and gate. No M1 non-goal or historical evidence is retroactively changed.
+
+## D14 — Recovery-first product baseline; discovery before build
+
+**Status (updated 2026-09-27): APPROVED by the Owner.** The Owner recorded **D14 = APPROVE**
+after two Red-Team review cycles and a final verification pass (PR #69 comment 5854294320).
+The bounded tracker synchronization was separately authorized and executed. OD1–OD9, OD11 and OD13 are decided. OD10, OD12 and OD14 remain evidence-gated/open. The Owner also selected a **Conservative Gate** for D14-sensitive technical exploration: screen-content/Web Guard work must first explicitly reopen/amend H9 and pass a dedicated security/privacy/Play review; uninstall-resistance work must first explicitly reopen/amend H5 under the same discipline.
+
+**Decision:** Adopt the
+[recovery-first product baseline](recovery-first-product-baseline.md). The urge moment, not the
+filter, is the product. The product is organized in layers L0–L4 (plus L2b Web Guard) with
+independent status, follows the adopt/adapt/approved-scope/reject feature ledger, and runs a
+pre-registered product discovery gate (M2-04: E1–E3) before any M3 build. M3 becomes
+**Recovery Core V1**, starting after the M2-04 GO decision and an approved M3-01 contract, not
+after the DNS-layer ADR. App interruption (L1), DNS guidance (L2) and Web Guard (L2b) each
+join only after their own gate: PR #60 plus AB-01 for L1, #40–#42 for L2, and a new architecture
+decision for L2b.
+
+**Why:** M2-01 H6 and H12 already made the product recovery-first, but the roadmap still gated
+every build on the filter decision and deferred research into the recovery layer's value (U13) to
+M4/M6. The 2026-09-26 evaluation found that filtering is a free commodity, the Muslim recovery
+segment is crowded, no competitor has published efficacy evidence, and retention is the main
+risk. Learning whether people use private help at the urge moment is cheaper and more decisive
+than further filter engineering.
+
+**Consequences:**
+
+- U13 moves from M4/M6 research to a gate before M3.
+- #42 decides L2 only. A8's AC/RJ criteria, the frozen V0–V13 runbook and #40/#41 are
+  unchanged regardless.
+- H4–H12 and D1–D13 remain operative unless explicitly reopened by the Owner. D14 approves no permission, provider,
+  backend, payment flow or release claim.
+- The reject list no longer includes uninstall prevention, screen reading or URL/keyword
+  monitoring **as product intent** — those are now approved MVP scope with mechanism deferred
+  (issue #68; see the baseline document §5). The mechanisms that would implement them (Device
+  Owner/Admin, root, Settings-blocking, window-content retrieval beyond a specific approved
+  feature's need, or any third-party reporting) remain rejected/excluded.
+- The GitHub milestone/issue trackers were synchronized only **after** the Owner recorded
+  D14 = APPROVE and separately authorized the bounded synchronization. The earlier premature
+  mutation remains documented below as a governance mistake and correction.
+
 ## AI contribution
 
-This document, the surrounding scaffolding, and the initial project structure were AI-implemented under explicit Tech Lead constraints (see the M1-01 authorization). The Tech Lead owns the decisions themselves; AI recorded them as directed and did not originate the architecture direction. D11's implementation details (address pair, `allowFamily(AF_INET6)`, REFUSED for `InvalidInput`, the periodic Private DNS re-check, tearing the VPN down on runtime failure) were chosen by AI within the approved contract and are flagged for human review in the M1-05 PR.
+This document, the surrounding scaffolding, and the initial project structure were AI-implemented under explicit Tech Lead constraints (see the M1-01 authorization). The Tech Lead owns the decisions themselves; AI recorded them as directed and did not originate the architecture direction. D11's implementation details (address pair, `allowFamily(AF_INET6)`, REFUSED for `InvalidInput`, the periodic Private DNS re-check, tearing the VPN down on runtime failure) were chosen by AI within the approved contract and are flagged for human review in the M1-05 PR. D14 differs: its product direction was proposed by AI (Claude's 2026-09-27 design and red-team answer), reviewed adversarially, and then explicitly approved by the Owner on GitHub.
+
+**Process mistake and correction (2026-09-27):** after drafting D14, AI edited 16 live GitHub
+tracker issues (#19, #22, #23, #24, #25, #26, #42, #43, #44, #45, #46, #47, #48, #50, #51, #52) to
+state the D14 restructuring as already in effect, while the PR adding D14 still said it was
+pending approval. The Owner's Red-Team review identified this as a human-gate violation: AI must
+not change a live tracker's operative gate before the Owner approves the change it describes. All
+16 issues were restored to their pre-D14 text with an explicit "proposed, not yet in effect" note
+on 2026-09-27, in the same session. Separately, AI fixed the flagged research-design gaps in E2
+and E3 (confounded experiment design; a longitudinal study calling itself "anonymous") in the
+baseline document itself, and folded the Owner's verified GitHub decisions (OD1–OD9, OD11, OD13,
+and the MVP-scope expansion) into it by citation, without inventing the two decisions the Owner
+explicitly left open (OD1+OD2 presentation, OD4+Help Now access).

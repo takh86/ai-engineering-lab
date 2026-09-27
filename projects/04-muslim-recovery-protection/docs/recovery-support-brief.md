@@ -4,7 +4,8 @@
 > implementation task, a diagnosis protocol, or evidence that this app improves clinical outcomes.
 >
 > **Source of truth:** [problem.md](problem.md), [M2-01 H4–H12](m2-01-approved-threat-model.md),
-> and the [M2-02 architecture baseline](m2-02-architecture-options.md). Protection validation
+> the [M2-02 architecture baseline](m2-02-architecture-options.md), and the proposed
+> [recovery-first product baseline](recovery-first-product-baseline.md) (D14). Protection validation
 > remains separate from support-content validation. Any contradiction is resolved in favor of the
 > approved documents.
 >
@@ -34,7 +35,7 @@ endpoints and limits must accompany any later evidence summary.
 |---|---|---|
 | Decide why to change | Optional private statement of the user's own goal and reasons; values language can be chosen by the user | No diagnosis or rating of faith. Can skip or erase the statement. |
 | Notice a pattern | Optional manual note: broad trigger category, feeling, urge intensity if desired, chosen response | No browser history, URLs, DNS names, inferred activity, or automatic event detection. Check whether entry is understandable and feels safe. |
-| Handle an urge | User opens a prominent help action; observe the urge, change setting, choose a preselected alternative action, reassess | No promise that an urge vanishes in a fixed time. The A8 app cannot detect blocked DNS events and cannot launch this flow from a block. |
+| Handle an urge | User opens a prominent help action; observe the urge, change setting, choose a preselected alternative action, reassess | No promise that an urge vanishes in a fixed time. The A8 app cannot detect blocked DNS events and cannot launch this flow from a block. If the separate app-interruption layer (PR #60, AB-01 #61) passes its gates, its interruption screen becomes a second entry point (D14). |
 | Prepare for a predictable trigger | User defines one concrete if–then response for a time/place/situation they recognize | No OS-level lock or hidden delay. Check whether users can recall and use the plan in a realistic scenario. |
 | Recover from a lapse | A neutral prompt to identify what happened and one adjustment for next time | Avoid shame, punishment, "all progress lost" messaging, or resetting the user's overall progress to zero. |
 | See progress and ask for help | Optional reflection on perceived control and effects on sleep, work, or relationships; route persistent impairment or distress to qualified care | Streaks, if offered, are optional and never the sole success measure. The app does not assess severity or prescribe treatment. |
