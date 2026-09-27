@@ -2,6 +2,10 @@ name: Project 04 A8 evidence tool tests
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - "projects/04-muslim-recovery-protection/tools/a8-evidence/**"
+      - ".github/workflows/project-04-a8-evidence-tool.yml"
   pull_request:
     paths:
       - "projects/04-muslim-recovery-protection/tools/a8-evidence/**"
