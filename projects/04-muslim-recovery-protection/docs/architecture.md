@@ -4,7 +4,7 @@
 
 This document records the code shape implemented during M1 (M1-01 to M1-07; M1 is closed) and the constraints later milestones must respect. No production protection architecture is implemented or selected: the M1 DNS code is an experiment, and the architecture decision belongs to M2 ([`roadmap.md`](roadmap.md), [`m2-03-architecture-adr.md`](m2-03-architecture-adr.md)).
 
-The **target product structure** (proposed in D14) is in [`recovery-first-product-baseline.md`](recovery-first-product-baseline.md) §4: an on-device recovery core (L0) that depends on no protection layer, plus app interruption (L1) and DNS guidance (L2), each with its own status and gate. None of it is implemented; this document keeps describing the code that exists.
+The **target product structure** (approved in D14) is in [`recovery-first-product-baseline.md`](recovery-first-product-baseline.md) §4: an on-device recovery core (L0) that depends on no protection layer, plus app interruption (L1) and DNS guidance (L2), each with its own status and gate. None of it is implemented; this document keeps describing the code that exists.
 
 ## Current state (M1-03)
 
