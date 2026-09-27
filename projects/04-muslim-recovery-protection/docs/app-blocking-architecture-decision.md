@@ -24,14 +24,14 @@ validated; this decision makes no treatment-outcome claim.
 | ID | Approved boundary |
 |---|---|
 | AB1 | Adults opt in, choose specific installed apps and the active schedule in a calm state. Installation alone blocks nothing. Recovery works if either protection layer is absent. |
-| AB2 | On a selected app's foreground transition, a local detector attempts a prompt, opaque interruption with **Back/Home** and **Help now** leading to the local recovery flow. The preferred experience covers content before it can be read or tapped, then returns Home on the tested path. Android can briefly display the target first; no pre-launch or force-stop guarantee is made. |
-| AB3 | A local, optional commitment delay applies to changing the in-app block list, schedule or blocker toggle. It has an explained escape path and never blocks Android Settings, permission revocation, uninstall, emergency calling or essential system functions. No Device Owner, legacy Device Admin or root. This preserves H5 and H8. |
+| AB2 | App interruption follows the Owner-approved **HYBRID** policy. **Normal protection:** a selected-app foreground transition triggers a prompt interruption with **Help now / Home** and, after the approved pause/help flow, **Continue may remain available**. **Emergency “I'm at risk now” mode:** selected apps are under a temporary hard block for the user-configured active window, with no Continue into those selected apps during that window. Both modes preserve Home, emergency calling and essential/system functions. Exact timing, escape and failure semantics remain evidence-gated by AB-01 and the later task contract. Android can briefly display the target first; no pre-launch or force-stop guarantee is made. |
+| AB3 | A local, optional commitment delay applies only to changing the app's own block list, schedule or blocker toggle. It has an explained, bounded escape path and never blocks Android Settings, permission revocation, uninstall, emergency calling or essential system functions. No Device Owner, legacy Device Admin or root. A crash, restart or interruption loop must not trap the owner. This preserves H5 and H8. Any uninstall-resistance investigation is outside L1 and, under the Owner's Conservative Gate, cannot begin until H5 is explicitly reopened/amended and a dedicated security/privacy/Play review is approved. |
 | AB4 | The A8 DNS candidate and app blocker are independent. DNS has its own Filter Active evidence and browser coverage. The blocker has a separate App Blocking Active status and a named set of tested apps/launch paths. Neither status promotes the other, and the combined UI cannot imply universal protection. |
-| AB5 | Store selected package IDs and schedule locally. No URL, screen text, thumbnails or browsing history is read or stored for app-level blocking. A local attempts count is optional, off by default; no per-attempt package/time trail, analytics, ad SDK or backend. Recovery notes stay separate and optional. |
-| AB6 | Try Usage Access plus a block-screen overlay first. Benchmark it against narrowly configured Accessibility events **only if** it misses the pre-registered interruption target or cannot satisfy privacy, battery or distribution constraints; choose the least sensitive viable variant. Any Accessibility declaration requires an in-app prominent disclosure and affirmative consent, accurate Play listing/declaration, and Play approval before release. |
-| AB7 | Blocking an entire selected app is in scope. Detecting Reels/Shorts inside an otherwise allowed app, inspecting URLs/screen content and blocking system Settings are separate proposals, not consequences of AB1–AB6. |
+| AB5 | For **L1 app interruption**, store selected package IDs and schedule locally. L1 reads or stores no URL, screen text, thumbnails or browsing history. A local attempts count is optional, off by default; no per-attempt package/time trail, analytics, ad SDK or backend. Recovery notes stay separate and optional. This L1 boundary does not reject D14's separate L2b Web Guard product scope; under the Owner's Conservative Gate, any Web Guard keyword/screen-content design or spike first requires the affected H9 boundary to be explicitly reopened/amended plus a dedicated security/privacy/Play review. |
+| AB6 | For the bounded **L1 AB-01 spike only**, try Usage Access plus a block-screen overlay first. Compare narrowly configured **package-only** Accessibility events only if the narrower route misses the pre-registered interruption target or cannot satisfy privacy, battery or distribution constraints. No window-content retrieval, text/key filtering or screenshots are authorized. Any production Accessibility use remains a separate task-contract and release decision and requires prominent disclosure, affirmative consent, accurate Play listing/declaration and Play approval. |
+| AB7 | Blocking an entire selected app is **L1** scope. D14 separately approves **L2b Web Guard** (domain/website and keyword protection) and self-protection screen reading as **product scope with mechanism deferred**; they are not consequences of AB1–AB6. Under the Owner's Conservative Gate, no Web Guard keyword/screen-content design, spike or task contract starts until the affected H9 boundary is explicitly reopened/amended and a dedicated security/privacy/Play review is approved. Uninstall-resistance is likewise separate and blocked behind an explicit H5 reopening/amendment. Blocking Android Settings is not authorized here. |
 
-H5 does not need rewriting: its OS-control boundary remains correct. The M2-02 H16/A7b exclusion
+H5 and H9 remain the operative approved boundaries for L1. The Owner selected a **Conservative Gate** on 2026-09-27: any D14-sensitive exploration that would touch uninstall resistance (H5) or screen-content inspection (H9) must first reopen/amend the affected boundary and pass a dedicated security/privacy/Play review. The M2-02 H16/A7b exclusion
 addresses **Accessibility as a URL detector**; AB6 considers package-only app blocking. D1's
 condition requires a new architecture review and explicit human approval. The Owner approved the
 direction in conversation; the exact GitHub architecture boundary is still under review in PR #60.
@@ -46,8 +46,8 @@ direction in conversation; the exact GitHub architecture boundary is still under
 | Interruption UI | Opaque block screen, Home/Back and Help now | System permission dialogs, Android Settings, a hidden unlock trap |
 | Status/claims | Independent DNS and blocker states with test-bound coverage | One undifferentiated “Protected” boolean |
 
-The event path is: **package transition → check local policy → cover promptly → offer Help now or
-leave the target**. The spike starts with a UsageStatsManager-based signal plus permitted overlay;
+The normal-mode event path is: **package transition → check local policy → cover promptly → offer Help now / Home → Continue only if the approved pause/help flow permits it**.
+During an active user-configured emergency window, the selected-app path is **package transition → check emergency policy → temporary hard block → Help now / Home**, with no Continue into that selected app until the window expires. The spike starts with a UsageStatsManager-based signal plus permitted overlay;
 only if it misses the product target or fails a privacy, battery or distribution constraint does it
 compare `AccessibilityService` window-change events,
 a narrow service configuration and an
@@ -107,8 +107,7 @@ Keep `Filter Active` exclusively for the verified DNS boundary (H7/H15). Separat
   service disconnected, disabled schedule, stale/unverified coverage or a tested bypass. Present
   the reason and a repair action. A restored service does not inherit an old success claim.
 
-For a user-facing claim, name the tested apps, Android/OEM version, profile, launch paths and remaining
-first-frame exposure. Blocking a package does not block the same service's website, an alternative
+Before any user-facing claim, maintain an explicit L1 coverage register with each tested path classified **COVERED / DETECTED / DISCLOSED / UNKNOWN**, including launcher, notification, deep link, Recents, cold/warm start, split screen, floating windows, secondary profiles and alternative clients. Name the tested apps, Android/OEM version, profile, launch paths and remaining first-frame exposure. Blocking a package does not block the same service's website, an alternative
 client, a Lite variant or an instance installed in another profile. Never say “cannot open”,
 “unbreakable”, “prevents uninstall” or that DNS
 filters content inside an allowed app. H10 applies to **both** layers. A discreet icon/name can
@@ -117,10 +116,7 @@ actual purpose from the user.
 
 ## 5. Acceptance and rejection before implementation or release
 
-The Owner-approved product direction is a candidate for the GitHub architecture gate. Before
-production code, perform a small user/product check: ask which apps people would choose, whether
-they understand and accept each permission explanation, and whether an interruption actually
-leads to Help now. A voluntary, manual Digital Wellbeing Focus Mode plus recovery shortcut can
+The Owner-approved product direction is a candidate for the GitHub architecture gate. Before production code, perform a small user/product check: ask which apps people would choose, whether they understand and accept each permission explanation, whether the **normal** interruption actually leads to Help now, and whether the already-decided **emergency temporary hard-block** semantics are understandable and usable. The product check does not re-open OD6 or choose between normal and emergency product policy. A voluntary, manual Digital Wellbeing Focus Mode plus recovery shortcut can
 test that last hypothesis cheaply; it is not evidence that our technical blocker works. The
 recovery content brief remains a draft and requires its own appropriate review before clinical
 or effectiveness claims.
