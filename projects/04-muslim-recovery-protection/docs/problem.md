@@ -12,7 +12,7 @@ Consenting adult users who opt in to self-imposed content filtering on a device 
 
 A trustworthy version of this tool needs to be honest about its real technical limits (what it can and cannot block, and how it can be bypassed) rather than overselling protection it cannot deliver.
 
-## Product direction (2026-09-27, proposed in D14)
+## Product direction (2026-09-27, D14 APPROVED)
 
 The hardest moment is the urge itself. Existing tools block silently, monitor the user, or wait
 for the user to open them. This product is built around that moment: private help, triggered when
