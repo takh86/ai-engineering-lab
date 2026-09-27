@@ -16,15 +16,14 @@ permissions:
 
 jobs:
   synthetic-tool-tests:
-    name: Synthetic tool tests (${{ matrix.shell }})
+    name: Synthetic tool tests (PowerShell 5.1 and 7)
     runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        shell: [powershell, pwsh]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
-      - name: Run synthetic tests without a device
-        shell: ${{ matrix.shell }}
+      - name: Run synthetic tests on Windows PowerShell 5.1
+        shell: powershell
+        run: ./projects/04-muslim-recovery-protection/tools/a8-evidence/tests/Test-A8Evidence.ps1
+      - name: Run synthetic tests on PowerShell 7
+        shell: pwsh
         run: ./projects/04-muslim-recovery-protection/tools/a8-evidence/tests/Test-A8Evidence.ps1
