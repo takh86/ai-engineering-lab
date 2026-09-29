@@ -31,3 +31,27 @@ Recent commits commonly use `docs:`, `chore:`, `feat(04):`, or `fix(04):` follow
 ## Security & Agent Workflow
 
 Do not commit credentials or personal data; see `SECURITY.md`. Before implementation, read the relevant project docs and current task scope. Treat AI output as untrusted until verified, and seek human review for major architecture, security, privacy, or dependency decisions.
+
+
+## Routine V2 execution guardrails
+
+- Codex is the engineering executor; ChatGPT/Work defines and reviews the Task Contract.
+- Work only on a feature branch; open a pull request before `main`.
+- Never push directly to `main`, force-push `main`, or delete a protected branch.
+- Never merge or enable auto-merge. The human owner performs the merge.
+- Keep diffs focused; ask before touching files outside the agreed scope.
+- Never read, print, or edit secrets or `.env` files.
+- Never run destructive migrations.
+- Production, credentials, important deletes, external messages, auth/RLS weakening, and substantial architecture changes require an explicit human gate.
+- Verify version-specific APIs with current primary documentation when needed.
+- Do not install a new Plugin/MCP without explicit approval.
+- Do not say "done" without implementation, validation, evidence, and no critical blocker.
+
+## V2 required evidence
+
+- `git diff --stat` and a focused summary.
+- Tests, lint, typecheck, and build reported as PASS / FAIL / NOT RUN / N/A with reasons.
+- Android `assembleDebug` includes Kotlin compilation; no standalone typecheck is configured.
+- Screenshots for UI changes, known limitations, untested areas, and human gates.
+- Flag authorization/RBAC gaps, missing business-rule tests, unvalidated input, secrets, destructive migrations, and security regressions.
+- Stop on ambiguity, out-of-scope needs, destructive changes, or unresolved test failures.
