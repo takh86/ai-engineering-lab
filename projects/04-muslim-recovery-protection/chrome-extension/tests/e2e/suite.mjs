@@ -792,6 +792,71 @@ export async function runSuite({ browserName, executablePath, report, pkg }) {
         }
     }
 
+    // ================= S16c: the late-DELETE scenario of the review of 0b46c1d, in REAL browsers (normal + private instance) =================
+    // The private instance had a session that has ended (its entry is aged in storage - 60 real minutes cannot be waited); the normal-window worker
+    // cleans up, selects the expired entry and freezes inside the real chrome.storage.local.remove; its lease expires; the private instance starts a
+    // NEW 120-minute session; the frozen removal then runs. Before the fix it reused the same storage key and wiped the new session, after which a save
+    // that deletes every blocked site was accepted.
+    if (want('S16c')) {
+        const { chromium } = await import('playwright-core');
+        const net = await import('node:net');
+        const freePort = () => new Promise(resolve => { const srv = net.createServer(); srv.listen(0, '127.0.0.1', () => { const { port: p } = srv.address(); srv.close(() => resolve(p)); }); });
+        const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'tabsira-e2e-clean-'));
+        let b = await open({ profileDir: profile });
+        let options = await openExtPage(b.context, b.extensionId, 'options.html');
+        await onboard(options); await save(options, { domains: ['clean-keep.test', 'clean-second.test'] });
+        const extId = b.extensionId;
+        await finish(b); await sleep(1200);
+        const prefsFile = path.join(profile, 'Default', 'Preferences');
+        const prefs = JSON.parse(fs.readFileSync(prefsFile, 'utf8')); prefs.extensions.settings[extId].incognito = true; fs.writeFileSync(prefsFile, JSON.stringify(prefs));
+        const port = await freePort();
+        b = await open({ profileDir: profile, extraArgs: [`--remote-debugging-port=${port}`] });
+        await sleep(1500);
+        options = await openExtPage(b.context, b.extensionId, 'options.html');
+        const normalWorker = b.getWorker();
+        const cdp = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
+        const seen = new Set(cdp.contexts().flatMap(c => c.pages()));
+        await options.evaluate(u => chrome.windows.create({ url: u, incognito: true }), `chrome-extension://${b.extensionId}/options.html`).catch(() => {});
+        await sleep(2800);
+        let priv = null; for (const ctx of cdp.contexts()) for (const p of ctx.pages()) if (!seen.has(p) && p.url().startsWith('chrome-extension://')) priv = p;
+        if (!priv) { skip('S16c.* late cleanup across normal + private instances', 'a private-window settings page was not observable in this browser'); await cdp.close().catch(() => {}); await finish(b); }
+        else {
+            const sendPriv = message => priv.evaluate(m => chrome.runtime.sendMessage(m), message);
+            const statusPriv = async () => (await sendPriv({ type: 'GET_STATUS' })).status;
+            const first = await sendPriv({ type: 'START_SESSION', minutes: 60 });
+            // age the private instance's finished session: every session entry in storage now ended a second ago
+            const aged = await normalWorker.evaluate(async () => { const all = await chrome.storage.local.get(null); const patch = {}; for (const key of Object.keys(all)) if (key === 'lock' || key.startsWith('lock:')) patch[key] = { until: Date.now() - 1000 }; await chrome.storage.local.set(patch); return Object.keys(patch); });
+            const afterExpiry = await status(options);
+            await normalWorker.evaluate(() => {
+                const original = chrome.storage.local.remove.bind(chrome.storage.local);
+                globalThis.__gate = { hit: false, release: null, restore: () => { chrome.storage.local.remove = original; } };
+                chrome.storage.local.remove = keys => {
+                    const list = Array.isArray(keys) ? keys : [keys];
+                    if (list.some(k => k === 'lock' || k.startsWith('lock:')) && !globalThis.__gate.hit) { globalThis.__gate.hit = true; return new Promise(resolve => { globalThis.__gate.release = () => resolve(original(keys)); }); }
+                    return original(keys);
+                };
+            });
+            const cleanup = send(options, { type: 'REPAIR' });                         // the normal worker cleans up and freezes inside the removal
+            let frozen = false; for (let i = 0; i < 100 && !frozen; i++) { frozen = await normalWorker.evaluate(() => globalThis.__gate.hit); if (!frozen) await sleep(50); }
+            const t0 = Date.now();
+            const early = await sendPriv({ type: 'START_SESSION', minutes: 120 });       // lease still valid -> fails closed
+            await sleep(Math.max(0, 21500 - (Date.now() - t0)));
+            const second = await sendPriv({ type: 'START_SESSION', minutes: 120 });      // a NEW session after the lease expired
+            await normalWorker.evaluate(() => { globalThis.__gate.release(); globalThis.__gate.restore(); });   // the old removal now runs
+            await cleanup; await sleep(500);
+            const after = await statusPriv();
+            const weakStatus = await status(options);
+            const weak = await send(options, { type: 'SAVE_SETTINGS', baseRevision: weakStatus.revision, settings: { ...NO_LIST, domains: [] } });   // deletes every blocked site
+            const final = await statusPriv();
+            const keepBlocked = await visit(b.context, url('clean-keep.test'));
+            check('S16c.1 precondition: the private instance\'s first session was recorded, then aged to "ended"; the cleanup froze inside the real removal', first.ok && aged.length >= 1 && !afterExpiry.lock.active && frozen, JSON.stringify({ first: first.ok, aged, ended: !afterExpiry.lock.active, frozen }));
+            check('S16c.2 while the frozen worker\'s lease is valid the private instance fails closed ("busy"); after expiry it starts a NEW 120-minute session', !early.ok && early.error.code === 'busy' && second.ok, JSON.stringify({ early: early.ok ? 'ok' : early.error?.code, second: second.ok ? 'ok' : second.error?.code }));
+            check('S16c.3 the frozen removal then runs: the NEW session is intact (≈120 min left, active)', after.lock.active && after.lock.until - Date.now() > 119 * 60000, JSON.stringify({ active: after.lock.active, minutesLeft: Math.round((after.lock.until - Date.now()) / 60000) }));
+            check('S16c.4 a save that deletes every blocked site is still refused, the sites and rules stay, navigation is still blocked', !weak.ok && weak.error.code === 'locked_weakening' && JSON.stringify([...final.settings.domains].sort()) === JSON.stringify(['clean-keep.test', 'clean-second.test']) && keepBlocked.blocked, JSON.stringify({ weak: weak.ok ? 'ACCEPTED' : weak.error?.code, domains: final.settings.domains, blocked: keepBlocked.blocked }));
+            await cdp.close().catch(() => {}); await finish(b);
+        }
+    }
+
     // ================= S17: hostile web page + data leakage (red-team checks against the real package) =================
     if (want('S17')) {
         const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'tabsira-e2e-leak-'));

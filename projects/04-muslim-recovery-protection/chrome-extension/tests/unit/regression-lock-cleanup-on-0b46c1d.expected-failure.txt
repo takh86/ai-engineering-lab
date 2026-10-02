@@ -1,0 +1,76 @@
+TAP version 13
+# Subtest: REVIEW 0b46c1d: a frozen cleanup of an EXPIRED session key cannot wipe the new session that re-used the key
+not ok 1 - REVIEW 0b46c1d: a frozen cleanup of an EXPIRED session key cannot wipe the new session that re-used the key
+  ---
+  duration_ms: 31.464633
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old6/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/lock-cleanup.test.mjs:46:1'
+  failureType: 'testCodeFailure'
+  error: 'the new session survived the late cleanup'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old6/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/lock-cleanup.test.mjs:59:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: late cleanup of a key whose session was EXTENDED meanwhile cannot shorten it
+not ok 2 - late cleanup of a key whose session was EXTENDED meanwhile cannot shorten it
+  ---
+  duration_ms: 19.372313
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old6/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/lock-cleanup.test.mjs:67:1'
+  failureType: 'testCodeFailure'
+  error: 'the extended end time is intact (90 min left)'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old6/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/lock-cleanup.test.mjs:81:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: late cleanup of EPOCH entries cannot make a later holder re-use an epoch already issued
+not ok 3 - late cleanup of EPOCH entries cannot make a later holder re-use an epoch already issued
+  ---
+  duration_ms: 14.891
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old6/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/lock-cleanup.test.mjs:86:1'
+  failureType: 'testCodeFailure'
+  error: 'the epoch A registered survived the late removal'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old6/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/lock-cleanup.test.mjs:99:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: late WRITES of lock and epoch entries are harmless: they can only lengthen a session / lower-rank an epoch
+ok 4 - late WRITES of lock and epoch entries are harmless: they can only lengthen a session / lower-rank an epoch
+  ---
+  duration_ms: 10.054088
+  type: 'test'
+  ...
+# Subtest: mutex entries: a late removal or resurrection fails CLOSED (busy / ignored), never opens a second critical section
+ok 5 - mutex entries: a late removal or resurrection fails CLOSED (busy / ignored), never opens a second critical section
+  ---
+  duration_ms: 132.211517
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 2
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 342.13581

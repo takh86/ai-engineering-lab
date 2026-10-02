@@ -23,10 +23,13 @@ export function extend(lock, minutes, now = Date.now()) {
 
 // ---- grow-only storage layout (no read-modify-write on a shared value) ----
 // storage.local has no compare-and-set, so the end time is never kept in one shared value that a late or stale writer
-// could overwrite. Each worker instance writes only its OWN key ("lock:<instance>"), and only ever a larger end time;
-// the effective end time is the maximum over all keys. A stale write can therefore never shorten or erase a session.
+// could overwrite, and keys are never reused: every session start/extension creates a NEW key ("lock:<epoch>-<n>:<instance>"),
+// and the effective end time is the maximum over all keys. A stale write can never shorten a session, and a delayed removal
+// (selected earlier) can only reach keys that were already dominated or expired - never a newer session, which lives under a new name.
 export const LOCK_KEY_PREFIX = 'lock:';
 export const LEGACY_LOCK_KEY = 'lock';
+/** Write-once session entry: unique per lock holder and write, never rewritten (see core/records.js). */
+export const lockKey = (token, instance) => `${LOCK_KEY_PREFIX}${token}:${instance}`;
 export const isLockKey = key => key === LEGACY_LOCK_KEY || key.startsWith(LOCK_KEY_PREFIX);
 
 /** Merges every lock entry of a full storage snapshot: { until, invalidKeys, keys }. */

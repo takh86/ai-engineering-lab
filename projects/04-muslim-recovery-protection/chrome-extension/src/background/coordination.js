@@ -20,6 +20,7 @@ export function createWriteMutex(api, { leaseMs = 20000, waitMs = 15000, pollMs 
     const key = `${PREFIX}${me}`;
     let held = false;
     let epoch = 0;
+    let sequence = 0;
 
     const entriesOf = (all, now) => Object.entries(all)
         .filter(([name, value]) => name.startsWith(PREFIX) && name !== key && value && typeof value === 'object' && Number.isFinite(value.exp) && value.exp > now)
@@ -67,7 +68,8 @@ export function createWriteMutex(api, { leaseMs = 20000, waitMs = 15000, pollMs 
     // the epoch was being registered, assertOwner() fails closed before anything else is written.
     async function beginEpoch() {
         epoch = 1 + maxEpoch(await api.storage.getAll());
-        await api.storage.set({ [epochKey(me)]: { n: epoch } });
+        sequence = 0;
+        await api.storage.set({ [epochKey(epoch, me)]: { n: epoch } });   // write-once, unique name: never rewritten, only removed when dominated
         await assertOwner();
     }
 
@@ -76,5 +78,7 @@ export function createWriteMutex(api, { leaseMs = 20000, waitMs = 15000, pollMs 
         try { await beginEpoch(); return await task(); } finally { epoch = 0; await release(); }
     }
 
-    return { run, assertOwner, isHeld: () => held, epoch: () => epoch };
+    return { run, assertOwner, isHeld: () => held, epoch: () => epoch, ownKey: key,
+        /** A name that is unique to this lock holder and this write inside it (`<epoch>-<n>`): used for write-once keys. */
+        token: () => `${epoch}-${++sequence}` };
 }

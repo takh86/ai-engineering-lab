@@ -27,9 +27,19 @@ test('records: epochs only grow; tampered epoch values are ignored', () => {
     assert.equal(maxEpoch({ 'ep:a': { n: -5 }, 'ep:b': { n: 1.5 }, 'ep:c': { n: 'x' }, 'ep:d': { n: 1e16 }, 'ep:e': null }), 0);
 });
 
-test('records: compaction keeps the two newest records and the highest epoch entry, nothing else relevant', () => {
-    const snapshot = { config: 1, 'cfg:1:a': 1, 'cfg:2:a': 1, 'cfg:3:b': 1, 'ep:a': { n: 3 }, 'ep:b': { n: 7 }, 'ep:c': { n: 5 }, 'lock:a': { until: 1 } };
-    assert.deepEqual(obsoleteKeys(snapshot).sort(), ['cfg:1:a', 'config', 'ep:a', 'ep:c']);
+test('records: cleanup lists only keys that are dominated for ever (older records, lower epochs, expired or smaller sessions, long-dead mutex entries)', () => {
+    const snapshot = {
+        config: 1, 'cfg:1:a': 1, 'cfg:2:a': 1, 'cfg:3:b': 1,
+        'ep:3:a': { n: 3 }, 'ep:7:b': { n: 7 }, 'ep:5:c': { n: 5 },
+        'lock:1-1:a': { until: 500 }, 'lock:2-1:b': { until: 9000 }, 'lock:3-1:c': { until: 9000 }, 'lock:4-1:d': { until: 20000 }, lock: { until: 100 },
+        'mx:dead': { choosing: false, ticket: 1, exp: 1000 }, 'mx:recent': { choosing: false, ticket: 1, exp: 9_000_000 }, 'mx:self': { choosing: false, ticket: 1, exp: 1 }
+    };
+    const stale = obsoleteKeys(snapshot, { now: 10000, leaseNow: 9_000_000 + 1000, selfMutexKey: 'mx:self' }).sort();
+    // sessions: 'lock:4-1:d' (20000) is the only one that is neither expired (<= now 10000) nor dominated
+    assert.deepEqual(stale, ['cfg:1:a', 'config', 'ep:3:a', 'ep:5:c', 'lock', 'lock:1-1:a', 'lock:2-1:b', 'lock:3-1:c', 'mx:dead'].sort());
+    // two live entries with the SAME end time: exactly one stays (the one with the higher key name)
+    const tie = obsoleteKeys({ 'lock:1-1:a': { until: 99999 }, 'lock:2-1:b': { until: 99999 } }, { now: 10000 });
+    assert.deepEqual(tie, ['lock:1-1:a']);
 });
 
 test('a tampered record that is the newest makes the state corrupt (fail closed), it never falls back to an older record', async () => {

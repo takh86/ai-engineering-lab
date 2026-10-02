@@ -195,25 +195,27 @@ test('late ROLLBACK RULE WRITE: a rollback frozen inside its rule restore cannot
     assert.deepEqual(storedConfig(t.state).domains, ['example.com', 'newer.org']);
 });
 
-test('late ROLLBACK STORAGE REMOVAL: a frozen removal of its own record never leaves the store without a configuration', async () => {
+test('late ROLLBACK OF THE RECORD: a rollback frozen while restoring its own record cannot leave the store without a configuration', async () => {
     const t = pair(); await configured(t);
     const rev = (await statusOf(t)).revision;
-    // A writes its record, then verification fails (the browser reports no rules) -> A starts removing its own record, frozen.
-    const realRemove = t.api.storage.remove; const hold = gate(); const seen = { frozen: false };
-    t.api.storage.remove = async keys => { if (!seen.frozen && keys.some(key => key.startsWith('cfg:'))) { seen.frozen = true; await hold.promise; } return realRemove(keys); };
-    const realSet = t.api.storage.set; const realGet = t.api.dnr.getDynamicRules; let lying = false;
-    t.api.storage.set = async items => { const result = await realSet(items); if (isConfigWrite(items)) lying = true; return result; };
+    // A writes its record, then verification fails (the browser reports no rules) -> A starts restoring the previous configuration under its own name, frozen.
+    const real = t.api.storage.set; const hold = gate(); const seen = { frozen: false }; let writes = 0;
+    t.api.storage.set = async items => {
+        if (isConfigWrite(items)) { writes += 1; if (writes === 2 && !seen.frozen) { seen.frozen = true; await hold.promise; } }
+        const result = await real(items); if (isConfigWrite(items) && writes === 1) lying = true; return result;
+    };
+    const realGet = t.api.dnr.getDynamicRules; let lying = false;
     t.api.dnr.getDynamicRules = async () => (lying ? [] : realGet());
     const oldSave = t.send(t.a, { type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...noList, domains: ['example.com', 'doomed.org'] } });
-    await until(() => seen.frozen, 'A reached the removal of its own record');
-    lying = false; t.api.dnr.getDynamicRules = realGet; t.api.storage.set = realSet;
+    await until(() => seen.frozen, 'A reached the restore of its own record');
+    lying = false; t.api.dnr.getDynamicRules = realGet;
     t.state.clockSkew += 60_000;
-    await statusOf(t, t.b);                                          // another instance runs a repair + compaction meanwhile
-    hold.open(); await oldSave; t.api.storage.remove = realRemove;
+    await statusOf(t, t.b);                                          // another instance repairs and cleans up meanwhile
+    hold.open(); await oldSave; t.api.storage.set = real;
     assert.ok(storedConfig(t.state), 'a configuration record still exists');
     const after = await statusOf(t, t.b);
     assert.equal(after.state, 'active', JSON.stringify(after.reasons));
-    assert.ok(after.settings.domains.includes('example.com'));
+    assert.deepEqual(after.settings.domains, ['example.com']);
 });
 
 test('compaction keeps the two newest records and the highest epoch entry; storage does not grow without bound', async () => {

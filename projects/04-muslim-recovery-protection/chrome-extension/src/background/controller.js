@@ -3,7 +3,7 @@ import { defaultConfig, parseSettings, migrate, weakeningReasons, settingsOf, ex
 import { findUnsupported } from '../core/phrases.js';
 import { STARTER_TERMS } from '../core/starter-terms.js';
 import { planRules, rulesMatch, BASE_RULESET_ID } from '../core/rules.js';
-import { isActive, SESSION_MINUTES, LOCK_KEY_PREFIX, mergeLocks } from '../core/lock.js';
+import { isActive, SESSION_MINUTES, lockKey, mergeLocks } from '../core/lock.js';
 import { createWriteMutex } from './coordination.js';
 import { configKey, newestConfig, listConfigRecords, obsoleteKeys } from '../core/records.js';
 
@@ -132,7 +132,7 @@ export function createController(api, { mutex: mutexOptions } = {}) {
             // Superseded: someone else's record is the effective one. Our record (if written) is dominated: drop it, follow storage.
             const supersededByOther = effectiveKey !== (expected.key) && effectiveKey !== myKey;
             if (supersededByOther) {
-                if (myKey) await attempt(() => api.storage.remove([myKey]));
+                if (myKey) await attempt(() => (newest ? api.storage.set({ [myKey]: newest.value }) : api.storage.remove([myKey])));   // keep it harmless even if it ever ranked first
                 await attempt(async () => {
                     const current = await readState();
                     if (current.kind !== 'ok') return;
@@ -141,8 +141,9 @@ export function createController(api, { mutex: mutexOptions } = {}) {
                     await setBaseEnabled(rebuilt.baseListEnabled);
                 });
             } else {
-                // Our record is effective (or nothing was written): restore the previous record by removing ours, then the old rules.
-                if (myKey) await attempt(() => api.storage.remove([myKey]));
+                // Our record is effective (or nothing was written): put the previous configuration back under OUR name (no deletion of anything
+                // that others could depend on; a fresh install has nothing to restore, so our own record is removed), then the old rules.
+                if (myKey) await attempt(() => (expected.config === undefined ? api.storage.remove([myKey]) : api.storage.set({ [myKey]: expected.config })));
                 await attempt(() => setDynamicRules(before.rules));
                 await attempt(() => setBaseEnabled(before.baseEnabled));
             }
@@ -213,12 +214,14 @@ export function createController(api, { mutex: mutexOptions } = {}) {
     // ---- reconcile: make the browser match the stored configuration ----
     // Runs inside the write mutex when it may write (migration, repair). Storage clean-up removes only lock entries that
     // can no longer matter (expired, or smaller than the effective end time).
-    async function compactLocks(state) {
-        const now = api.now();
-        const stale = Object.entries(state.lockKeys?.keys ?? {}).filter(([, until]) => until <= now || until < state.lock.until).map(([key]) => key);
-        // configuration records and epoch entries that can no longer matter (all but the two newest records / the highest epoch)
-        if (state.snapshot) stale.push(...obsoleteKeys(state.snapshot));
-        if (stale.length) { await mutex.assertOwner(); await api.storage.remove(stale); }
+    // Removes only keys whose immutable value is dominated for ever (core/records.js), so even a removal that runs arbitrarily late
+    // (worker frozen after choosing the keys) cannot reach a newer value - those live under different names. Failure is harmless.
+    async function compactStorage() {
+        const all = await api.storage.getAll();
+        const stale = obsoleteKeys(all, { now: api.now(), leaseNow: api.clock(), selfMutexKey: mutex.ownKey });
+        if (!stale.length) return;
+        await mutex.assertOwner();
+        await api.storage.remove(stale);
     }
 
     async function reconcileTask() {
@@ -231,21 +234,21 @@ export function createController(api, { mutex: mutexOptions } = {}) {
                 await commit({ config: state.config, expected: state.raw, persist: !!state.migrated });
                 if (state.migrated && state.lock.v0 > 0) await writeLock(state.lock.v0);
             }
-            if (mutex.isHeld()) { try { await compactLocks(await readState()); } catch { /* clean-up is optional */ } }
         }
         // 'fresh' with leftover rules, 'corrupt' and 'error': never delete protection because of a read problem.
         return statusNow();
     }
-    const guarded = task => mutex.run(task);
+    const guarded = task => mutex.run(async () => {
+        const result = await task();
+        try { await compactStorage(); } catch { /* clean-up is optional */ }
+        return result;
+    });
     const reconcile = () => serialize(() => guarded(reconcileTask)).catch(() => statusNow().catch(() => null));
 
-    /** Raises this instance's own lock entry to `until` (never lowers it) and verifies the merged result. */
+    /** Records a session end time under a NEW key (write-once); the effective end is the maximum over all keys, so this can only lengthen. */
     async function writeLock(until) {
         await mutex.assertOwner();
-        const key = `${LOCK_KEY_PREFIX}${api.instanceId}`;
-        const own = (await api.storage.get(key))[key];
-        if (own && Number.isSafeInteger(own.until) && own.until >= until) return;
-        await api.storage.set({ [key]: { until } });
+        await api.storage.set({ [lockKey(mutex.token(), api.instanceId)]: { until } });
         if (mergeLocks(await api.storage.getAll()).until < until) throw new TabsiraError('apply_failed');
     }
 
