@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "تبصرة — Tabsira",
+  "version": "0.1.0",
+  "minimum_chrome_version": "120",
+  "description": "حجب مواقع تختارها ومساعدة قصيرة وقت الرغبة. نسخة شخصية تجريبية.",
+  "permissions": [
+    "storage",
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "تبصرة"
+  },
+  "options_page": "options.html",
+  "incognito": "split",
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "blocked.html",
+        "help.html",
+        "style.css",
+        "help.js"
+      ],
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none'"
+  }
+}
