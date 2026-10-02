@@ -1,7 +1,7 @@
 {
   "name": "Tabsira built-in adult-sites list (composite snapshot)",
   "retrievedAt": "2026-10-02",
-  "composition": "ShadowWhisperer Adult (all) + Block List Project entries that a permissive source also lists + Block List Project entries not traceable to any other source; minus entries traceable only to GPL-3.0 / unlicensed / unverifiable sources.",
+  "composition": "ShadowWhisperer Adult (all) + Block List Project entries that a permissive source also lists + Block List Project entries not found in any examined source (origin unknown; licence position rests on the repository Unlicense declaration); minus entries traceable only to GPL-3.0 / unlicensed / unverifiable sources.",
   "snapshotFile": "adult-domains.txt.gz (gzip of sorted, one domain per line)",
   "snapshotEntries": 714093,
   "snapshotSha256": "ebeda7277f63f62cb5ff5b514e66bb813889eab2fa8e24dbb5828382deadff44",
@@ -9,7 +9,7 @@
   "counts": {
     "blpTotal": 953197,
     "blpAlsoInPermissive": 226345,
-    "blpOwnUntraced": 492511,
+    "blpUnattributed": 492511,
     "blpDroppedTraceableOnlyToUnclear": 234341,
     "shadowWhispererAddedBeyondBlp": 4262,
     "sinfoniettaOnlyNotAdded": 33778
@@ -21,7 +21,7 @@
       "name": "The Block List Project - porn.txt",
       "repository": "https://github.com/blocklistproject/Lists",
       "licence": "The Unlicense (LICENSE in repository root; file header says MIT)",
-      "use": "primary container; maintainers' own curation",
+      "use": "primary container; its repository declares The Unlicense",
       "url": "https://raw.githubusercontent.com/blocklistproject/Lists/master/porn.txt",
       "bytes": 26095053,
       "sha256": "425590c37e3ea624fdf646b14ba661f8b8f38391686adcf02b73f8b2d74b0db1",

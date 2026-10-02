@@ -15,9 +15,9 @@ Android app and Family DNS; it is not a replacement for them and not a proven tr
 
 - **Blocks sites you add** — the site and its subdomains, on DNS label boundaries (`example.com` blocks `mail.example.com`,
   not `badexample.com` or `example.com.evil.org`).
-- **Built-in adult-sites list (opt-in)** — a bundled snapshot of 714,093 domains built only from sources whose licence is documented
-  (ShadowWhisperer and The Block List Project, both Unlicense; Sinfonietta, MIT; entries that trace only to GPL/unlicensed upstreams were
-  removed). Automated and community-made: it **can block innocent sites**; use Exceptions. Sources, licences, pinned hashes and the
+- **Built-in adult-sites list (opt-in)** — a bundled snapshot of 714,093 domains assembled from ShadowWhisperer and The Block List Project (both Unlicense) and Sinfonietta (MIT); entries that trace only to GPL/unlicensed
+  upstreams were removed. **492,511 Block List Project entries are unattributed** — present in no other source we examined, origin unknown, licence
+  position resting on the BLP repository's declaration (an open legal decision for the Owner). Automated and community-made: it **can block innocent sites**; use Exceptions. Sources, licences, pinned hashes and the
   residual legal risk: [`data/base-list/README.md`](data/base-list/README.md). Nothing is downloaded at run time.
 - **Search phrases (Arabic and English)** — matched only inside the search parameter (`q`, `p`, `search_query`, `text`) of
   Google (all regional domains), Bing (web/images/video), DuckDuckGo, Yahoo, YouTube, Yandex, Brave, Ecosia and Qwant;
@@ -34,8 +34,11 @@ While a session is active, **inside the extension** these are refused: deleting 
 starter phrases, adding an exception, importing settings that would weaken anything, resetting. Adding **stronger** protection is
 always allowed. The same rules apply from a private window and from several windows at once (one shared state).
 It is a time stamp in storage — no timer, so a sleeping/restarted worker cannot lose it. The end time is kept in grow-only entries (the
-effective end is the maximum), and every change goes through a cross-instance write lock, so a late or concurrent write from another window
-**cannot shorten or erase a running session** (regression-tested, including in a real normal + private window pair). When it ends it **only
+effective end is the maximum), and every change goes through a cross-instance write lock, and the settings themselves are stored as append-only records ranked by a
+fencing epoch taken when the lock is entered, so a late or concurrent write — even from a worker that was frozen past its lock and resumes
+after newer saves and a session start — **cannot shorten or erase a running session, nor replace newer settings** (regression-tested with
+simulated browsers and in a real normal + private window pair; starting a session also pins the current settings so nothing begun earlier
+can land inside it). When it ends it **only
 re-allows editing**; it never removes a rule.
 
 It is friction, **not tamper resistance**: the user can still disable or uninstall the extension, use another browser/profile,
@@ -83,7 +86,7 @@ The worker accepts only schema-validated messages from the extension's own popup
 - **Private windows** need the browser's manual "allow in private/incognito" switch (without it the extension is simply not applied there — tested in
   Chromium-family and Firefox). With it: the stop page shows (Chromium `incognito: split`, shared storage; Firefox spans), the commitment holds, weakening
   from the private window is refused. Two windows saving at once are serialised by a lease-based lock; if a worker is frozen for longer than the 20 s
-  lease the other one proceeds and the late one is refused (`busy`), and rules are rebuilt from storage.
+  lease the other one proceeds, and whatever the frozen one writes when it resumes is ranked below the newer records and ignored; rules are rebuilt from storage.
 - **Clock changes, disabling, removing, other browsers/profiles, local files** are outside any guarantee.
 - **Updates:** browsers reset which static ruleset is enabled on an extension update; the worker re-applies your settings
   immediately (verified) but there can be a brief gap.

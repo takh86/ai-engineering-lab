@@ -34,7 +34,7 @@ a StevenBlack copy dated 2021) — trace only.
 |---|---|
 | KEEP every ShadowWhisperer Adult entry (Unlicense) | all, incl. 4,262 not in BLP |
 | KEEP BLP entries that ShadowWhisperer or Sinfonietta also list (both permissive) | 226,345 |
-| KEEP BLP entries found in **no** other source we could trace (BLP's own curation, Unlicense by the maintainers' declaration) | 492,511 |
+| KEEP BLP entries that **none of the sources we examined lists** ("unattributed": their origin is **unknown**) | 492,511 |
 | **DROP** BLP entries traceable only to HaGeZi (GPL-3.0), zachlagden (no licence) or Clefspeare13 (unverifiable) | **234,341 removed** |
 | Remove entries covered by a listed parent domain | 9,025 |
 
@@ -65,10 +65,14 @@ performance measurement. Adding one later needs that evidence plus a licence che
 
 ## Residual risk — Owner/legal decision
 
-1. **The 492,511 "BLP-own" entries.** They are in no source we could trace, so we treat them as the BLP maintainers' own work, which they
-   declare Unlicense (the file header says MIT; both are permissive and the discrepancy is recorded). We cannot prove that none of them
-   came from an earlier, untraced upstream. *Strict alternative:* ShadowWhisperer ∪ Sinfonietta only (≈ 276 k domains, every entry
-   attributable to a verified permissive licence) at the price of ≈ 60 % less coverage. Say if you want it; it is a one-line rule change.
+1. **The 492,511 unattributed entries.** They appear in the Block List Project file and in none of the six sources we examined. **That does not show
+   they are the BLP maintainers' original work** — they may come from a source we did not examine, or from an earlier version of one we did. We could
+   not determine their origin. The only licence basis we have for them is the BLP repository's own Unlicense declaration (its file header says MIT);
+   we cannot verify that every contributor could license every entry. This is a documented, unresolved risk, not a verified licence.
+   *Strict alternative:* keep only ShadowWhisperer ∪ Sinfonietta (every entry attributable to a verified permissive licence). That list has fewer
+   entries (≈ 276 k), but **the difference in entry count is not a measure of the difference in protection**: we did not measure coverage of real
+   adult sites, and overlap, staleness and duplicate/parent-domain structure make counts a poor proxy. If you want the strict list, the change is
+   one rule in `scripts/update-base-list.mjs` plus a re-run of the tests; measuring coverage first would need a reviewed, labelled sample.
 2. **Pinned commits:** hashes and dates identify the inputs; commit hashes need GitHub access at the next refresh.
 3. **Repository size:** the snapshot is 3.7 MB gzip (was 4.8 MB), kept in git as decided.
 

@@ -6,7 +6,9 @@
 // Composition rule (decision recorded in data/base-list/README.md):
 //   KEEP   every ShadowWhisperer "Adult" entry                                   (Unlicense, verified LICENSE)
 //   KEEP   Block List Project entries that ShadowWhisperer or Sinfonietta also list (both permissive, attribution kept)
-//   KEEP   Block List Project entries found in NO other source we can trace        (the maintainers' own curation, Unlicense)
+//   KEEP   Block List Project entries that none of the sources we examined lists  ("unattributed": origin UNKNOWN - not found in the
+//          examined sources, which does NOT show they are original work of the Block List Project; the licence position rests only on
+//          the repository's Unlicense declaration. Owner/legal decision, see data/base-list/README.md)
 //   DROP   Block List Project entries traceable only to Hagezi (GPL-3.0), to zachlagden (no licence), or to Clefspeare13
 //          (licence not independently verifiable) when no permissive source also lists them.
 //   NOT ADDED  Sinfonietta-only entries (no evidence of freshness) - counted in PROVENANCE.json as a candidate.
@@ -53,10 +55,10 @@ const traceOnly = new Set([...sets['hagezi-nsfw.txt'], ...sets['zachlagden-nsfw.
 const permissive = new Set([...SW, ...SIN]);
 
 const keep = new Set(SW);
-const counts = { blpTotal: B.size, blpAlsoInPermissive: 0, blpOwnUntraced: 0, blpDroppedTraceableOnlyToUnclear: 0, shadowWhispererAddedBeyondBlp: 0, sinfoniettaOnlyNotAdded: 0 };
+const counts = { blpTotal: B.size, blpAlsoInPermissive: 0, blpUnattributed: 0, blpDroppedTraceableOnlyToUnclear: 0, shadowWhispererAddedBeyondBlp: 0, sinfoniettaOnlyNotAdded: 0 };
 for (const d of B) {
     if (permissive.has(d)) { keep.add(d); counts.blpAlsoInPermissive++; }
-    else if (!traceOnly.has(d)) { keep.add(d); counts.blpOwnUntraced++; }
+    else if (!traceOnly.has(d)) { keep.add(d); counts.blpUnattributed++; }
     else counts.blpDroppedTraceableOnlyToUnclear++;
 }
 for (const d of SW) if (!B.has(d)) counts.shadowWhispererAddedBeyondBlp++;
@@ -81,7 +83,7 @@ fs.writeFileSync(path.join(dir, 'adult-domains.txt.gz'), gz);
 const tlds = {};
 for (const domain of kept) { const tld = domain.slice(domain.lastIndexOf('.') + 1); tlds[tld] = (tlds[tld] ?? 0) + 1; }
 const LICENSES = {
-    'blp-porn.txt': { name: 'The Block List Project - porn.txt', repository: 'https://github.com/blocklistproject/Lists', licence: 'The Unlicense (LICENSE in repository root; file header says MIT)', use: 'primary container; maintainers\' own curation' },
+    'blp-porn.txt': { name: 'The Block List Project - porn.txt', repository: 'https://github.com/blocklistproject/Lists', licence: 'The Unlicense (LICENSE in repository root; file header says MIT)', use: 'primary container; its repository declares The Unlicense' },
     'shadowwhisperer-adult.txt': { name: 'ShadowWhisperer BlockLists - Lists/Adult', repository: 'https://github.com/ShadowWhisperer/BlockLists', licence: 'The Unlicense (LICENSE verified)', use: 'included in full' },
     'sinfonietta-pornography-hosts.txt': { name: 'Sinfonietta hostfiles - pornography-hosts', repository: 'https://github.com/Sinfonietta/hostfiles', licence: 'MIT, Copyright (c) 2016 Sinfonietta (LICENSE verified)', use: 'attribution for entries that Block List Project also lists; Sinfonietta-only entries NOT added (no freshness evidence)' },
     'hagezi-nsfw.txt': { name: 'HaGeZi - dns-blocklists nsfw', repository: 'https://github.com/hagezi/dns-blocklists', licence: 'GNU GPL-3.0 (LICENSE verified)', use: 'TRACE ONLY - entries traceable only to this source are removed; nothing is copied from it' },
@@ -91,7 +93,7 @@ const LICENSES = {
 const provenance = {
     name: 'Tabsira built-in adult-sites list (composite snapshot)',
     retrievedAt: retrieved,
-    composition: 'ShadowWhisperer Adult (all) + Block List Project entries that a permissive source also lists + Block List Project entries not traceable to any other source; minus entries traceable only to GPL-3.0 / unlicensed / unverifiable sources.',
+    composition: 'ShadowWhisperer Adult (all) + Block List Project entries that a permissive source also lists + Block List Project entries not found in any examined source (origin unknown; licence position rests on the repository Unlicense declaration); minus entries traceable only to GPL-3.0 / unlicensed / unverifiable sources.',
     snapshotFile: 'adult-domains.txt.gz (gzip of sorted, one domain per line)',
     snapshotEntries: kept.length,
     snapshotSha256: sha256(Buffer.from(text)),

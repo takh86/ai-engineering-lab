@@ -1,4 +1,5 @@
 import { TabsiraError } from '../core/errors.js';
+import { epochKey, maxEpoch } from '../core/records.js';
 
 const PREFIX = 'mx:';
 
@@ -18,6 +19,7 @@ export function createWriteMutex(api, { leaseMs = 20000, waitMs = 15000, pollMs 
     const me = api.instanceId;
     const key = `${PREFIX}${me}`;
     let held = false;
+    let epoch = 0;
 
     const entriesOf = (all, now) => Object.entries(all)
         .filter(([name, value]) => name.startsWith(PREFIX) && name !== key && value && typeof value === 'object' && Number.isFinite(value.exp) && value.exp > now)
@@ -60,10 +62,19 @@ export function createWriteMutex(api, { leaseMs = 20000, waitMs = 15000, pollMs 
         await api.storage.set({ [key]: { ...mine, exp: now + leaseMs } });
     }
 
-    async function run(task) {
-        await acquire();
-        try { return await task(); } finally { await release(); }
+    // Fencing token: every holder registers an epoch greater than all epochs registered before it. A frozen holder keeps its old
+    // epoch, so anything it writes late is ranked below what later holders wrote (see core/records.js). If the lease was lost while
+    // the epoch was being registered, assertOwner() fails closed before anything else is written.
+    async function beginEpoch() {
+        epoch = 1 + maxEpoch(await api.storage.getAll());
+        await api.storage.set({ [epochKey(me)]: { n: epoch } });
+        await assertOwner();
     }
 
-    return { run, assertOwner, isHeld: () => held };
+    async function run(task) {
+        await acquire();
+        try { await beginEpoch(); return await task(); } finally { epoch = 0; await release(); }
+    }
+
+    return { run, assertOwner, isHeld: () => held, epoch: () => epoch };
 }

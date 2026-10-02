@@ -11,8 +11,8 @@ versions follow `package.json`. The built-in list version is the version of the 
   writes never touch it; every state change runs inside a storage-based cross-instance write lock with a lease (`busy` instead of writing blindly).
   Deterministic regression tests (written first; the output on the old commit is archived) and a real-browser test with a paused real worker.
 - **Fixed (Medium):** a repair paused past its lease could leave stale rules after another instance's newer save; rules-only writes now re-verify.
-- **Built-in list rebuilt from documented sources.** 714,093 domains (was 936,979): ShadowWhisperer (Unlicense) + Block List Project (Unlicense) + Sinfonietta (MIT,
-  attribution); 234,341 entries traceable only to GPL-3.0 / unlicensed / unverifiable upstreams removed; inputs pinned by SHA-256; licences and
+- **Built-in list rebuilt with verified source licences (plus an unattributed remainder).** 714,093 domains (was 936,979): ShadowWhisperer (Unlicense) + Block List Project (Unlicense) + Sinfonietta (MIT,
+  attribution; 492,511 Block List Project entries are "unattributed" — origin unknown, see `data/base-list/README.md`); 234,341 entries traceable only to GPL-3.0 / unlicensed / unverifiable upstreams removed; inputs pinned by SHA-256; licences and
   `THIRD_PARTY_NOTICES.txt` shipped in the package and linked from Settings. Package is ~1 MB smaller.
 - **Approved visual identity** on Popup, Options, Onboarding, Stop and Help pages: shared design tokens (`tokens.css`), Cairo Bold + Tajawal (OFL, bundled, no
   network), blue/lime filter mark (redrawn from the Owner's reference — not the designer's SVG), lime primary action with dark text, status by text + icon + colour,

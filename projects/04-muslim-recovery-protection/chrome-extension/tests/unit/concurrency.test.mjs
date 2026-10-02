@@ -9,6 +9,8 @@ import { createFakeBrowser } from './fake-browser.mjs';
 
 const noList = { baseList: false, starterTerms: false, domains: [], allow: [], words: [], contains: [] };
 const tick = (ms = 5) => new Promise(resolve => setTimeout(resolve, ms));
+// A write of the configuration (append-only record `cfg:<epoch>:<instance>`; the pre-V1.2 layout used the single key `config`).
+const isConfigWrite = items => Object.keys(items).some(key => key === 'config' || key.startsWith('cfg:'));
 const gate = () => { let open; const promise = new Promise(resolve => { open = resolve; }); return { promise, open }; };
 
 let peers = 0;
@@ -35,7 +37,7 @@ test('REGRESSION: a paused SAVE_SETTINGS (same settings) must not erase a sessio
     const realSet = t.api.storage.set;
     // Pause A's storage write AFTER its compare step and BEFORE the write itself (exact sequence of the review).
     t.api.storage.set = async items => {
-        if (!paused && items.config) { paused = true; await hold.promise; }
+        if (!paused && isConfigWrite(items)) { paused = true; await hold.promise; }
         return realSet(items);
     };
     const saveA = t.send(t.a, { type: 'SAVE_SETTINGS', baseRevision: before.revision, settings: { ...noList, domains: ['example.com'] } });
@@ -64,7 +66,7 @@ test('REGRESSION (variants): a paused IMPORT, or a config write that fails and r
         const rev = (await statusOf(t)).revision;
         const hold = gate(); let paused = false; const realSet = t.api.storage.set;
         t.api.storage.set = async items => {
-            if (!paused && items.config) { paused = true; await hold.promise; if (mode === 'rollback') throw new Error('injected write failure'); }
+            if (!paused && isConfigWrite(items)) { paused = true; await hold.promise; if (mode === 'rollback') throw new Error('injected write failure'); }
             return realSet(items);
         };
         const file = JSON.stringify({ format: 'tabsira-settings', version: 2, settings: { ...noList, domains: ['other.org'] } });
@@ -117,7 +119,7 @@ test('configuration writes never write any lock key', async () => {
     const rev = (await statusOf(t)).revision;
     await t.send(t.b, { type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...noList, domains: ['example.com', 'more.org'] } });
     t.api.storage.set = realSet;
-    assert.ok(written.includes('config'));
+    assert.ok(written.some(key => key.startsWith('cfg:')), 'configuration is written as an append-only record');
     assert.ok(!written.some(key => key === 'lock' || key.startsWith('lock:')));
 });
 

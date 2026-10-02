@@ -23,7 +23,7 @@ proposal** needing an Owner decision (see "Proposals needing a decision" in `chr
 |---|---|---|
 | 1 | One shared core (`src/core`, `src/background`) with per-browser manifests produced by `scripts/build.mjs`. | Chrome uses `service_worker`, Firefox `background.scripts`; the rest is identical. |
 | 2 | Built-in list is an **opt-in snapshot** shipped inside the package; no remote updates. | Privacy, reviewability, no new server/provider. |
-| 3 | Source: composite of ShadowWhisperer Adult (Unlicense) + Block List Project `porn.txt` (Unlicense; header says MIT) + Sinfonietta (MIT, attribution only); entries traceable only to GPL-3.0 / unlicensed / unverifiable upstreams were removed (714,093 domains). | Redistribution right documented per source — see `chrome-extension/data/base-list/README.md`. Residual legal risk listed there. |
+| 3 | Source: composite of ShadowWhisperer Adult (Unlicense) + Block List Project `porn.txt` (Unlicense; header says MIT) + Sinfonietta (MIT, attribution only); entries traceable only to GPL-3.0 / unlicensed / unverifiable upstreams were removed (714,093 domains). | Licence verified per contributing source — see `chrome-extension/data/base-list/README.md`; **492,511 entries are unattributed (origin unknown)** and rest on the BLP repository declaration only. |
 | 4 | Precedence: exception > user rules > built-in list. | Lets users fix wrong blocks without weakening their own rules. |
 | 5 | Adding an exception, disabling the list/starter terms, removing a rule, resetting, or importing something that does so counts as weakening and is refused during a session. | Owner requirement. |
 | 6 | Redirect to a stop page (not `block`) using `host_permissions` for http/https. | Needed to show help at the moment of blocking; cost is a broad permission, justified in the store text. |
@@ -42,7 +42,7 @@ proposal** needing an Owner decision (see "Proposals needing a decision" in `chr
 | 5 | Security and Red Team review; real screenshots; freeze a commit; test the packages themselves; new PR to `main` completing PR #73's prototype; do not merge or publish. | `tabsira-security-review.md` (self-review, not independent — stated); e2e extracts and tests the release ZIPs; new PR. |
 
 ## Unresolved decisions (Owner)
-- **List licence sign-off** — especially the 492,511 "Block List Project own" entries (residual risk; strict alternative ≈ 276 k entries) — see `data/base-list/README.md`.
+- **List licence sign-off** — especially the 492,511 **unattributed** Block List Project entries (origin unknown, found in no other examined source; strict alternative ≈ 276 k entries, whose size difference is not a coverage measurement) — see `data/base-list/README.md`.
 - **Master SVG** of the Tabsira mark (the shipped mark is a redraw), and an approved store icon/promo design.
 - **Independent** security reviewer for the final round (this round was a self-review).
 - **Branded Google Chrome stable** and Windows/macOS runs (only Chrome *for Testing* on Linux was available).

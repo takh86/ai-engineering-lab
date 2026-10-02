@@ -490,13 +490,13 @@ export async function runSuite({ browserName, executablePath, report, pkg }) {
         await save(options, { domains: ['fault-a.test'] });
         const worker = b.getWorker();
         // Real DNR + real storage; only the storage write is made to fail once.
-        await worker.evaluate(() => { const original = chrome.storage.local.set.bind(chrome.storage.local); globalThis.__restoreSet = () => { chrome.storage.local.set = original; }; let fired = false; chrome.storage.local.set = items => { if (!fired && items.config) { fired = true; return Promise.reject(new Error('injected disk failure')); } return original(items); }; });
+        await worker.evaluate(() => { const isCfg = items => items && Object.keys(items).some(k => k === 'config' || k.startsWith('cfg:')); const original = chrome.storage.local.set.bind(chrome.storage.local); globalThis.__restoreSet = () => { chrome.storage.local.set = original; }; let fired = false; chrome.storage.local.set = items => { if (!fired && isCfg(items)) { fired = true; return Promise.reject(new Error('injected disk failure')); } return original(items); }; });
         const failed = await save(options, { domains: ['fault-b.test'] });
         const aStill = await visit(b.context, url('fault-a.test')); const bNot = await visit(b.context, url('fault-b.test'));
         check('S13.1 real storage failure after rules were installed: error reported, previous rules restored (real DNR)', !failed.ok && failed.error.code === 'apply_failed' && aStill.blocked && bNot.real, JSON.stringify({ code: failed.error?.code, a: aStill.blocked, b: bNot.real }));
         check('S13.2 status is consistent after the rollback', (await status(options)).state === 'active');
         // Rollback itself fails: storage write fails AND the first restore call to DNR fails.
-        await worker.evaluate(() => { const dnr = chrome.declarativeNetRequest; const original = dnr.updateDynamicRules.bind(dnr); globalThis.__restoreDnr = () => { dnr.updateDynamicRules = original; }; let calls = 0; const setOriginal = chrome.storage.local.set; chrome.storage.local.set = items => (items.config ? Promise.reject(new Error('injected disk failure')) : setOriginal.call(chrome.storage.local, items)); globalThis.__restoreSet2 = () => { chrome.storage.local.set = setOriginal; }; dnr.updateDynamicRules = async options => { calls += 1; if (calls === 2) throw new Error('injected restore failure'); return original(options); }; });
+        await worker.evaluate(() => { const isCfg = items => items && Object.keys(items).some(k => k === 'config' || k.startsWith('cfg:')); const dnr = chrome.declarativeNetRequest; const original = dnr.updateDynamicRules.bind(dnr); globalThis.__restoreDnr = () => { dnr.updateDynamicRules = original; }; let calls = 0; const setOriginal = chrome.storage.local.set; chrome.storage.local.set = items => (isCfg(items) ? Promise.reject(new Error('injected disk failure')) : setOriginal.call(chrome.storage.local, items)); globalThis.__restoreSet2 = () => { chrome.storage.local.set = setOriginal; }; dnr.updateDynamicRules = async options => { calls += 1; if (calls === 2) throw new Error('injected restore failure'); return original(options); }; });
         const bad = await save(options, { domains: ['fault-c.test'] });
         await worker.evaluate(() => { globalThis.__restoreSet2(); globalThis.__restoreDnr(); });
         check('S13.3 rollback failure is reported distinctly and the browser is left with the NEW rules (mismatch visible)', !bad.ok && bad.error.code === 'apply_failed_rollback_failed' && bad.status?.state === 'partial' && bad.status.reasons.includes('rules_mismatch'), JSON.stringify({ code: bad.error?.code, state: bad.status?.state, reasons: bad.status?.reasons }));
@@ -679,7 +679,7 @@ export async function runSuite({ browserName, executablePath, report, pkg }) {
                 const original = chrome.storage.local.set.bind(chrome.storage.local);
                 globalThis.__gate = { hit: false, release: null, restore: () => { chrome.storage.local.set = original; } };
                 chrome.storage.local.set = items => {
-                    if (items && items.config && !globalThis.__gate.hit) { globalThis.__gate.hit = true; return new Promise(resolve => { globalThis.__gate.release = () => resolve(original(items)); }); }
+                    if (items && Object.keys(items).some(k => k === 'config' || k.startsWith('cfg:')) && !globalThis.__gate.hit) { globalThis.__gate.hit = true; return new Promise(resolve => { globalThis.__gate.release = () => resolve(original(items)); }); }
                     return original(items);
                 };
             });
@@ -725,6 +725,69 @@ export async function runSuite({ browserName, executablePath, report, pkg }) {
             // state follows storage afterwards: browser rules == stored settings
             const healed = await status(options);
             check('S16.4 afterwards the browser rules match the stored settings (no half-applied state) and weakening is still refused', healed.state === 'active' && !healed.reasons.includes('rules_mismatch') && (await send(options, { type: 'SAVE_SETTINGS', baseRevision: healed.revision, settings: NO_LIST })).error?.code === 'locked_weakening');
+            await cdp.close().catch(() => {}); await finish(b);
+        }
+    }
+
+    // ================= S16b: the late-write scenario of the review of 7294cd6, in REAL browsers =================
+    // A save that DELETES every site is frozen inside the real storage write of the normal-window worker (after all its checks);
+    // its 20 s lease expires; the private-window instance saves newer sites and starts a session; then the frozen write is released.
+    // Before the fix the stored sites became [] and the rules zero while the session stayed active.
+    if (want('S16b')) {
+        const { chromium } = await import('playwright-core');
+        const net = await import('node:net');
+        const freePort = () => new Promise(resolve => { const srv = net.createServer(); srv.listen(0, '127.0.0.1', () => { const { port: p } = srv.address(); srv.close(() => resolve(p)); }); });
+        const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'tabsira-e2e-late-'));
+        let b = await open({ profileDir: profile });
+        let options = await openExtPage(b.context, b.extensionId, 'options.html');
+        await onboard(options); await save(options, { domains: ['late-keep.test', 'late-old.test'] });
+        const extId = b.extensionId;
+        await finish(b); await sleep(1200);
+        const prefsFile = path.join(profile, 'Default', 'Preferences');
+        const prefs = JSON.parse(fs.readFileSync(prefsFile, 'utf8')); prefs.extensions.settings[extId].incognito = true; fs.writeFileSync(prefsFile, JSON.stringify(prefs));
+        const port = await freePort();
+        b = await open({ profileDir: profile, extraArgs: [`--remote-debugging-port=${port}`] });
+        await sleep(1500);
+        options = await openExtPage(b.context, b.extensionId, 'options.html');
+        const normalWorker = b.getWorker();
+        const cdp = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
+        const seen = new Set(cdp.contexts().flatMap(c => c.pages()));
+        await options.evaluate(u => chrome.windows.create({ url: u, incognito: true }), `chrome-extension://${b.extensionId}/options.html`).catch(() => {});
+        await sleep(2800);
+        let priv = null; for (const ctx of cdp.contexts()) for (const p of ctx.pages()) if (!seen.has(p) && p.url().startsWith('chrome-extension://')) priv = p;
+        if (!priv) { skip('S16b.* late write across normal + private instances', 'a private-window settings page was not observable in this browser'); await cdp.close().catch(() => {}); await finish(b); }
+        else {
+            const sendPriv = message => priv.evaluate(m => chrome.runtime.sendMessage(m), message);
+            const statusPriv = async () => (await sendPriv({ type: 'GET_STATUS' })).status;
+            await normalWorker.evaluate(() => {
+                const original = chrome.storage.local.set.bind(chrome.storage.local);
+                globalThis.__gate = { hit: false, release: null, restore: () => { chrome.storage.local.set = original; } };
+                chrome.storage.local.set = items => {
+                    if (items && Object.keys(items).some(k => k === 'config' || k.startsWith('cfg:')) && !globalThis.__gate.hit) { globalThis.__gate.hit = true; return new Promise(resolve => { globalThis.__gate.release = () => resolve(original(items)); }); }
+                    return original(items);
+                };
+            });
+            const rev = (await status(options)).revision;
+            const oldSave = send(options, { type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...NO_LIST, domains: [] } });      // deletes every site
+            let frozen = false; for (let i = 0; i < 100 && !frozen; i++) { frozen = await normalWorker.evaluate(() => globalThis.__gate.hit); if (!frozen) await sleep(50); }
+            const t0 = Date.now();
+            const newerSettings = { ...NO_LIST, domains: ['late-keep.test', 'late-new.test'] };
+            const first = await sendPriv({ type: 'SAVE_SETTINGS', baseRevision: rev, settings: newerSettings });          // lease still valid -> fails closed
+            await sleep(Math.max(0, 21500 - (Date.now() - t0)));                                                          // the frozen holder's lease is over
+            const cur = await statusPriv();
+            const second = await sendPriv({ type: 'SAVE_SETTINGS', baseRevision: cur.revision, settings: newerSettings });
+            const started = await sendPriv({ type: 'START_SESSION', minutes: 60 });
+            await normalWorker.evaluate(() => { globalThis.__gate.release(); globalThis.__gate.restore(); });             // the old write now happens
+            const late = await oldSave;
+            await sleep(600);
+            const after = await statusPriv();
+            const keep = await visit(b.context, url('late-keep.test')); const added = await visit(b.context, url('late-new.test')); const removedOld = await visit(b.context, url('late-old.test'));
+            check('S16b.1 while the frozen holder\'s lease is valid the private instance fails closed ("busy")', frozen && !first.ok && first.error.code === 'busy', JSON.stringify({ frozen, first: first.ok ? 'ok' : first.error?.code }));
+            check('S16b.2 after the lease expired the private instance saves newer sites and starts a session', second.ok && started.ok, JSON.stringify({ second: second.ok ? 'ok' : second.error?.code, started: started.ok ? 'ok' : started.error?.code }));
+            check('S16b.3 the frozen "delete every site" write then resumes: stored sites are NOT emptied, rules still block the newer sites, the session is active', JSON.stringify([...after.settings.domains].sort()) === JSON.stringify(['late-keep.test', 'late-new.test']) && after.lock.active && after.state === 'active' && keep.blocked && added.blocked && removedOld.real, JSON.stringify({ domains: after.settings.domains, lock: after.lock.active, state: after.state, keep: keep.blocked, added: added.blocked, oldLoads: removedOld.real, lateSave: late.ok ? 'ok' : late.error?.code }));
+            const fromNormal = await status(options);
+            check('S16b.4 the normal-window instance sees the same final state (one shared truth)', JSON.stringify(fromNormal.settings.domains) === JSON.stringify(after.settings.domains) && fromNormal.lock.until === after.lock.until);
+            note('S16b', `the frozen save finished as ${late.ok ? 'ok' : late.error?.code}`);
             await cdp.close().catch(() => {}); await finish(b);
         }
     }

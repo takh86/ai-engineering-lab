@@ -5,6 +5,7 @@ import { STARTER_TERMS } from '../core/starter-terms.js';
 import { planRules, rulesMatch, BASE_RULESET_ID } from '../core/rules.js';
 import { isActive, SESSION_MINUTES, LOCK_KEY_PREFIX, mergeLocks } from '../core/lock.js';
 import { createWriteMutex } from './coordination.js';
+import { configKey, newestConfig, listConfigRecords, obsoleteKeys } from '../core/records.js';
 
 export const HOST_ORIGINS = Object.freeze(['http://*/*', 'https://*/*']);
 const EMPTY_SETTINGS = Object.freeze({ baseList: false, starterTerms: false, domains: [], allow: [], words: [], contains: [] });
@@ -44,16 +45,18 @@ export function createController(api, { mutex: mutexOptions } = {}) {
         let all;
         try { all = await api.storage.getAll(); }
         catch { return { kind: 'error', reason: 'storage_error' }; }
-        const raw = { config: all.config };           // exactly what is stored, for compare-and-set / restore
+        const newest = newestConfig(all);                              // highest (epoch, instance); see core/records.js
+        const raw = { key: newest?.key ?? null, config: newest?.value };   // exactly what is stored, for the stale check / restore
         const locks = mergeLocks(all);
+        const invalidConfigKeys = listConfigRecords(all).invalidKeys;
         let lock = { until: locks.until };
         try {
-            const result = migrate(all.config, lock);
+            const result = migrate(newest?.value, lock);
             if (result.migrated) lock = { until: Math.max(lock.until, result.lock.until), v0: result.lock.until };
             else lock = { until: locks.until };
-            if (locks.invalidKeys.length) return { kind: 'corrupt', reason: 'config_corrupt', lock, raw, lockKeys: locks, invalidLockKeys: locks.invalidKeys };
-            return { kind: result.fresh ? 'fresh' : 'ok', config: result.config, lock, migrated: result.migrated, raw, lockKeys: locks };
-        } catch { return { kind: 'corrupt', reason: 'config_corrupt', lock, raw, lockKeys: locks, invalidLockKeys: locks.invalidKeys }; }
+            if (locks.invalidKeys.length || invalidConfigKeys.length) return { kind: 'corrupt', reason: 'config_corrupt', lock, raw, lockKeys: locks, invalidLockKeys: [...locks.invalidKeys, ...invalidConfigKeys] };
+            return { kind: result.fresh ? 'fresh' : 'ok', config: result.config, lock, migrated: result.migrated, raw, lockKeys: locks, snapshot: all };
+        } catch { return { kind: 'corrupt', reason: 'config_corrupt', lock, raw, lockKeys: locks, invalidLockKeys: [...locks.invalidKeys, ...invalidConfigKeys] }; }
     }
 
     const activeSettings = config => (config.onboarded ? config : { ...config, ...EMPTY_SETTINGS });
@@ -83,77 +86,67 @@ export function createController(api, { mutex: mutexOptions } = {}) {
     const stable = value => JSON.stringify(value, (_, item) => (item && typeof item === 'object' && !Array.isArray(item)
         ? Object.fromEntries(Object.keys(item).sort().map(key => [key, item[key]])) : item));
     const sameJson = (a, b) => stable(a) === stable(b);
+    // True while the effective configuration record is still the one `expected` was read from.
     async function storedMatches(expected) {
-        const now = await api.storage.get('config');
-        return sameJson(now.config, expected.config);
+        const now = newestConfig(await api.storage.getAll());
+        return (now?.key ?? null) === expected.key && (expected.key !== 'config' || sameJson(now?.value, expected.config));
     }
 
     /**
-     * Applies `config` to the browser and (when `persist`) storage, atomically from the caller's view.
-     * `expected` is the exact raw storage content ({ config }, possibly undefined) the change is based on: it is
-     * compared right before writing and restored on failure. Runs inside the write mutex; the lease is re-checked right
-     * before the write. The session end time is never written here.
+     * Applies `config` to the browser and (when `persist`) to storage.
+     * `expected` is { key, config } of the record the change is based on. Storage is append-only (core/records.js): the write
+     * creates a record under THIS lock holder's epoch, so a write that arrives late (worker frozen past its lease) is dominated
+     * by whatever later holders wrote and can never become the configuration. Ownership is re-checked before the writes, and the
+     * effective record is re-read afterwards: if ours is not the effective one, the change is reported as `stale` and the browser
+     * rules are rebuilt from storage. Rollback removes only our own record and is skipped (-> `busy`, reconciled by handle())
+     * when the lease is gone. The session end time is never written here.
      */
     async function commit({ config, expected, persist }) {
         const plan = await planRules(activeSettings(config), supports);
         const before = await snapshot();
-        let touchedStorage = false;
+        let myKey = null;
         try {
             await setDynamicRules(plan.rules);
             await setBaseEnabled(plan.baseListEnabled);
-            if (persist) {
-                // A normal and a private-window instance of this worker can both write (Chromium "split" mode).
-                // Re-check right before writing, and again after, so an interleaved write is reported, not lost silently.
-                await mutex.assertOwner();
-                if (!(await storedMatches(expected))) throw new TabsiraError('stale');
-                touchedStorage = true;
-                await api.storage.set({ config });
-            }
+            await mutex.assertOwner();
+            if (!(await storedMatches(expected))) throw new TabsiraError('stale');
+            if (persist) { myKey = configKey(mutex.epoch(), api.instanceId); await api.storage.set({ [myKey]: config }); }
             if (!(await verify(plan))) {
-                // The browser may momentarily hold another instance's rules (private window saving at the same instant).
-                // If storage holds OUR configuration, re-apply our rules once; otherwise it is a real failure.
-                const stored = persist ? (await api.storage.get('config')).config : undefined;
-                if (persist && sameJson(stored, config)) { await setDynamicRules(plan.rules); await setBaseEnabled(plan.baseListEnabled); }
+                // The browser may momentarily hold another instance's rules. If storage holds OUR record, re-apply once.
+                if (persist && newestConfig(await api.storage.getAll())?.key === myKey) { await setDynamicRules(plan.rules); await setBaseEnabled(plan.baseListEnabled); }
                 if (!(await verify(plan))) throw new TabsiraError('verify_failed');
             }
-            if (persist && !sameJson((await api.storage.get('config')).config, config)) throw new TabsiraError('stale');
-            if (!persist) {
-                // A repair writes rules only. If this worker was paused past its lease, another instance may have saved a newer
-                // configuration meanwhile: then these rules are stale. 'busy' (lease lost) makes handle() reconcile again; 'stale' rebuilds below.
-                await mutex.assertOwner();
-                if (!(await storedMatches(expected))) throw new TabsiraError('stale');
-            }
+            const effective = newestConfig(await api.storage.getAll());
+            if ((effective?.key ?? null) !== (persist ? myKey : expected.key)) throw new TabsiraError('stale');   // a later holder wrote: ours is dominated
             return plan;
         } catch (error) {
-            // Lease lost (this worker was paused past its lease and another instance may have written): do nothing
-            // destructive here. handle() re-runs reconciliation under the mutex, which makes the browser follow storage.
+            // Lease lost (this worker was frozen past its lease): do nothing destructive. handle() re-runs reconciliation under
+            // a fresh lock, which rebuilds the rules from the effective stored record.
             if (error instanceof TabsiraError && error.code === 'busy') throw error;
             let restored = true;
             const attempt = async step => { try { await step(); } catch { restored = false; } };
-            // If another worker instance (private window) wrote the configuration after we did, its write is the
-            // newer truth: keep it and make the browser rules follow it instead of restoring our snapshot.
-            let supersededByOther = !touchedStorage && error instanceof TabsiraError && error.code === 'stale';
-            if (touchedStorage) {
-                try {
-                    const stored = (await api.storage.get('config')).config;
-                    supersededByOther = !sameJson(stored, config) && !sameJson(stored, expected.config);
-                } catch { restored = false; }
-            }
+            await mutex.assertOwner();       // lease gone -> 'busy': skip the rollback entirely
+            let newest = null;
+            try { newest = newestConfig(await api.storage.getAll()); } catch { restored = false; }
+            const effectiveKey = newest?.key ?? null;
+            // Superseded: someone else's record is the effective one. Our record (if written) is dominated: drop it, follow storage.
+            const supersededByOther = effectiveKey !== (expected.key) && effectiveKey !== myKey;
             if (supersededByOther) {
+                if (myKey) await attempt(() => api.storage.remove([myKey]));
                 await attempt(async () => {
                     const current = await readState();
                     if (current.kind !== 'ok') return;
-                    const plan = await planRules(activeSettings(current.config), supports);
-                    await setDynamicRules(plan.rules);
-                    await setBaseEnabled(plan.baseListEnabled);
+                    const rebuilt = await planRules(activeSettings(current.config), supports);
+                    await setDynamicRules(rebuilt.rules);
+                    await setBaseEnabled(rebuilt.baseListEnabled);
                 });
             } else {
+                // Our record is effective (or nothing was written): restore the previous record by removing ours, then the old rules.
+                if (myKey) await attempt(() => api.storage.remove([myKey]));
                 await attempt(() => setDynamicRules(before.rules));
                 await attempt(() => setBaseEnabled(before.baseEnabled));
-                if (touchedStorage) {
-                    await attempt(() => (expected.config === undefined ? api.storage.remove(['config']) : api.storage.set({ config: expected.config })));
-                }
             }
+            await mutex.assertOwner();       // the rollback itself may have been frozen: if the lease is gone, hand over to reconcile
             const code = supersededByOther && restored ? 'stale' : restored ? (error instanceof TabsiraError && error.code === 'stale' ? 'stale' : 'apply_failed') : 'apply_failed_rollback_failed';
             throw new TabsiraError(code, { cause: error instanceof TabsiraError ? error.code : 'api' });
         }
@@ -223,7 +216,8 @@ export function createController(api, { mutex: mutexOptions } = {}) {
     async function compactLocks(state) {
         const now = api.now();
         const stale = Object.entries(state.lockKeys?.keys ?? {}).filter(([, until]) => until <= now || until < state.lock.until).map(([key]) => key);
-        // keep exactly one entry when a session is active: the largest (first in sort order)
+        // configuration records and epoch entries that can no longer matter (all but the two newest records / the highest epoch)
+        if (state.snapshot) stale.push(...obsoleteKeys(state.snapshot));
         if (stale.length) { await mutex.assertOwner(); await api.storage.remove(stale); }
     }
 
@@ -253,6 +247,14 @@ export function createController(api, { mutex: mutexOptions } = {}) {
         if (own && Number.isSafeInteger(own.until) && own.until >= until) return;
         await api.storage.set({ [key]: { until } });
         if (mergeLocks(await api.storage.getAll()).until < until) throw new TabsiraError('apply_failed');
+    }
+
+    async function pinConfig(state) {
+        await mutex.assertOwner();
+        if (!(await storedMatches(state.raw))) throw new TabsiraError('stale');
+        await api.storage.set({ [configKey(mutex.epoch(), api.instanceId)]: state.raw.config });
+        const effective = newestConfig(await api.storage.getAll());
+        if (effective?.key !== configKey(mutex.epoch(), api.instanceId)) throw new TabsiraError('stale');
     }
 
     // ---- operations ----
@@ -313,6 +315,9 @@ export function createController(api, { mutex: mutexOptions } = {}) {
                 // Never promise commitment around protection that is not actually in place.
                 throw new TabsiraError(status.state === 'not_configured' ? 'session_needs_rules' : 'session_needs_active_protection');
             }
+            // Pin: a copy of the effective configuration under THIS holder's epoch. Every configuration write that began earlier (a frozen
+            // worker that resumes later) carries a lower epoch and is dominated by it, so nothing started before the session can land in it.
+            await pinConfig(state);
             // Grow-only: only ever raises this instance's own key; the effective end time is the maximum over all keys.
             const target = Math.max(state.lock.until, now + minutes * 60000);
             if (target > state.lock.until) await writeLock(target);

@@ -2,7 +2,13 @@
 // that is covered by tests/e2e in real browsers. It models: atomic dynamic-rule replacement,
 // browser-side reordering/normalization of returned rules, static ruleset switching, permission
 // state, and one-shot failure injection per operation.
+import { newestConfig } from '../../src/core/records.js';
 let fakeCounter = 0;
+/** The configuration the fake browser currently holds (highest record). */
+export const storedConfig = state => newestConfig(state.storage)?.value;
+/** Overwrites the effective record (simulates a damaged store). */
+export function corruptConfig(state, value) { const newest = newestConfig(state.storage); state.storage[newest?.key ?? 'config'] = value; }
+
 export function createFakeBrowser({ regexLimit = 400, hosts = true, incognito = true } = {}) {
     const state = {
         storage: {}, rules: [], baseEnabled: false, hosts, incognito, now: 1_700_000_000_000, badge: '',
@@ -42,7 +48,7 @@ export function createFakeBrowser({ regexLimit = 400, hosts = true, incognito = 
                     ? Object.fromEntries(Object.keys(value).sort().map(key => [key, sorted(value[key])])) : Array.isArray(value) ? value.map(sorted) : value);
                 return sorted(structuredClone(state.storage));
             },
-            set: async items => { if ('config' in items) failOnce('storage.set'); state.calls.push('storage.set'); for (const [k, v] of Object.entries(items)) state.storage[k] = structuredClone(v); },
+            set: async items => { if (Object.keys(items).some(key => key === 'config' || key.startsWith('cfg:'))) failOnce('storage.set'); state.calls.push('storage.set'); for (const [k, v] of Object.entries(items)) state.storage[k] = structuredClone(v); },
             remove: async keys => { failOnce('storage.remove'); for (const k of keys) delete state.storage[k]; }
         },
         dnr: {

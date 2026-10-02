@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createController } from '../../src/background/controller.js';
 import { isTrustedSender, validateMessage } from '../../src/background/messages.js';
-import { createFakeBrowser } from './fake-browser.mjs';
+import { createFakeBrowser, storedConfig, corruptConfig } from './fake-browser.mjs';
 
 const MIN = 60000;
 // The session end time is the maximum over all grow-only lock entries (core/lock.js).
@@ -51,7 +51,7 @@ test('save persists config and installs rules; stale revision is rejected; unsup
     assert.equal(ok.status.counts.domains, 1);
     const stale = await t.send({ type: 'SAVE_SETTINGS', baseRevision: 0, settings: { ...noList, domains: [] } });
     assert.equal(code(stale), 'stale');
-    assert.equal(t.state.storage.config.domains.length, 1);
+    assert.equal(storedConfig(t.state).domains.length, 1);
     t.api.dnr.isRegexSupported = async ({ regex }) => ({ isSupported: regex.length <= 300 });
     const tooLong = await t.save({ contains: ['fine', 'ع'.repeat(60)] });
     assert.equal(code(tooLong), 'phrase_too_complex'); assert.deepEqual(tooLong.error.params, { line: 2, list: 'contains' });
@@ -72,7 +72,7 @@ test('commitment: refuses every weakening path, allows stronger changes, ends on
     await t.save({ baseList: true, starterTerms: true, domains: ['example.com'], words: ['alpha beta'], contains: ['gamma'], allow: ['fine.example.net'] });
     const started = await t.send({ type: 'START_SESSION', minutes: 60 });
     assert.ok(started.ok && started.status.lock.active);
-    const rev = () => t.state.storage.config.revision;
+    const rev = () => storedConfig(t.state).revision;
     const base = { baseList: true, starterTerms: true, domains: ['example.com'], words: ['alpha beta'], contains: ['gamma'], allow: ['fine.example.net'] };
     const attempt = over => t.send({ type: 'SAVE_SETTINGS', baseRevision: rev(), settings: { ...base, ...over } });
     for (const [over, why] of [[{ domains: [] }, 'domain_removed'], [{ baseList: false }, 'base_list_disabled'], [{ starterTerms: false }, 'starter_terms_disabled'],
@@ -83,7 +83,7 @@ test('commitment: refuses every weakening path, allows stronger changes, ends on
     assert.equal(code(await t.send({ type: 'RESET', baseRevision: rev() })), 'locked_weakening');
     const weakImport = JSON.stringify({ format: 'tabsira-settings', version: 2, settings: { ...noList, allow: ['evil.example.org'] } });
     assert.equal(code(await t.send({ type: 'IMPORT_SETTINGS', baseRevision: rev(), text: weakImport })), 'locked_weakening');
-    assert.deepEqual(t.state.storage.config.domains, ['example.com']);
+    assert.deepEqual(storedConfig(t.state).domains, ['example.com']);
     // stronger is allowed, even removing an exception
     assert.ok((await attempt({ domains: ['example.com', 'more.org'], allow: [] })).ok);
     // shorter session cannot shorten
@@ -115,7 +115,7 @@ test('commitment survives service-worker restart and config/lock live in separat
     const restarted = t.restart();
     const status = await restarted.reconcile();
     assert.ok(status.lock.active);
-    const r = await restarted.handle(validateMessage({ type: 'SAVE_SETTINGS', baseRevision: t.state.storage.config.revision, settings: { ...noList } }));
+    const r = await restarted.handle(validateMessage({ type: 'SAVE_SETTINGS', baseRevision: storedConfig(t.state).revision, settings: { ...noList } }));
     assert.equal(r.error.code, 'locked_weakening');
 });
 
@@ -125,7 +125,7 @@ test('storage failure after rules were installed restores rules and settings', a
     const r = await t.save({ domains: ['example.org'] });
     assert.equal(code(r), 'apply_failed');
     assert.deepEqual(t.state.rules[0].condition.requestDomains, ['example.com']);
-    assert.deepEqual(t.state.storage.config.domains, ['example.com']);
+    assert.deepEqual(storedConfig(t.state).domains, ['example.com']);
     assert.equal((await t.send({ type: 'GET_STATUS' })).status.state, 'active');
 });
 
@@ -147,7 +147,7 @@ test('rollback that itself fails is reported, leaves the last good config stored
     const r = await t.save({ domains: ['example.org'] });
     assert.equal(code(r), 'apply_failed_rollback_failed');
     assert.equal(r.status.state, 'partial'); assert.ok(r.status.reasons.includes('rules_mismatch'));
-    assert.deepEqual(t.state.storage.config.domains, ['example.com']);       // last good config intact
+    assert.deepEqual(storedConfig(t.state).domains, ['example.com']);       // last good config intact
     t.api.dnr.updateDynamicRules = originalUpdate;
     const healed = (await t.send({ type: 'GET_STATUS' })).status;           // status auto-repairs mismatch
     assert.equal(healed.state, 'active');
@@ -164,7 +164,7 @@ test('dynamic rules wiped behind our back are restored on restart and by status'
 test('corrupt or unreadable storage never removes existing protection and reports unknown', async () => {
     const t = setup(); await t.onboard(true, false); await t.save({ baseList: true, domains: ['example.com'] });
     const rules = JSON.stringify(t.state.rules);
-    t.state.storage.config = { v: 2, nonsense: true };
+    corruptConfig(t.state, { v: 2, nonsense: true });
     let status = await t.restart().reconcile();
     assert.equal(status.state, 'unknown'); assert.ok(status.reasons.includes('config_corrupt'));
     assert.equal(JSON.stringify(t.state.rules), rules); assert.equal(t.state.baseEnabled, true);
@@ -177,7 +177,7 @@ test('corrupt or unreadable storage never removes existing protection and report
 test('corrupt config: reset is the escape hatch but an active commitment still blocks it', async () => {
     const t = setup(); await t.onboard(false, false); await t.save({ domains: ['example.com'] });
     await t.send({ type: 'START_SESSION', minutes: 60 });
-    t.state.storage.config = 'garbage';
+    corruptConfig(t.state, 'garbage');
     assert.equal(code(await t.send({ type: 'RESET', baseRevision: 0 })), 'locked_weakening');
     assert.equal(t.state.rules.length, 1);
     t.state.now += 61 * MIN;
@@ -197,10 +197,10 @@ test('prototype (v0) configuration is migrated in place and keeps its rules and 
     const t = setup();
     t.state.storage.config = { domains: ['example.com'], keywords: ['Test Phrase'], lockedUntil: t.state.now + 30 * MIN };
     const status = await t.controller.reconcile();
-    assert.equal(t.state.storage.config.v, 2);
-    assert.deepEqual(t.state.storage.config.contains, ['test phrase']);
+    assert.equal(storedConfig(t.state).v, 2);
+    assert.deepEqual(storedConfig(t.state).contains, ['test phrase']);
     assert.ok(status.lock.active); assert.equal(status.state, 'active');
-    assert.equal(code(await t.send({ type: 'SAVE_SETTINGS', baseRevision: t.state.storage.config.revision, settings: { ...noList } })), 'locked_weakening');
+    assert.equal(code(await t.send({ type: 'SAVE_SETTINGS', baseRevision: storedConfig(t.state).revision, settings: { ...noList } })), 'locked_weakening');
 });
 
 test('concurrent requests are serialized: no lost update, no interleaved rule installs', async () => {
@@ -214,16 +214,16 @@ test('concurrent requests are serialized: no lost update, no interleaved rule in
     ]);
     assert.deepEqual(results.map(r => r.ok), [true, false, true]);       // second saw a stale revision; lock ran after the first
     assert.equal(results[1].error.code, 'stale');
-    assert.deepEqual(t.state.storage.config.domains, ['a.example.com']);
+    assert.deepEqual(storedConfig(t.state).domains, ['a.example.com']);
     assert.ok(lockUntil(t) > 0);
 });
 
 test('import merges into settings and is refused when it would weaken a commitment', async () => {
     const t = setup(); await t.onboard(false, false); await t.save({ domains: ['example.com'] });
     const file = settings => JSON.stringify({ format: 'tabsira-settings', version: 2, settings: { ...noList, ...settings } });
-    const rev = () => t.state.storage.config.revision;
+    const rev = () => storedConfig(t.state).revision;
     assert.ok((await t.send({ type: 'IMPORT_SETTINGS', baseRevision: rev(), text: file({ domains: ['other.org'], contains: ['delta'] }) })).ok);
-    assert.deepEqual([...t.state.storage.config.domains].sort(), ['example.com', 'other.org']);
+    assert.deepEqual([...storedConfig(t.state).domains].sort(), ['example.com', 'other.org']);
     assert.equal(code(await t.send({ type: 'IMPORT_SETTINGS', baseRevision: rev(), text: 'not json' })), 'import_invalid');
     const exported = await t.send({ type: 'GET_EXPORT' });
     assert.ok(JSON.parse(exported.text).settings.domains.includes('other.org'));
@@ -231,12 +231,12 @@ test('import merges into settings and is refused when it would weaken a commitme
 
 test('a stale base (another instance saved first) is refused before any rule changes', async () => {
     const t = setup(); await t.onboard(false, false); await t.save({ domains: ['example.com'] });
-    const rev = t.state.storage.config.revision;
+    const rev = storedConfig(t.state).revision;
     const other = createController({ ...t.api, instanceId: 'other-instance' });
     assert.ok((await other.handle(validateMessage({ type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...noList, domains: ['example.com', 'b.org'] } }))).ok);
     const late = await t.send({ type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...noList, domains: ['example.com', 'c.org'] } });
     assert.equal(code(late), 'stale');
-    assert.deepEqual([...t.state.storage.config.domains].sort(), ['b.org', 'example.com']);
+    assert.deepEqual([...storedConfig(t.state).domains].sort(), ['b.org', 'example.com']);
 });
 
 test('messages: strict schema, trusted senders only, nothing sensitive echoed', () => {
