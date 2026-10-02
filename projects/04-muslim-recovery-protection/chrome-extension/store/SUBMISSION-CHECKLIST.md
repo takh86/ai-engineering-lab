@@ -8,7 +8,7 @@ Nothing below has been done. No account was created, no fee paid, nothing upload
 - [ ] Review the **starter search phrases** (`src/core/starter-terms.js`) and the **built-in list decision** (`data/base-list/README.md`).
 - [ ] Provide the designer's **master SVG** of the mark (the shipped mark is the Owner-supplied vector reconstruction, `docs/brand/ASSETS.md`, `docs/brand/vector/SOURCE.md`) and approve the generated icon, screenshots and promo images in `store/images/`.
 - [ ] Decide the Firefox add-on ID (`{6e6f9f5e-…}` is a placeholder GUID; it cannot change after the first AMO upload).
-- [ ] Publish `store/privacy-policy.html` at a stable HTTPS URL (any static host, e.g. GitHub Pages) and add the publication date and a contact address (marked in the file).
+- [ ] Publish the policy at a stable HTTPS URL: `store/privacy-pages/` (index.html + .nojekyll, ZIP included) is ready for a public GitHub Pages repo `takh86/tabsira-privacy` (branch main, root). Date and contact are filled in. **Not yet published**: creating the repo needs the Owner (the session had no permission to create repositories).
 - [ ] *(optional, at your discretion)* Counsel confirmation of the list. The Owner decision stands: the list is ONLY ShadowWhisperer `Lists/Adult` (Unlicense) ∪ Sinfonietta `pornography-hosts` (MIT), as decided; see `data/base-list/README.md` for what was verified (licence covers the files, notices shipped) and what cannot be (the upstream projects do not document where individual entries came from; Sinfonietta's file has 49 contributing authors).
 - [ ] Confirm the target-device manual checks in `TESTING.md` ("Manual steps") on the machines you will actually use (real Chrome/Edge/Firefox release builds, Windows/macOS).
 
