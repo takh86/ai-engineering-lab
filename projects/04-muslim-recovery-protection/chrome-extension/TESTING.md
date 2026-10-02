@@ -19,9 +19,9 @@ editing `manifest.json` only, and the harness fails if any other file differs: `
 the checks calling `testMatchOutcome`: base-list sampling S3 and match timing S11), `optional` (host access optional, for the "permission missing" state S8),
 `live` (a copy whose manifest version is raised in place for the update test S7.11–S7.13). Evidence files record the ZIP path and SHA-256.
 
-Package under test (frozen code commit `06e557d`; later commits change only documentation and evidence — verified by rebuilding):
-`tabsira-chromium-1.0.0.zip` SHA-256 `a07e55d609d10f387b49195092ae99cb3d772d2d00f99f87820a3bd3c1e3864a`,
-`tabsira-firefox-1.0.0.zip` SHA-256 `36b7ef250de3f1cc9836c9478bbb1ffde020e665457a12946051243129c669ab`.
+Package under test (frozen code commit `f6b0eb6`; later commits change only documentation and evidence — verified by rebuilding):
+`tabsira-chromium-1.0.0.zip` SHA-256 `1c0b9f58c9a1474a826cc9fd7aac3f2dcc00198e21675f1e62cf7627b43e29f2`,
+`tabsira-firefox-1.0.0.zip` SHA-256 `116bf1384061593872be49b98e5338dd4224617bb6e7f36665137144769750ee`.
 
 Linux x64 sandbox, headless (`--headless=new` for Chromium-family). Test sites resolve to a local server (`--host-resolver-rules` for Chromium-family, a local HTTP proxy
 for Firefox); no real website — and no listed adult domain — was ever contacted. The base list is exercised with `testMatchOutcome` (never sends a request) and the reserved safe-test domain.
@@ -40,7 +40,7 @@ for Firefox); no real website — and no listed adult domain — was ever contac
 | Fresh install, default list, clear status | S1.*, S2.4 · F1.*, F2.* |
 | Blocked domain and its subdomains | S4.1, S3.1–S3.2 · F3.1 |
 | Similar-looking domain not blocked | S4.1, S3.3–S3.4, S3.5 (140 known-benign sites) · F3.1 |
-| List provenance enforced in the real ruleset | S3.5b (domains removed for unclear licence are NOT matched), S3.5c (ShadowWhisperer-only domains ARE matched) |
+| List = the two licensed sources only, enforced in the real ruleset | S1.4/F1.2 (exactly 242,750 domains), S3.5b (names from the previous snapshot that the licence-only rule removed are NOT matched), S3.5c/S3.5d/S3.5e (ShadowWhisperer-only, Sinfonietta-only and in-both samples ARE matched); unit test pins commits, blobs, hashes, licence texts and notices |
 | Exception precedence | S3.9, S4.2–S4.3 · F3.2–F3.3 |
 | Arabic/English phrases, encodings, engines, boundaries | S5.* · F4.* |
 | Normal vs private window, permission granted / not granted | S9.* (Chromium-family) · **F9.\* (Firefox private windows, both cases)** |
@@ -67,9 +67,9 @@ for Firefox); no real website — and no listed adult domain — was ever contac
 
 | Browser | Version / OS | PASS | FAIL | NOT RUN |
 |---|---|---|---|---|
-| Chromium | 141.0.7390.37 · Linux x64 | 153 | 0 | 2 |
-| **Google Chrome for Testing** | 154.0.8037.97 · Linux x64 | 153 | 0 | 2 |
-| Microsoft Edge | 154.0.4258.53 · Linux x64 | 153 | 0 | 2 |
+| Chromium | 141.0.7390.37 · Linux x64 | 155 | 0 | 2 |
+| **Google Chrome for Testing** | 154.0.8037.97 · Linux x64 | 155 | 0 | 2 |
+| Microsoft Edge | 154.0.4258.53 · Linux x64 | 155 | 0 | 2 |
 | Mozilla Firefox (temporary add-on) | 157.0 · Linux x64 | 44 | 0 | 1 |
 | **Mozilla Firefox — private windows** | 157.0 · Linux x64 | 11 | 0 | 0 |
 
@@ -92,19 +92,19 @@ Unit/static: `npm test` → 86 tests, 0 failures (core, controller with fault in
 | **real-browser S16b against the `7294cd6` package** | `tests/unit/regression-s16b-real-browser-on-7294cd6.expected-failure.txt` — S16b.3 fails: stored sites `[]`, state `not_configured`, nothing blocked, session still active, the late save reports `ok` |
 | real-browser S16 against the old package | `tests/unit/regression-s16-real-browser-on-d662632.expected-failure.txt` (4 of 5 fail; the real browser shows a different failure mode, see `tabsira-security-review.md` F1) |
 
-### Measured browser limits and cost of the 714,093-domain list
+### Measured browser limits and cost of the 242,750-domain list (ShadowWhisperer ∪ Sinfonietta)
 
 | Measurement | Chromium 141 | Chrome for Testing 154 | Edge 154 | Firefox 157 |
 |---|---|---|---|---|
 | Rules the list uses (one rule, `requestDomains` array) | 1 of 329,999 available static rules | same | same | no such limit reported |
 | Documented constants read from the API | dynamic 30,000 · unsafe dynamic 5,000 · **regex rules 1,000** · guaranteed static 30,000 · rulesets 100 / enabled 50 | same | same | not exposed the same way |
-| Time to enable the list | ≈ 0.09 s | ≈ 0.09 s | ≈ 0.12 s | ≈ 5 s (onboarding + enable) |
-| Median navigation, list off → on (25 loads, local server) | 26 → 28 ms | 34 → 31 ms | 43 → 46 ms | 97 ms with list on (15 loads, local proxy) |
-| Per-URL match cost (`testMatchOutcome`) list / phrase rules | 0.38 / 0.31 ms | 0.39 / 0.35 ms | 0.54 / 0.46 ms | n/a |
-| Browser memory, list off → on (sum of resident set of all browser processes) | 867 → 883 MB | 1070 → 1095 MB | 1013 → 1030 MB | 1127 → 1615 MB (whole browser, noisy) |
-| Extension ready after cold start | ≈ 1.9 s | ≈ 2.3 s | ≈ 2.3 s | not measured |
+| Time to enable the list | ≈ 0.11 s | ≈ 0.06 s | ≈ 0.07 s | ≈ 1.5 s (onboarding + enable) |
+| Median navigation, list off → on (25 loads, local server) | 32 → 28 ms | 33 → 35 ms | 44 → 44 ms | 96 ms with list on (15 loads, local proxy) |
+| Per-URL match cost (`testMatchOutcome`) list / phrase rules | 0.42 / 0.37 ms | 0.49 / 0.33 ms | 0.37 / 0.45 ms | n/a |
+| Browser memory, list off → on (sum of resident set of all browser processes) | 868 → 876 MB | 1076 → 1084 MB | 1003 → 1016 MB | 1113 → 1351 MB (whole browser, noisy) |
+| Extension ready after cold start | ≈ 0.8 s | ≈ 1.1 s | ≈ 1.0 s | not measured |
 
-Interpretation: on Chromium-family browsers the list is cheap (a memory-mapped index built on install). Firefox needs about five seconds and a few hundred MB to enable it —
+Interpretation: on Chromium-family browsers the list is cheap (a memory-mapped index built on install). Firefox needs about one to two seconds and a few hundred MB (whole-browser, noisy) to enable it —
 acceptable on a desktop, a reason to offer a smaller list for Firefox/Android if the Owner wants one. Numbers come from a headless Linux sandbox and a loopback server:
 relative evidence, not a real-world benchmark. Contrast measured on the real pages (light/dark): text 14.3/14.9, hints 7.7/8.4, primary button 7.0/9.2, secondary 10.3/18.4 (all ≥ 4.5).
 The phrase-length limits (Arabic ≈ 12–14 letters per whole-word rule in Chromium, much higher in Firefox) are unchanged from the first release candidate.
@@ -134,7 +134,7 @@ The phrase-length limits (Arabic ≈ 12–14 letters per whole-word rule in Chro
 - Native permission prompts cannot be answered by automation, so the "user grants website access" flow is **NOT RUN**; the missing-permission *state* is.
 - The OS clock cannot be changed here → clock-change effect **NOT RUN** (behaviour documented).
 - **Branded stable Google Chrome**, Windows/macOS, Brave, Opera, real devices: **NOT TESTED** (Chrome *for Testing* 154 was tested instead and is labelled as such).
-- **Recovery time is measured once per browser** (32 s Chromium/Chrome for Testing/Edge via S16d, 53 s Firefox via F10); it depends on the phase of the 1-minute alarm and on the browser's timer coalescing, so treat it as "about a minute", not as a guarantee. A computer that sleeps fires the alarm on wake. In S16d the worker is terminated with CDP `ServiceWorker.stopAllWorkers` and the stale write is landed by releasing a gate in the real `declarativeNetRequest.updateDynamicRules`; the continuation after the write is made to hang so the reconcile path provably never runs.
+- **Recovery time is measured once per browser** (32 s Chromium/Chrome for Testing/Edge via S16d, 63 s Firefox via F10 in the final run; 53 s in the previous run); it depends on the phase of the 1-minute alarm and on the browser's timer coalescing, so treat it as "about a minute", not as a guarantee. A computer that sleeps fires the alarm on wake. In S16d the worker is terminated with CDP `ServiceWorker.stopAllWorkers` and the stale write is landed by releasing a gate in the real `declarativeNetRequest.updateDynamicRules`; the continuation after the write is made to hang so the reconcile path provably never runs.
 - Firefox: add-on installed *temporarily* (restart = reinstall into the same profile); Arabic UI needs the Arabic language pack (NOT RUN here).
 - Windows/macOS-specific store prompts and the signed AMO build: not testable here.
 - **What is simulation and what is a real browser (concurrency).** `tests/unit/*` use a test double of the browser API: they pin the *logic* (every freeze point:

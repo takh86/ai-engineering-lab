@@ -15,17 +15,18 @@ choice; the price is that a list is as fresh as the last release.
 
 ## Refreshing the base list
 
-1. `node scripts/fetch-base-list-sources.mjs .base-list-inputs` downloads the six input files (only the list files; **never visit a listed
+1. `node scripts/fetch-base-list-sources.mjs .base-list-inputs` downloads the two pinned input files and their licences (only the list files; **never visit a listed
    domain**). The inputs directory is git-ignored.
 2. `node scripts/update-base-list.mjs --inputs .base-list-inputs --retrieved YYYY-MM-DD`
    - validates hostnames, applies the composition rule in `data/base-list/README.md`, removes entries covered by a listed parent,
      refuses to write if a known-benign canary would be blocked, writes `adult-domains.txt.gz`, `PROVENANCE.json` (input SHA-256s, counts,
      header dates) and `provenance-samples.json`.
-3. Re-check **licence and provenance** of every contributing source (ShadowWhisperer, Block List Project, Sinfonietta): open the upstream `LICENSE`,
-   compare with `data/base-list/licenses/`, update `THIRD_PARTY_NOTICES.md`. If a licence changes or becomes unclear, or an upstream that feeds
-   Block List Project's `porn` category (see its `config/lists.yml`) changes, stop and ask the Owner.
+3. Re-check **licence and provenance** of both sources (ShadowWhisperer `Lists/Adult`, Sinfonietta `pornography-hosts`): for the NEW commit update the pins in
+   `scripts/fetch-base-list-sources.mjs` (commit, git blob ids, SHA-256, licence blob), confirm the root `LICENSE` is still the same text and still the only licence file, that
+   no file-level terms appeared, and compare with `data/base-list/licenses/`; update `THIRD_PARTY_NOTICES.md` (commits, hashes). If a licence changes, disappears or becomes
+   unclear, stop and ask the Owner. The fetch script refuses any file that is not exactly the pinned one.
 4. Spot-check a random sample of *names only* for false positives (never open a listed site); add any clear false positive to the canary list.
-5. A new list is added only with evidence: coverage gain after de-duplication, canary/false-positive check, performance measurement, verified licence.
+5. A new source is added only with an **explicit licence** allowing use, modification and redistribution including commercial use (availability on the internet is not permission; a collector's licence is not proof of its sources' rights), with its conditions met, pinned commit and hashes, and evidence: coverage gain after de-duplication, canary/false-positive check, performance measurement.
 6. `npm test`, then `node scripts/build.mjs` and the real-browser suites on the built ZIPs (`TESTING.md`).
 7. Bump `version` in `package.json`, update `CHANGELOG.md`, `npm run build`, `npm run verify-reproducible`.
 

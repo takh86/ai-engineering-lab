@@ -3,13 +3,13 @@
 Nothing below has been done. No account was created, no fee paid, nothing uploaded or published.
 
 ## Before any submission
-- [ ] **Decide the `alarms` permission** (added in the watchdog fix after the review of `516a4ff`; no install warning; it is the only mechanism that recovers protection after a terminated worker — see `README.md` "Recovery"). If you refuse it, remove it from `scripts/build.mjs`, `store/LISTING.md` and `store/privacy-policy.html`, and accept the documented gap (no automatic recovery until browser start, extension reload, or opening Popup/Options).
+- [x] `alarms` permission: **approved by the Owner** (watchdog for protection recovery, `README.md` "Recovery"); keep its justification in the store form (`store/LISTING.md`).
 - [ ] Review and approve: Arabic/English/German copy (UI, `store/LISTING.md`, privacy policy) by native speakers.
 - [ ] Review the **starter search phrases** (`src/core/starter-terms.js`) and the **built-in list decision** (`data/base-list/README.md`).
 - [ ] Provide the designer's **master SVG** of the mark (the shipped mark is a redraw of the approved reference image, `docs/brand/ASSETS.md`) and approve the generated icon, screenshots and promo images in `store/images/`.
 - [ ] Decide the Firefox add-on ID (`{6e6f9f5e-…}` is a placeholder GUID; it cannot change after the first AMO upload).
 - [ ] Publish `store/privacy-policy.html` at a stable HTTPS URL (any static host, e.g. GitHub Pages) and add the publication date and a contact address (marked in the file).
-- [ ] Legal sign-off on redistributing the list (see `data/base-list/README.md`, "Residual risk": the 492,511 entries whose origin is unknown — present in the Block List Project file, absent from every other source examined; strict alternative available).
+- [ ] Legal sign-off on redistributing the list. The list is now ONLY ShadowWhisperer `Lists/Adult` (Unlicense) ∪ Sinfonietta `pornography-hosts` (MIT), as decided; see `data/base-list/README.md` for what was verified (licence covers the files, notices shipped) and what cannot be (the upstream projects do not document where individual entries came from; Sinfonietta's file has 49 contributing authors).
 - [ ] Confirm the target-device manual checks in `TESTING.md` ("Manual steps") on the machines you will actually use (real Chrome/Edge/Firefox release builds, Windows/macOS).
 
 ## Chrome Web Store

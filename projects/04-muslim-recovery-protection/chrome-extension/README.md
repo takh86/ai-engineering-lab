@@ -15,10 +15,11 @@ Android app and Family DNS; it is not a replacement for them and not a proven tr
 
 - **Blocks sites you add** — the site and its subdomains, on DNS label boundaries (`example.com` blocks `mail.example.com`,
   not `badexample.com` or `example.com.evil.org`).
-- **Built-in adult-sites list (opt-in)** — a bundled snapshot of 714,093 domains assembled from ShadowWhisperer and The Block List Project (both Unlicense) and Sinfonietta (MIT); entries that trace only to GPL/unlicensed
-  upstreams were removed. **492,511 Block List Project entries are unattributed** — present in no other source we examined, origin unknown, licence
-  position resting on the BLP repository's declaration (an open legal decision for the Owner). Automated and community-made: it **can block innocent sites**; use Exceptions. Sources, licences, pinned hashes and the
-  residual legal risk: [`data/base-list/README.md`](data/base-list/README.md). Nothing is downloaded at run time.
+- **Built-in adult-sites list (opt-in)** — a bundled snapshot of **242,750 domains** that is exactly the union of two upstream list files, each published
+  under an explicit licence that allows use, modification and redistribution including commercial use: ShadowWhisperer `Lists/Adult` (The Unlicense) and Sinfonietta
+  `pornography-hosts` (MIT). Both are pinned to commits and hashes and their notices ship in the package. Everything else (The Block List Project, HaGeZi, zachlagden,
+  Clefspeare13) was removed by the Owner's decision. Automated and community-made: it **can block innocent sites**; use Exceptions. What the licence check verified and
+  what it could not (the origin of individual entries is not documented upstream): [`data/base-list/README.md`](data/base-list/README.md). Nothing is downloaded at run time.
 - **Search phrases (Arabic and English)** — matched only inside the search parameter (`q`, `p`, `search_query`, `text`) of
   Google (all regional domains), Bing (web/images/video), DuckDuckGo, Yahoo, YouTube, Yandex, Brave, Ecosia and Qwant;
   `+` or `%20`, upper/lower case, Unicode-normalized. Whole-word (default) or partial (broader, more false blocks).
@@ -68,7 +69,7 @@ private. Full text: [`store/privacy-policy.html`](store/privacy-policy.html).
 |---|---|
 | `storage` | Keep your settings across restarts. |
 | `declarativeNetRequest` | Let the browser apply the rules itself. |
-| `alarms` | **Added after the review of `516a4ff` — Owner decision pending.** No install warning. A once-a-minute local timer that wakes the extension to check that the browser's rules still match your settings and rebuild them if not (see "Recovery"). Nothing is sent anywhere. |
+| `alarms` | **Approved by the Owner.** No install warning. A once-a-minute local timer that wakes the extension to check that the browser's rules still match your settings and rebuild them if not (see "Recovery"). Nothing is sent anywhere. |
 | Website access (`http://*/*`, `https://*/*`) | Required by the browser to *redirect* a blocked page to the help page for any site you choose. Not used to read or change pages; **no content scripts.** |
 
 Not requested: `tabs`, `webNavigation`, `webRequest`, `history`, `cookies`, `activeTab`, `scripting`, `downloads`.
@@ -102,7 +103,7 @@ They are rebuilt from the stored settings, under the write lock, by whichever of
 | Trigger | When | Needs |
 |---|---|---|
 | The late worker itself (it notices it lost its lease) | immediately | the worker survives the next few milliseconds |
-| **Watchdog alarm** (`alarms` permission) | within about one alarm period — 1 minute requested; measured **32 s** (Chromium, Chrome for Testing, Edge) and **53 s** (Firefox; the Firefox figure is for rules removed behind the extension's back) in one run each, with the worker terminated right after the stale write and no Popup/Options opened; the real time depends on the alarm's phase and is bounded by roughly the 60 s period | browser running, extension enabled, timer firing (a sleeping or suspended computer fires it on wake) |
+| **Watchdog alarm** (`alarms` permission) | within about one alarm period — 1 minute requested; measured **32 s** (Chromium, Chrome for Testing, Edge) and **63 s** (Firefox; the Firefox figure is for rules removed behind the extension's back) in one run each, with the worker terminated right after the stale write and no Popup/Options opened; the real time depends on the alarm's phase and is bounded by roughly the 60 s period | browser running, extension enabled, timer firing (a sleeping or suspended computer fires it on wake) |
 | Every start of the extension's worker (message, storage or permission event) | at that moment | the event |
 | Browser start (`onStartup`), extension install/update | at that moment | — |
 | Opening Popup/Options/Onboarding, or "Repair" | at that moment | the user |
