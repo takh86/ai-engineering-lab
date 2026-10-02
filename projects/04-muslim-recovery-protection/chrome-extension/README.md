@@ -38,7 +38,8 @@ effective end is the maximum), and every change goes through a cross-instance wr
 fencing epoch taken when the lock is entered, so a late or concurrent write — even from a worker that was frozen past its lock and resumes
 after newer saves and a session start — **cannot shorten or erase a running session, nor replace newer settings** (regression-tested with
 simulated browsers and in a real normal + private window pair; starting a session also pins the current settings so nothing begun earlier
-can land inside it). When it ends it **only
+can land inside it). Every key that carries state is write-once under a unique name and cleanup removes only entries that are dominated for ever, so a
+**delayed delete** cannot reach a newer session either. When it ends it **only
 re-allows editing**; it never removes a rule.
 
 It is friction, **not tamper resistance**: the user can still disable or uninstall the extension, use another browser/profile,

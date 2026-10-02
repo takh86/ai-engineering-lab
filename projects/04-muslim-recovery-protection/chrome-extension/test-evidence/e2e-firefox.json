@@ -4,11 +4,11 @@
     "version": "Mozilla Firefox 157.0",
     "os": "Linux 6.18.44-fc-v51 (x64)",
     "node": "v22.22.0",
-    "date": "2026-10-02T09:31:19.691Z",
+    "date": "2026-10-02T10:04:52.623Z",
     "package": {
       "target": "firefox",
       "zip": "dist/tabsira-firefox-1.0.0.zip",
-      "zipSha256": "29c80a7edeb939e4c070b6f740537bb57190a6102176ea1b4b2974fab014077f",
+      "zipSha256": "94bf51ab86da823c235dd2718868a8512386eec4310d27d00d8c2f26ff0f94dc",
       "files": 48,
       "manifestVersion": "1.0.0",
       "variants": {
@@ -234,7 +234,7 @@
     {
       "id": "F8.1 median local navigation with the full built-in ruleset enabled is under 250 ms",
       "status": "PASS",
-      "detail": "102 ms"
+      "detail": "99 ms"
     },
     {
       "id": "F6b.1 withdrawn website permission is detected (status partial + specific reason)",
@@ -250,7 +250,7 @@
   "notes": [
     {
       "id": "F2",
-      "text": "onboarding+enable base list took 5158 ms; host permission granted: true; RSS (all Firefox processes) before ≈ 1115 MB, after enable ≈ 1574 MB"
+      "text": "onboarding+enable base list took 5992 ms; host permission granted: true; RSS (all Firefox processes) before ≈ 1113 MB, after enable ≈ 1607 MB"
     },
     {
       "id": "F4.2",
@@ -258,7 +258,7 @@
     },
     {
       "id": "F8",
-      "text": "Firefox median navigation (15 loads, local proxy) with base list on: 102 ms; RSS (all Firefox processes) ≈ 1499 MB"
+      "text": "Firefox median navigation (15 loads, local proxy) with base list on: 99 ms; RSS (all Firefox processes) ≈ 1481 MB"
     },
     {
       "id": "F6b",

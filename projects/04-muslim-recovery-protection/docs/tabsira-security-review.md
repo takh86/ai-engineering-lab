@@ -1,15 +1,15 @@
 # Tabsira V1 — security and Red Team review
 
-Date: 2026-10-02 (updated after the independent review of `7294cd6`) · Scope: `projects/04-muslim-recovery-protection/chrome-extension` (Chrome/Edge/Firefox packages) ·
+Date: 2026-10-02 (updated after the independent reviews of `7294cd6` and `0b46c1d`) · Scope: `projects/04-muslim-recovery-protection/chrome-extension` (Chrome/Edge/Firefox packages) ·
 Reviewed commit: see the PR (the review was repeated on the frozen commit; evidence files carry the package SHA-256).
 
 ## Independence — read this first
 
-The Owner asked for an **independent** security and Red Team review. An independent review of `d662632` found the session race fixed in V1.1, and an
-independent review of `7294cd6` found a further **late-write** flaw (F10 below) that my own self-review had missed and had even documented as an accepted
-residual (old F5). Both findings came from outside this agent. The rounds done by this agent are **self-reviews with real attacks against the built packages
-— not independent audits**, and they have now been wrong once. Findings below are verified; the *absence* of further findings is not evidence of absence.
-Recommended before publication: another independent review starting from this document and `tests/unit/late-writes.test.mjs`.
+The Owner asked for an **independent** security and Red Team review. Independent reviews have now found three flaws that this agent's own reviews missed: the
+session race (`d662632`), the **late write** (`7294cd6`, F10) and the **late delete** (`0b46c1d`, F11). The last two were in the very mechanism added to fix the one before,
+and the second time my own review had documented the problem as an "accepted residual". The rounds done by this agent are **self-reviews with real attacks against the
+built packages — not independent audits**, and they have been wrong three times. Findings below are verified; the *absence* of further findings is not evidence of absence.
+Recommended before publication: another independent review starting from this document, `tests/unit/late-writes.test.mjs`, `tests/unit/lock-cleanup.test.mjs` and S16b/S16c.
 
 ## Threat model
 
@@ -35,7 +35,9 @@ Recommended before publication: another independent review starting from this do
 | F8 | Surface | Firefox needs `web_accessible_resources` for `blocked.html`. The page is inert (no messaging, no state, no parameters) and the add-on host is a random per-profile UUID. | Info | **Accepted.** | S2.9b, F-suite |
 | F9 | Invisible input | A zero-width character inside a typed domain is dropped by URL normalisation (stored name is clean ASCII); bidi controls are refused for domains and removed from phrases. | Info | **Verified.** | `security.test.mjs` |
 
-| F10 | Concurrency | **Late write (independent review of `7294cd6`).** A `SAVE_SETTINGS` that deletes sites is frozen at `storage.set({config})` after `assertOwner` and the compare; its lease expires; another instance saves newer sites and starts a session; the frozen write resumes. Result: stored sites `[]`, rules 0, session still active. Re-checking ownership before a non-atomic write cannot prevent this, because the freeze can happen after the check. | High | **Fixed by construction, not by another check.** The configuration is no longer overwritten: each write creates `cfg:<epoch>:<instance>`; the epoch is registered when the lock is entered (strictly above all earlier holders, ownership re-verified afterwards); the effective configuration is the highest record, so a late record is dominated by everything written after its holder entered the lock. `START_SESSION` writes a pinning record, so nothing begun before a session can land inside it. Rollback removes only its own record and is skipped when the lease is gone; compaction keeps the two newest records. | simulation: `tests/unit/late-writes.test.mjs` (6 of 9 tests fail on `7294cd6`; output archived) · real browser: S16b (fails on the `7294cd6` package: domains `[]`, state `not_configured`, late save `ok`; passes now) |
+| F10 | Concurrency | **Late write (independent review of `7294cd6`).** A `SAVE_SETTINGS` that deletes sites is frozen at `storage.set({config})` after `assertOwner` and the compare; its lease expires; another instance saves newer sites and starts a session; the frozen write resumes. Result: stored sites `[]`, rules 0, session still active. Re-checking ownership before a non-atomic write cannot prevent this, because the freeze can happen after the check. | High | **Fixed by construction, not by another check.** The configuration is no longer overwritten: each write creates `cfg:<epoch>:<instance>`; the epoch is registered when the lock is entered (strictly above all earlier holders, ownership re-verified afterwards); the effective configuration is the highest record, so a late record is dominated by everything written after its holder entered the lock. `START_SESSION` writes a pinning record, so nothing begun before a session can land inside it. Rollback restores the previous configuration under its own record name (it deletes nothing others could depend on) and is skipped when the lease is gone; compaction keeps the two newest records. | simulation: `tests/unit/late-writes.test.mjs` (6 of 9 tests fail on `7294cd6`; output archived) · real browser: S16b (fails on the `7294cd6` package: domains `[]`, state `not_configured`, late save `ok`; passes now) |
+
+| F11 | Concurrency | **Late delete (independent review of `0b46c1d`).** After a session ended, worker B's cleanup chose A's expired `lock:A` for removal, passed the ownership check and froze at `storage.remove`; its lease expired; A started a NEW 120-minute session **under the same key**; B's old removal then ran and wiped it, and a `SAVE_SETTINGS` deleting every blocked site was accepted. Same family as F10: a delete chosen earlier is not atomic with the check, and a second ownership check cannot make it so. | High | **Fixed by construction.** Every key that carries state is now **write-once under a unique name** — session entries `lock:<epoch>-<n>:<instance>`, epoch entries `ep:<epoch>:<instance>`, configuration records `cfg:<epoch>:<instance>` — and a new session, holder or save always creates a new name. Cleanup removes only entries whose immutable value is **dominated for ever** (expired or smaller sessions, records older than the two newest, epochs below the highest, long-dead mutex entries) and runs after every operation, so a removal that is chosen early and runs arbitrarily late can only delete what was already irrelevant when it was chosen; a newer value lives under a different name and cannot be reached. Mutex entries stay per-instance and mutable by design; a late removal or resurrection of one can only make a holder fail closed (`busy`) — it can never admit a second writer's *effective* write, because that write is epoch-ranked. | simulation: `tests/unit/lock-cleanup.test.mjs` (3 of 7 fail on `0b46c1d`: new session wiped, session shortened 120 → 90, epoch entry lost; output archived) · real browser: S16c (fails on the `0b46c1d` package: session gone, the delete-everything save **accepted**, sites `[]`; passes now) |
 
 No finding rated Critical was open at the end of the review.
 
@@ -53,7 +55,8 @@ No finding rated Critical was open at the end of the review.
 | Homograph / IDN / IPv4 / credentials / port in a "domain" | `security.test.mjs`, core tests | refused or normalised to the punycode name; homograph stays a different name |
 | Weakening during a session by every path (save, import, reset, replace, longer phrase, exception) | controller tests, S7, S9, F5, F9 | `locked_weakening` |
 | Two instances racing a session start / extension / rollback | `concurrency.test.mjs`, S16 | max-wins; never shortened; rules follow storage |
-| Writers frozen past their lease (at the config write, the rule write, the rollback, the record removal) resuming after newer saves and a session start | `late-writes.test.mjs`, **S16b (real normal + private instances)** | late record dominated; newer sites, rules and session intact |
+| Deletes and writes frozen past their lease on **every** key class: `lock:*` (expired, extended, re-started session), `ep:*`, `cfg:*`, `mx:*`; a worker frozen while registering its epoch; a mutex entry removed behind its owner | `lock-cleanup.test.mjs`, **S16c (real normal + private instances)** | the newer value always survives; mutex problems fail closed |
+| Writers frozen past their lease (at the config write, the rule write, the rollback, the record restore) resuming after newer saves and a session start | `late-writes.test.mjs`, **S16b (real normal + private instances)** | late record dominated; newer sites, rules and session intact |
 | Tampered lock values (negative, NaN, huge, extra keys, look-alike keys) | `security.test.mjs` | invalid → corrupt state, never trusted; look-alike keys ignored |
 | Leakage: visited URL parts / search text in extension storage, IndexedDB, local/session storage after blocked visits | S17.4 | none found |
 | Leakage: console output of pages and worker | S10 | none; no unexpected errors |
@@ -64,6 +67,8 @@ No finding rated Critical was open at the end of the review.
 ## Not covered
 
 What remains: browsers' rule application (`declarativeNetRequest`) is not transactional with storage, so rules are *derived* state: a late rule write can briefly leave rules different from the stored configuration. That is detected (status `rules_mismatch`), `START_SESSION` refuses while it persists, and the late worker's own `busy` path, any status check, start-up and `Repair` rebuild the rules from the effective record.
+
+Also unreviewed: the factory-reset path for a *corrupt* store removes the keys it identified as invalid; a local tamperer who pre-creates an invalid key under a name a later legitimate write would use could make a late reset remove that write (needs local storage access, which already defeats the feature by design).
 
 Independent audit; fuzzing campaign beyond the listed cases; Windows/macOS behaviour; branded Chrome stable (Chrome **for Testing** was used);
 Brave/Opera; signed AMO build; behaviour of other extensions that modify requests (priority conflicts with other `declarativeNetRequest` extensions are

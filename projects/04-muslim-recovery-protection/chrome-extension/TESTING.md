@@ -19,9 +19,9 @@ editing `manifest.json` only, and the harness fails if any other file differs: `
 the checks calling `testMatchOutcome`: base-list sampling S3 and match timing S11), `optional` (host access optional, for the "permission missing" state S8),
 `live` (a copy whose manifest version is raised in place for the update test S7.11–S7.13). Evidence files record the ZIP path and SHA-256.
 
-Package under test (frozen code commit `3982d59`; later commits change only documentation and evidence — verified by rebuilding):
-`tabsira-chromium-1.0.0.zip` SHA-256 `21ec84c1decb2ba9b6766a59a696859cefb4e49553e2fa5e7620656c157760d1`,
-`tabsira-firefox-1.0.0.zip` SHA-256 `29c80a7edeb939e4c070b6f740537bb57190a6102176ea1b4b2974fab014077f`.
+Package under test (frozen code commit `89a2905`; later commits change only documentation and evidence — verified by rebuilding):
+`tabsira-chromium-1.0.0.zip` SHA-256 `4c75a9e22f5e2295802c735469640fca05a66ea75f66b7fe68de3386293fcde5`,
+`tabsira-firefox-1.0.0.zip` SHA-256 `94bf51ab86da823c235dd2718868a8512386eec4310d27d00d8c2f26ff0f94dc`.
 
 Linux x64 sandbox, headless (`--headless=new` for Chromium-family). Test sites resolve to a local server (`--host-resolver-rules` for Chromium-family, a local HTTP proxy
 for Firefox); no real website — and no listed adult domain — was ever contacted. The base list is exercised with `testMatchOutcome` (never sends a request) and the reserved safe-test domain.
@@ -45,6 +45,7 @@ for Firefox); no real website — and no listed adult domain — was ever contac
 | Arabic/English phrases, encodings, engines, boundaries | S5.* · F4.* |
 | Normal vs private window, permission granted / not granted | S9.* (Chromium-family) · **F9.\* (Firefox private windows, both cases)** |
 | **Concurrent normal + private instances, real storage, paused real worker** | **S16.1–S16.4** |
+| **Late DELETE (review of 0b46c1d): cleanup frozen at the real `storage.remove`, expired session key re-used by a new session, real normal + private instances** | **S16c.1–S16c.4** (simulation: `lock-cleanup.test.mjs`) |
 | **Late write (review of 7294cd6): frozen save resumed after lease expiry + newer save + session start, real normal + private instances** | **S16b.1–S16b.4** (simulation: `late-writes.test.mjs`) |
 | Restart / update / service-worker restart | S7.8–S7.13 · F6.* |
 | Permission missing / withdrawn | S8.1–S8.4 · S8.5 NOT RUN (Chromium refuses to drop a *required* permission) · F6b |
@@ -65,9 +66,9 @@ for Firefox); no real website — and no listed adult domain — was ever contac
 
 | Browser | Version / OS | PASS | FAIL | NOT RUN |
 |---|---|---|---|---|
-| Chromium | 141.0.7390.37 · Linux x64 | 145 | 0 | 2 |
-| **Google Chrome for Testing** | 154.0.8037.97 · Linux x64 | 145 | 0 | 2 |
-| Microsoft Edge | 154.0.4258.53 · Linux x64 | 145 | 0 | 2 |
+| Chromium | 141.0.7390.37 · Linux x64 | 149 | 0 | 2 |
+| **Google Chrome for Testing** | 154.0.8037.97 · Linux x64 | 149 | 0 | 2 |
+| Microsoft Edge | 154.0.4258.53 · Linux x64 | 149 | 0 | 2 |
 | Mozilla Firefox (temporary add-on) | 157.0 · Linux x64 | 43 | 0 | 1 |
 | **Mozilla Firefox — private windows** | 157.0 · Linux x64 | 11 | 0 | 0 |
 
@@ -75,7 +76,7 @@ NOT RUN, with reasons: **S7.14** device-clock change (the OS clock cannot be cha
 (Chromium refuses: "You cannot remove required permissions"; the missing-permission state itself is covered by S8.1–S8.4); **F1.3b** Arabic UI inside Firefox (needs the Arabic language pack;
 Arabic/RTL rendering is verified in the three Chromium-family browsers).
 Every check, result and detail: [`test-evidence/SUMMARY.md`](test-evidence/SUMMARY.md) and the JSON files beside it.
-Unit/static: `npm test` → 78 tests, 0 failures (core, controller with fault injection, concurrency, late-write and records tests, adversarial inputs, tokens/contrast, messages, locales, manifest/CSP/permissions, list provenance, byte-reproducible ZIPs).
+Unit/static: `npm test` → 85 tests, 0 failures (core, controller with fault injection, concurrency, late-write, late-delete (`lock-cleanup`) and records tests, adversarial inputs, tokens/contrast, messages, locales, manifest/CSP/permissions, list provenance, byte-reproducible ZIPs).
 
 ### Regression evidence (tests that fail before the fix)
 
@@ -83,6 +84,8 @@ Unit/static: `npm test` → 78 tests, 0 failures (core, controller with fault in
 |---|---|
 | `concurrency.test.mjs` (paused save vs session start, 9 tests) | `tests/unit/regression-on-d662632.expected-failure.txt` (8 of 9 fail on `d662632`) |
 | `concurrency.test.mjs` "repair paused BEFORE its rule write" | `tests/unit/regression-stale-repair-before-fix.expected-failure.txt` |
+| `lock-cleanup.test.mjs` (review of `0b46c1d`: frozen cleanup of an expired / extended session key, of epoch entries; late lock/epoch writes; mutex entries) | `tests/unit/regression-lock-cleanup-on-0b46c1d.expected-failure.txt` (3 of 7 fail on `0b46c1d`: new session wiped, session shortened 120 → 90 min, epoch entry lost) |
+| **real-browser S16c against the `0b46c1d` package** | `tests/unit/regression-s16c-real-browser-on-0b46c1d.expected-failure.txt` — S16c.3/S16c.4 fail: the new 120-minute session is gone, the save that deletes every site is **accepted**, sites `[]`, nothing blocked |
 | `late-writes.test.mjs` (review of `7294cd6`: frozen write at the config write, import, rollback, rule write, record removal) | `tests/unit/regression-late-writes-on-7294cd6.expected-failure.txt` (6 of 9 fail on `7294cd6`; the other 3 are guards or check the new layout) |
 | **real-browser S16b against the `7294cd6` package** | `tests/unit/regression-s16b-real-browser-on-7294cd6.expected-failure.txt` — S16b.3 fails: stored sites `[]`, state `not_configured`, nothing blocked, session still active, the late save reports `ok` |
 | real-browser S16 against the old package | `tests/unit/regression-s16-real-browser-on-d662632.expected-failure.txt` (4 of 5 fail; the real browser shows a different failure mode, see `tabsira-security-review.md` F1) |
@@ -93,13 +96,13 @@ Unit/static: `npm test` → 78 tests, 0 failures (core, controller with fault in
 |---|---|---|---|---|
 | Rules the list uses (one rule, `requestDomains` array) | 1 of 329,999 available static rules | same | same | no such limit reported |
 | Documented constants read from the API | dynamic 30,000 · unsafe dynamic 5,000 · **regex rules 1,000** · guaranteed static 30,000 · rulesets 100 / enabled 50 | same | same | not exposed the same way |
-| Time to enable the list | ≈ 0.08 s | ≈ 0.10 s | ≈ 0.13 s | ≈ 5 s (onboarding + enable) |
-| Median navigation, list off → on (25 loads, local server) | 28 → 26 ms | 32 → 34 ms | 49 → 42 ms | 102 ms with list on (15 loads, local proxy) |
-| Per-URL match cost (`testMatchOutcome`) list / phrase rules | 0.50 / 0.42 ms | 0.48 / 0.41 ms | 0.68 / 0.38 ms | n/a |
-| Browser memory, list off → on (sum of resident set of all browser processes) | 863 → 882 MB | 1073 → 1097 MB | 1004 → 1029 MB | 1115 → 1574 MB (whole browser, noisy) |
-| Extension ready after cold start | ≈ 1.9 s | ≈ 2.3 s | ≈ 2.2 s | not measured |
+| Time to enable the list | ≈ 0.09 s | ≈ 0.10 s | ≈ 0.12 s | ≈ 6 s (onboarding + enable) |
+| Median navigation, list off → on (25 loads, local server) | 27 → 28 ms | 33 → 35 ms | 44 → 43 ms | 99 ms with list on (15 loads, local proxy) |
+| Per-URL match cost (`testMatchOutcome`) list / phrase rules | 0.54 / 0.40 ms | 0.49 / 0.34 ms | 0.43 / 0.49 ms | n/a |
+| Browser memory, list off → on (sum of resident set of all browser processes) | 867 → 886 MB | 1078 → 1096 MB | 1012 → 1029 MB | 1113 → 1607 MB (whole browser, noisy) |
+| Extension ready after cold start | ≈ 1.9 s | ≈ 2.1 s | ≈ 2.1 s | not measured |
 
-Interpretation: on Chromium-family browsers the list is cheap (a memory-mapped index built on install). Firefox needs about five seconds and a few hundred MB to enable it —
+Interpretation: on Chromium-family browsers the list is cheap (a memory-mapped index built on install). Firefox needs about six seconds and a few hundred MB to enable it —
 acceptable on a desktop, a reason to offer a smaller list for Firefox/Android if the Owner wants one. Numbers come from a headless Linux sandbox and a loopback server:
 relative evidence, not a real-world benchmark. Contrast measured on the real pages (light/dark): text 14.3/14.9, hints 7.7/8.4, primary button 7.0/9.2, secondary 10.3/18.4 (all ≥ 4.5).
 The phrase-length limits (Arabic ≈ 12–14 letters per whole-word rule in Chromium, much higher in Firefox) are unchanged from the first release candidate.
@@ -117,7 +120,7 @@ The phrase-length limits (Arabic ≈ 12–14 letters per whole-word rule in Chro
    `blocked.html` only; Firefox hosts are random per-profile UUIDs).
 5. **The browser keeps the blocked address in its own history** (S17 note): not under the extension's control, now stated in the privacy policy and README.
 6. **Text-zoom layout:** at 200 % text size plus a 320 px viewport the help page timer ring (fixed 11 rem) overflowed; it is now `min(11rem, 100%)` (found by S15.4).
-7. **A frozen write could replace the whole configuration** (independent review of `7294cd6`): re-checking ownership before a non-atomic write cannot prevent it, so storage became append-only and fenced by a lock epoch (S16b, `late-writes.test.mjs`). **A paused repair past its lease could leave stale rules** (unit regression, fixed); **a paused real worker** in the normal window and a START_SESSION from the private window
+7. **A delayed removal could wipe a newer session that re-used its storage key** (independent review of `0b46c1d`): state keys are now write-once under unique names and cleanup removes only entries dominated for ever (S16c, `lock-cleanup.test.mjs`). **A frozen write could replace the whole configuration** (independent review of `7294cd6`): re-checking ownership before a non-atomic write cannot prevent it, so storage became append-only and fenced by a lock epoch (S16b, `late-writes.test.mjs`). **A paused repair past its lease could leave stale rules** (unit regression, fixed); **a paused real worker** in the normal window and a START_SESSION from the private window
    behave as designed in a real browser (S16).
 8. A service-worker deadlock (status repair queued behind itself) was found by the unit suite before any browser run.
 
@@ -132,10 +135,10 @@ The phrase-length limits (Arabic ≈ 12–14 letters per whole-word rule in Chro
 - Firefox: add-on installed *temporarily* (restart = reinstall into the same profile); Arabic UI needs the Arabic language pack (NOT RUN here).
 - Windows/macOS-specific store prompts and the signed AMO build: not testable here.
 - **What is simulation and what is a real browser (concurrency).** `tests/unit/*` use a test double of the browser API: they pin the *logic* (every freeze point:
-  config write, rule write, rollback rule restore, record removal, import, chain of three frozen writers) deterministically. S16/S16b use the **real** Chromium-family
-  storage, rules, and two real worker instances (normal + private window); the "freeze" is a gate injected into the real worker's `chrome.storage.local.set` (not an OS-level
-  suspension of the process), and the 20 s lease is waited out in real time. Firefox runs a single shared background for normal and private windows, so the two-instance
-  scenarios do not arise there; Firefox concurrency is covered by the simulation only.
+  config write, rule write, rollback rule restore, record removal, import, chain of three frozen writers) deterministically. S16/S16b/S16c use the **real** Chromium-family
+  storage, rules, and two real worker instances (normal + private window); the "freeze" is a gate injected into the real worker's `chrome.storage.local.set` / `.remove` (not an OS-level
+  suspension of the process), and the 20 s lease is waited out in real time. S16c cannot wait 60 real minutes for a session to end, so the test **ages the session entry in storage** (rewrites its end time to the past) to represent the ended session — a test-only fabrication of expiry, stated here. Firefox runs a single shared background for normal and private windows, so the two-instance
+  scenarios (S16–S16c) do not arise there; Firefox concurrency is covered by the simulation only.
 
 ## Manual steps before relying on a release (Owner / device)
 
