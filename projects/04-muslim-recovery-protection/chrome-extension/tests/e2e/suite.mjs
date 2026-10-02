@@ -46,7 +46,7 @@ export async function runSuite({ browserName, executablePath, report, pkg }) {
         check('S1.2 fresh install reports not_configured, no rules, base list off', s.state === 'not_configured' && s.counts.dynamicRules === 0 && s.base.enabled === false, JSON.stringify({ state: s.state, reasons: s.reasons }));
         const real = await visit(b.context, url('tabsira-selftest.test'));
         check('S1.3 nothing is blocked before onboarding (honest "not configured")', real.real && !real.blocked);
-        check('S1.4 base list metadata is bundled and readable', s.base.domainCount > 650000, `domainCount=${s.base.domainCount}`);
+        check('S1.4 base list metadata is bundled and readable', s.base.domainCount === 242750, `domainCount=${s.base.domainCount}`);
         await finish(b);
     }
 
@@ -110,10 +110,13 @@ export async function runSuite({ browserName, executablePath, report, pkg }) {
         let benignHits = 0; for (const c of canaries()) benignHits += (await matchOutcome(worker, `https://www.${c}/`)).length;
         check(`S3.5 all ${canaries().length} known-benign canary sites are NOT matched`, benignHits === 0, `hits=${benignHits}`);
         const samples = JSON.parse(fs.readFileSync(path.join(root, 'data/base-list/provenance-samples.json'), 'utf8'));
-        const removed = []; for (const d of samples.removedUnclearLicence) removed.push((await matchOutcome(worker, `https://${d}/`)).length);
-        const added = []; for (const d of samples.addedFromShadowWhisperer) added.push((await matchOutcome(worker, `https://${d}/`)).length);
-        check('S3.5b domains traceable only to GPL/unlicensed sources are NOT in the ruleset (12 samples; names only, never requested)', removed.every(n => n === 0), removed.join(','));
-        check('S3.5c ShadowWhisperer-only domains (coverage added) ARE in the ruleset (12 samples)', added.every(n => n === 1), added.join(','));
+        const matchAll = async list => { const out = []; for (const d of list) out.push((await matchOutcome(worker, `https://${d}/`)).length); return out; };
+        const removed = await matchAll(samples.removedFromPreviousSnapshot); const swOnly = await matchAll(samples.fromShadowWhispererOnly);
+        const sinOnly = await matchAll(samples.fromSinfoniettaOnly); const both = await matchAll(samples.inBothSources);
+        check(`S3.5b names that an earlier snapshot held and the licence-only rule removed are NOT in the ruleset (${removed.length} samples; names only, never requested)`, removed.length >= 12 && removed.every(n => n === 0), removed.join(','));
+        check('S3.5c ShadowWhisperer-only domains ARE in the ruleset (12 samples)', swOnly.length === 12 && swOnly.every(n => n === 1), swOnly.join(','));
+        check('S3.5d Sinfonietta-only domains ARE in the ruleset (12 samples)', sinOnly.length === 12 && sinOnly.every(n => n === 1), sinOnly.join(','));
+        check('S3.5e domains listed by both sources ARE in the ruleset (12 samples)', both.length === 12 && both.every(n => n === 1), both.join(','));
         const redirectTarget = await worker.evaluate(async u => { const o = await chrome.declarativeNetRequest.testMatchOutcome({ url: u, type: 'main_frame', method: 'get' }); return o.matchedRules[0]?.rulesetId; }, `https://${all[5]}/`);
         check('S3.6 match comes from the bundled static ruleset', redirectTarget === 'base_adult', String(redirectTarget));
         const off = await save(options, { baseList: false });

@@ -1,133 +1,94 @@
 {
-  "name": "Tabsira built-in adult-sites list (composite snapshot)",
+  "name": "Tabsira built-in adult-sites list (ShadowWhisperer Adult UNION Sinfonietta pornography-hosts)",
   "retrievedAt": "2026-10-02",
-  "composition": "ShadowWhisperer Adult (all) + Block List Project entries that a permissive source also lists + Block List Project entries not found in any examined source (origin unknown; licence position rests on the repository Unlicense declaration); minus entries traceable only to GPL-3.0 / unlicensed / unverifiable sources.",
+  "decision": "Owner, 2026-10-02: only sources with an explicit licence allowing use, modification and redistribution (commercial use included), with their conditions met.",
+  "composition": "ShadowWhisperer Lists/Adult (The Unlicense) UNION Sinfonietta pornography-hosts (MIT), minus entries covered by a listed parent domain. Nothing else.",
   "snapshotFile": "adult-domains.txt.gz (gzip of sorted, one domain per line)",
-  "snapshotEntries": 714093,
-  "snapshotSha256": "ebeda7277f63f62cb5ff5b514e66bb813889eab2fa8e24dbb5828382deadff44",
-  "removedAsCoveredByParent": 9025,
+  "snapshotEntries": 242750,
+  "snapshotSha256": "1a212324216c4140525e0fe441a15845dd39dca91ac7f4cf493008f431f94ef4",
+  "removedAsCoveredByParent": 21635,
   "counts": {
-    "blpTotal": 953197,
-    "blpAlsoInPermissive": 226345,
-    "blpUnattributed": 492511,
-    "blpDroppedTraceableOnlyToUnclear": 234341,
-    "shadowWhispererAddedBeyondBlp": 4262,
-    "sinfoniettaOnlyNotAdded": 33778
+    "shadowWhisperer": 222623,
+    "sinfonietta": 61154,
+    "inBoth": 19392,
+    "shadowWhispererOnly": 203231,
+    "sinfoniettaOnly": 41762,
+    "union": 264385
   },
-  "upstreamCommit": null,
-  "upstreamCommitNote": "Commit hashes could not be read (GitHub API access to these repositories was not available in the build session); every input is identified by its exact bytes (SHA-256) and retrieval date.",
   "inputs": {
-    "blp-porn.txt": {
-      "name": "The Block List Project - porn.txt",
-      "repository": "https://github.com/blocklistproject/Lists",
-      "licence": "The Unlicense (LICENSE in repository root; file header says MIT)",
-      "use": "primary container; its repository declares The Unlicense",
-      "url": "https://raw.githubusercontent.com/blocklistproject/Lists/master/porn.txt",
-      "bytes": 26095053,
-      "sha256": "425590c37e3ea624fdf646b14ba661f8b8f38391686adcf02b73f8b2d74b0db1",
-      "validHostnames": 953197,
-      "rejectedLines": 196,
-      "headerLines": [
-        "# Title: Porn Block List",
-        "# Description: Adult content domains",
-        "# License: MIT",
-        "# Last modified: 2026-07-18 01:36:50 UTC"
-      ]
-    },
     "shadowwhisperer-adult.txt": {
       "name": "ShadowWhisperer BlockLists - Lists/Adult",
       "repository": "https://github.com/ShadowWhisperer/BlockLists",
-      "licence": "The Unlicense (LICENSE verified)",
-      "use": "included in full",
-      "url": "https://raw.githubusercontent.com/ShadowWhisperer/BlockLists/refs/heads/master/Lists/Adult",
-      "bytes": 3635639,
+      "path": "Lists/Adult",
+      "commit": "1404d49b73d3c986da869b33c03a9e617437e0df",
+      "commitDate": "2026-10-01T17:47:57-05:00",
+      "permalink": "https://raw.githubusercontent.com/ShadowWhisperer/BlockLists/1404d49b73d3c986da869b33c03a9e617437e0df/Lists/Adult",
+      "gitBlob": "fbbf471b33009efa2d812730032a89a85ccbfba9",
       "sha256": "de136908d2b12b31ece5d5bee9e74748b364977a27840fab9a616f2e4b70b3d7",
+      "bytes": 3635639,
       "validHostnames": 222623,
       "rejectedLines": 0,
       "headerLines": [
         "# Domains: 222,623",
         "# Updated: 9/24/2026  17:13 (5:13 PM CST)"
-      ]
+      ],
+      "licence": {
+        "name": "The Unlicense",
+        "permalink": "https://raw.githubusercontent.com/ShadowWhisperer/BlockLists/1404d49b73d3c986da869b33c03a9e617437e0df/LICENSE",
+        "gitBlob": "fdddb29aa445bf3d6a5d843d6dd77e10a9f99657",
+        "sha256": "6b0382b16279f26ff69014300541967a356a666eb0b91b422f6862f6b7dad17e",
+        "committedCopy": "data/base-list/licenses/LICENSE-ShadowWhisperer-Unlicense.txt"
+      }
     },
     "sinfonietta-pornography-hosts.txt": {
       "name": "Sinfonietta hostfiles - pornography-hosts",
       "repository": "https://github.com/Sinfonietta/hostfiles",
-      "licence": "MIT, Copyright (c) 2016 Sinfonietta (LICENSE verified)",
-      "use": "attribution for entries that Block List Project also lists; Sinfonietta-only entries NOT added (no freshness evidence)",
-      "url": "https://raw.githubusercontent.com/Sinfonietta/hostfiles/master/pornography-hosts",
-      "bytes": 1547661,
+      "path": "pornography-hosts",
+      "commit": "46f3097d7bcfc9eea323fe365074dfd771d0d17c",
+      "commitDate": "2026-09-08T22:09:06-04:00",
+      "permalink": "https://raw.githubusercontent.com/Sinfonietta/hostfiles/46f3097d7bcfc9eea323fe365074dfd771d0d17c/pornography-hosts",
+      "gitBlob": "198ab532a3bd3f3114c4dc36483cfa33b6425fb5",
       "sha256": "d5c31a7ee9f1920df47044270449ad42a1b09ad4f3b608410383abaabb27fa1d",
+      "bytes": 1547661,
       "validHostnames": 61154,
       "rejectedLines": 6,
-      "headerLines": []
-    },
-    "hagezi-nsfw.txt": {
-      "name": "HaGeZi - dns-blocklists nsfw",
-      "repository": "https://github.com/hagezi/dns-blocklists",
-      "licence": "GNU GPL-3.0 (LICENSE verified)",
-      "use": "TRACE ONLY - entries traceable only to this source are removed; nothing is copied from it",
-      "url": "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/nsfw.txt",
-      "bytes": 1578823,
-      "sha256": "e4973d86b58f5fae5fceed9c0e87eaae3b560d9ed353d5784eea6bf0ec0bbf6d",
-      "validHostnames": 83972,
-      "rejectedLines": 0,
-      "headerLines": [
-        "! Title: HaGeZi's NSFW - blocks adult content!",
-        "! License: https://github.com/hagezi/dns-blocklists/blob/main/LICENSE",
-        "! Last modified: 01 Oct 2026 23:44 UTC",
-        "! Version: 2026.1001.2344.15"
-      ]
-    },
-    "zachlagden-nsfw.txt": {
-      "name": "zachlagden - Pi-hole-Optimized-Blocklists nsfw",
-      "repository": "https://github.com/zachlagden/Pi-hole-Optimized-Blocklists",
-      "licence": "none found (no LICENSE file in the repository)",
-      "use": "TRACE ONLY - entries traceable only to this source are removed; nothing is copied from it",
-      "url": "https://media.githubusercontent.com/media/zachlagden/Pi-hole-Optimized-Blocklists/main/lists/nsfw.txt",
-      "bytes": 14332703,
-      "sha256": "b4be544818425eb0909df7db001a96ba3ba22ce72c8296ee8b30a7e1ea967086",
-      "validHostnames": 555840,
-      "rejectedLines": 0,
-      "headerLines": [
-        "# Last updated: 2026-09-27 04:02:07",
-        "# Total domains: 555840"
-      ]
-    },
-    "clefspeare13-porn-hosts.txt": {
-      "name": "Clefspeare13 pornhosts (via StevenBlack/hosts extension copy)",
-      "repository": "https://github.com/Clefspeare13/pornhosts",
-      "licence": "header says MIT but the upstream LICENSE could not be retrieved",
-      "use": "TRACE ONLY - not independently verifiable; nothing is copied from it",
-      "url": "https://raw.githubusercontent.com/StevenBlack/hosts/master/extensions/porn/clefspeare13/hosts",
-      "bytes": 536370,
-      "sha256": "0af2d8d380778600b3865131eaf1d88f94479e96afabb0ff4d5537afb7923ca1",
-      "validHostnames": 20151,
-      "rejectedLines": 9,
-      "headerLines": [
-        "# Last Updated: 2021-10-05 21:46:15 +0200 (CEST) Build: 278",
-        "# Domains with no duplicates. Note that www.* versions of domains and",
-        "# regular versions of the domain are resolved separately and might therefore",
-        "# License:"
-      ]
+      "headerLines": [],
+      "licence": {
+        "name": "MIT, Copyright (c) 2016 Sinfonietta",
+        "permalink": "https://raw.githubusercontent.com/Sinfonietta/hostfiles/46f3097d7bcfc9eea323fe365074dfd771d0d17c/LICENSE",
+        "gitBlob": "514145afc3039857bf41fb81f4d590dc6b210b94",
+        "sha256": "b32ce488900c449c858b636ac18aab77ae483586508e3aa2e6a916d7a6ace1ae",
+        "committedCopy": "data/base-list/licenses/LICENSE-Sinfonietta-MIT.txt"
+      }
     }
   },
+  "licenceCoverage": {
+    "shadowwhisperer-adult.txt": "Single root LICENSE (The Unlicense) in the repository that contains the file; no licence, header or README term restricts Lists/Adult; no other licence file exists in the repository; README says lists are made by the maintainer from a custom script and manual additions and that other lists are not merged; contributions arrive as issues, not as merged lists. Note: the Unlicense text speaks of \"software\"; the list file is part of the licensed repository and is treated as covered - a legal interpretation, not a separate grant.",
+    "sinfonietta-pornography-hosts.txt": "Single root LICENSE (MIT, Copyright (c) 2016 Sinfonietta) in the repository that contains the file; no file-level or directory-level exception; the file has no header or comment lines. Conditions: the copyright and permission notice must accompany copies or substantial portions - they ship in THIRD_PARTY_NOTICES.txt. The file has many contributors (pull requests); contributions made on GitHub to a repository carrying a licence are licensed under that licence (GitHub Terms of Service, section D.6). The project does not document where individual entries came from (README: \"collection\"); some were added from issues in the MIT-licensed StevenBlack/hosts project. We have not verified and cannot verify the origin of each entry."
+  },
+  "examinedAndExcluded": {
+    "The Block List Project porn.txt": "Excluded entirely. A collecting project; its licence alone does not prove the rights of the sources it collected from, and 492,511 of its entries could not be attributed to any examined source.",
+    "HaGeZi dns-blocklists nsfw": "Excluded: GNU GPL-3.0 (copyleft), not usable inside this extension under the Owner decision.",
+    "zachlagden Pi-hole-Optimized-Blocklists nsfw": "Excluded: no licence file.",
+    "Clefspeare13 pornhosts": "Excluded: licence not verifiable from the upstream repository."
+  },
   "topTlds": {
-    "com": 485034,
-    "net": 37875,
-    "nl": 23129,
-    "de": 15407,
-    "org": 13614,
-    "top": 11698,
-    "xyz": 8890,
-    "fr": 6800,
-    "uk": 6661,
-    "info": 6550
+    "com": 143530,
+    "net": 15675,
+    "org": 6193,
+    "xyz": 4960,
+    "ru": 4287,
+    "cc": 4266,
+    "info": 3251,
+    "uk": 3133,
+    "nl": 3123,
+    "top": 2885
   },
   "benignCanariesChecked": 140,
   "transform": [
     "lowercase",
     "drop entries that are not valid hostnames",
-    "apply the composition rule above",
+    "union of the two pinned files",
     "drop entries covered by a listed parent domain",
     "sort",
     "refuse to write if any known-benign canary is covered"

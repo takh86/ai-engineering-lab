@@ -104,7 +104,7 @@ test('build output: every file the manifest and pages reference exists; base rul
         }
         const rules = JSON.parse(fs.readFileSync(path.join(dir, 'rulesets', 'base_adult.json'), 'utf8'));
         assert.equal(rules.length, 1);
-        assert.ok(rules[0].condition.requestDomains.length > 650000);
+        assert.equal(rules[0].condition.requestDomains.length, 242750 + 1);   // the list + the reserved self-test domain
         assert.ok(rules[0].condition.requestDomains.includes('tabsira-selftest.test'));
         assert.deepEqual(rules[0].condition.resourceTypes, ['main_frame']);
     }
@@ -117,17 +117,27 @@ test('build is reproducible: two builds give byte-identical ZIPs', () => {
     for (const name of fs.readdirSync(out).filter(f => f.endsWith('.zip'))) assert.equal(sha(path.join(out, name)), sha(path.join(second, name)), name);
 });
 
-test('base list: provenance names every input with its licence, excludes GPL/unlicensed sources, notices are bundled', () => {
+test('base list: ONLY the two explicitly licensed sources, pinned to commits and hashes, with licence texts and notices bundled', () => {
     const provenance = JSON.parse(read('data', 'base-list', 'PROVENANCE.json'));
-    assert.equal(provenance.upstreamCommit, null);
-    assert.ok(provenance.snapshotEntries > 650000);
-    const inputs = provenance.inputs;
-    assert.match(inputs['shadowwhisperer-adult.txt'].licence, /Unlicense/u);
-    assert.match(inputs['sinfonietta-pornography-hosts.txt'].licence, /MIT/u);
-    assert.match(inputs['blp-porn.txt'].licence, /Unlicense/u);
-    for (const traceOnly of ['hagezi-nsfw.txt', 'zachlagden-nsfw.txt', 'clefspeare13-porn-hosts.txt']) assert.match(inputs[traceOnly].use, /TRACE ONLY/u);
-    for (const info of Object.values(inputs)) assert.match(info.sha256, /^[0-9a-f]{64}$/u);
+    assert.deepEqual(Object.keys(provenance.inputs).sort(), ['shadowwhisperer-adult.txt', 'sinfonietta-pornography-hosts.txt']);   // nothing else may feed the list
+    assert.equal(provenance.snapshotEntries, 242750);
+    assert.equal(provenance.counts.union - provenance.removedAsCoveredByParent, provenance.snapshotEntries);
+    const sw = provenance.inputs['shadowwhisperer-adult.txt']; const sin = provenance.inputs['sinfonietta-pornography-hosts.txt'];
+    assert.match(sw.licence.name, /Unlicense/u); assert.match(sin.licence.name, /MIT/u);
+    for (const info of [sw, sin]) {
+        assert.match(info.commit, /^[0-9a-f]{40}$/u); assert.match(info.sha256, /^[0-9a-f]{64}$/u); assert.match(info.gitBlob, /^[0-9a-f]{40}$/u);
+        assert.ok(info.permalink.includes(info.commit), 'permalink is pinned to the commit');
+        assert.match(info.licence.sha256, /^[0-9a-f]{64}$/u); assert.ok(info.licence.permalink.includes(info.commit));
+        // the committed licence text is byte-identical to the licence at the pinned commit
+        assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root, info.licence.committedCopy))).digest('hex'), info.licence.sha256);
+    }
+    assert.ok(provenance.licenceCoverage['shadowwhisperer-adult.txt'] && provenance.licenceCoverage['sinfonietta-pornography-hosts.txt']);
+    for (const excluded of ['The Block List Project porn.txt', 'HaGeZi dns-blocklists nsfw', 'zachlagden Pi-hole-Optimized-Blocklists nsfw', 'Clefspeare13 pornhosts']) assert.ok(provenance.examinedAndExcluded[excluded], excluded);
     const notices = read('data', 'base-list', 'THIRD_PARTY_NOTICES.md');
-    for (const needle of ['Sinfonietta', 'ShadowWhisperer', 'Block List Project', 'free and unencumbered', 'MIT License']) assert.ok(notices.includes(needle), needle);
+    for (const needle of ['ShadowWhisperer', 'Sinfonietta', 'free and unencumbered software', 'The MIT License', 'Copyright (c) 2016 Sinfonietta', sw.commit, sin.commit]) assert.ok(notices.includes(needle), needle);
+    for (const forbidden of ['Block List Project', 'HaGeZi', 'zachlagden']) assert.ok(!notices.includes(forbidden), `${forbidden} must not appear in the shipped notices as a source`);
     assert.ok(fs.existsSync(path.join(out, 'chromium', 'THIRD_PARTY_NOTICES.txt')));
+    // the shipped notice carries the full MIT text of Sinfonietta (condition of the licence)
+    assert.ok(read('data', 'base-list', 'THIRD_PARTY_NOTICES.md').includes(read('data', 'base-list', 'licenses', 'LICENSE-Sinfonietta-MIT.txt').trim()));
 });
+
