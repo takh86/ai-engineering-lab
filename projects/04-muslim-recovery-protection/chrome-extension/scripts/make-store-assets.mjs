@@ -1,7 +1,7 @@
 // Generates the store images: REAL screenshots of the released Chromium package (the extracted release ZIP, unmodified)
-// and promo tiles drawn from the approved identity (redrawn mark + Cairo/Tajawal embedded from src/fonts, OFL).
+// and promo tiles built from the Owner-supplied vector lockup + Tajawal embedded from src/fonts (OFL).
 //   node scripts/build.mjs && node scripts/make-store-assets.mjs        (CHROMIUM=/path/to/chrome to override the browser)
-// The mark is a REDRAW of the Owner's reference image (docs/brand/ASSETS.md); replace it when the master SVG exists.
+// The vector assets are the Owner-supplied RECONSTRUCTION (docs/brand/vector/SOURCE.md); replace them when the designer's master exists.
 import fs from 'node:fs';
 import path from 'node:path';
 import { launch, openExtPage, send, root, sleep, startSite } from '../tests/e2e/lib.mjs';

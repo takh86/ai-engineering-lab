@@ -19,9 +19,9 @@ editing `manifest.json` only, and the harness fails if any other file differs: `
 the checks calling `testMatchOutcome`: base-list sampling S3 and match timing S11), `optional` (host access optional, for the "permission missing" state S8),
 `live` (a copy whose manifest version is raised in place for the update test S7.11–S7.13). Evidence files record the ZIP path and SHA-256.
 
-Package under test (frozen code commit `f6b0eb6`; later commits change only documentation and evidence — verified by rebuilding):
-`tabsira-chromium-1.0.0.zip` SHA-256 `1c0b9f58c9a1474a826cc9fd7aac3f2dcc00198e21675f1e62cf7627b43e29f2`,
-`tabsira-firefox-1.0.0.zip` SHA-256 `116bf1384061593872be49b98e5338dd4224617bb6e7f36665137144769750ee`.
+Package under test (frozen code commit `608251e` (logic identical to `f6b0eb6`; only brand assets, icons and the image sizes in five HTML files changed); later commits change only documentation and evidence — verified by rebuilding):
+`tabsira-chromium-1.0.0.zip` SHA-256 `c58ecb74a6fe9e12313a7cab99eba4e080f7cd1d60b755df6f7ecfd37d4ff45b`,
+`tabsira-firefox-1.0.0.zip` SHA-256 `c5dade24516a3ff2319a150bf35463d49fec93d605582762751f1648562babf1`.
 
 Linux x64 sandbox, headless (`--headless=new` for Chromium-family). Test sites resolve to a local server (`--host-resolver-rules` for Chromium-family, a local HTTP proxy
 for Firefox); no real website — and no listed adult domain — was ever contacted. The base list is exercised with `testMatchOutcome` (never sends a request) and the reserved safe-test domain.

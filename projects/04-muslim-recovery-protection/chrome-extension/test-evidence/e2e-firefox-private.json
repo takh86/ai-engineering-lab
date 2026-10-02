@@ -4,11 +4,11 @@
     "version": "Mozilla Firefox 157.0",
     "os": "Linux 6.18.44-fc-v51 (x64)",
     "node": "v22.22.0",
-    "date": "2026-10-02T11:38:11.678Z",
+    "date": "2026-10-02T12:37:56.452Z",
     "package": {
       "target": "firefox",
       "zip": "dist/tabsira-firefox-1.0.0.zip",
-      "zipSha256": "116bf1384061593872be49b98e5338dd4224617bb6e7f36665137144769750ee",
+      "zipSha256": "c5dade24516a3ff2319a150bf35463d49fec93d605582762751f1648562babf1",
       "files": 48,
       "manifestVersion": "1.0.0",
       "variants": {

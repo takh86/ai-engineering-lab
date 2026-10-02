@@ -2,7 +2,7 @@
 
 Status: **prepared, not submitted.** Nothing here has been uploaded. Account creation, fees, upload and
 publication need the Owner (see `SUBMISSION-CHECKLIST.md`). Arabic, English and German copy needs a native
-review before submission. Icon, screenshots and promo tiles use the **Owner-approved identity**; the mark is a **redraw** of the reference image (not the designer's master SVG) — see `docs/brand/ASSETS.md`.
+review before submission. Icon, screenshots and promo tiles use the **Owner-approved identity**; the mark and lockup are the Owner-supplied vector **reconstruction** (not the designer's master SVG) — see `docs/brand/ASSETS.md`.
 
 ## Single purpose (Chrome Web Store "Privacy practices" → Single purpose)
 

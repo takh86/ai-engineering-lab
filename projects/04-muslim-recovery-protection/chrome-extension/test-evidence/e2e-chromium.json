@@ -4,11 +4,11 @@
     "version": "141.0.7390.37",
     "os": "Linux 6.18.44-fc-v51 (x64)",
     "node": "v22.22.0",
-    "date": "2026-10-02T11:19:43.935Z",
+    "date": "2026-10-02T12:19:23.214Z",
     "package": {
       "target": "chromium",
       "zip": "dist/tabsira-chromium-1.0.0.zip",
-      "zipSha256": "1c0b9f58c9a1474a826cc9fd7aac3f2dcc00198e21675f1e62cf7627b43e29f2",
+      "zipSha256": "c58ecb74a6fe9e12313a7cab99eba4e080f7cd1d60b755df6f7ecfd37d4ff45b",
       "files": 48,
       "manifestVersion": "1.0.0",
       "variants": {
@@ -182,17 +182,17 @@
     {
       "id": "S4.1 does not block notblocked-user.test",
       "status": "PASS",
-      "detail": "http://notblocked-user.test:43417/"
+      "detail": "http://notblocked-user.test:46491/"
     },
     {
       "id": "S4.1 does not block blocked-user.test.evil.example",
       "status": "PASS",
-      "detail": "http://blocked-user.test.evil.example:43417/"
+      "detail": "http://blocked-user.test.evil.example:46491/"
     },
     {
       "id": "S4.1 does not block blocked-user.tests.example",
       "status": "PASS",
-      "detail": "http://blocked-user.tests.example:43417/"
+      "detail": "http://blocked-user.tests.example:46491/"
     },
     {
       "id": "S4.2 exception for a subdomain beats the parent block; siblings stay blocked",
@@ -312,27 +312,27 @@
     {
       "id": "S5.3 allowed: phrase only in another parameter",
       "status": "PASS",
-      "detail": "http://www.google.com:43417/search?q=ordinary&note=tabsira+word"
+      "detail": "http://www.google.com:46491/search?q=ordinary&note=tabsira+word"
     },
     {
       "id": "S5.3 allowed: param name boundary (aq)",
       "status": "PASS",
-      "detail": "http://www.google.com:43417/search?aq=tabsira+word"
+      "detail": "http://www.google.com:46491/search?aq=tabsira+word"
     },
     {
       "id": "S5.3 allowed: word mode: embedded in a longer word",
       "status": "PASS",
-      "detail": "http://www.google.com:43417/search?q=xtabsira+words"
+      "detail": "http://www.google.com:46491/search?q=xtabsira+words"
     },
     {
       "id": "S5.3 allowed: phrase in the path, not the query",
       "status": "PASS",
-      "detail": "http://www.google.com:43417/search?x=1"
+      "detail": "http://www.google.com:46491/search?x=1"
     },
     {
       "id": "S5.3 allowed: different engine param (p on google)",
       "status": "PASS",
-      "detail": "http://www.google.com:43417/search?p=tabsira+word"
+      "detail": "http://www.google.com:46491/search?p=tabsira+word"
     },
     {
       "id": "S5.3 allowed: phrase in path only",
@@ -492,7 +492,7 @@
     {
       "id": "S9.2 private window WITHOUT the switch: extension is not applied, the site loads (documented limit; manual enable needed)",
       "status": "PASS",
-      "detail": "http://incog-site.test:43417/"
+      "detail": "http://incog-site.test:46491/"
     },
     {
       "id": "S9.3 status reports private windows allowed (incognitoAllowed=true) and protection still active",
@@ -532,27 +532,27 @@
     {
       "id": "S11.1 enabling the full built-in list succeeds",
       "status": "PASS",
-      "detail": "112 ms"
+      "detail": "83 ms"
     },
     {
       "id": "S11.2 enabling takes under 15 s",
       "status": "PASS",
-      "detail": "112 ms"
+      "detail": "83 ms"
     },
     {
       "id": "S11.3 navigation overhead with the list on is under 50 ms (median of 25, local server)",
       "status": "PASS",
-      "detail": "off 32 ms / on 28 ms"
+      "detail": "off 31 ms / on 31 ms"
     },
     {
       "id": "S11.4 per-URL matching cost with the list is under 5 ms",
       "status": "PASS",
-      "detail": "0.42 ms / 0.37 ms"
+      "detail": "0.45 ms / 0.59 ms"
     },
     {
       "id": "S11.5 total browser memory increase from the list is under 400 MB",
       "status": "PASS",
-      "detail": "868 MB → 876 MB"
+      "detail": "864 MB → 872 MB"
     },
     {
       "id": "S12.1 keyboard Tab reaches every interactive control on the settings page (17 controls)",
@@ -707,7 +707,7 @@
     {
       "id": "S16.3a while a frozen holder's lease is valid, the other instance fails closed (\"busy\") instead of writing blindly",
       "status": "PASS",
-      "detail": "{\"paused2\":true,\"first\":\"busy\",\"waitedMs\":20000}"
+      "detail": "{\"paused2\":true,\"first\":\"busy\",\"waitedMs\":20009}"
     },
     {
       "id": "S16.3b after the lease expired the other instance extends the session to 120 min; when the frozen write then resumes the session is NOT shortened or erased",
@@ -742,7 +742,7 @@
     {
       "id": "S16c.1 precondition: the private instance's first session was recorded, then aged to \"ended\"; the cleanup froze inside the real removal",
       "status": "PASS",
-      "detail": "{\"first\":true,\"aged\":[\"lock:5-1:0e6913da-93a3-4710-a088-4fec20f22e2a\"],\"ended\":true,\"frozen\":true}"
+      "detail": "{\"first\":true,\"aged\":[\"lock:5-1:904e32d4-45f1-4f17-8106-cb86f8b9c6ec\"],\"ended\":true,\"frozen\":true}"
     },
     {
       "id": "S16c.2 while the frozen worker's lease is valid the private instance fails closed (\"busy\"); after expiry it starts a NEW 120-minute session",
@@ -821,7 +821,7 @@
     },
     {
       "id": "S11",
-      "text": "{\"browser\":\"chrome-linux/chrome\",\"listDomains\":242750,\"extensionReadyMs\":826,\"enableBaseListMs\":112,\"navMedianOffMs\":32,\"navMedianOnMs\":28,\"rssOffMB\":868,\"rssOnMB\":876,\"matchMsPerUrl\":0.42,\"phraseMatchMsPerUrl\":0.37}"
+      "text": "{\"browser\":\"chrome-linux/chrome\",\"listDomains\":242750,\"extensionReadyMs\":972,\"enableBaseListMs\":83,\"navMedianOffMs\":31,\"navMedianOnMs\":31,\"rssOffMB\":864,\"rssOnMB\":872,\"matchMsPerUrl\":0.45,\"phraseMatchMsPerUrl\":0.59}"
     },
     {
       "id": "S12",

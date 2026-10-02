@@ -151,7 +151,7 @@ proves every other file is byte-identical. Most checks run on the unmodified rel
 `src/core` pure logic (domains, phrases, rules, settings, session) · `src/background` controller, message validation, browser
 adapter, worker · `src/ui` pages (copied flat into the package) · `src/_locales` ar/en/de · `scripts` build, ZIP, base-list updater,
 icon/asset generators · `data/base-list` snapshot + provenance + licences + canaries · `src/brand`, `src/fonts`, `src/ui/tokens.css` approved
-identity ([`docs/brand/ASSETS.md`](docs/brand/ASSETS.md) — the mark is a **redraw** of the Owner's reference image, not the designer's SVG) ·
+identity ([`docs/brand/ASSETS.md`](docs/brand/ASSETS.md) — the mark, app icon and store lockup are the Owner-supplied vector **reconstruction** (`docs/brand/vector/`), not the designer's master SVG) ·
 `tests` unit and real-browser suites · `store` listing text, privacy policy, images, submission checklist ·
 [`UPDATING.md`](UPDATING.md) list/extension update plan · [`CHANGELOG.md`](CHANGELOG.md).
 

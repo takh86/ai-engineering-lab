@@ -6,6 +6,7 @@ versions follow `package.json`. The built-in list version is the version of the 
 ## [1.0.0] — unreleased (release candidate V1.1, not published)
 
 ### V1.1 (Owner decisions of 2026-10-02) — changes since the first release candidate
+- **Brand vector assets from the Owner** (`Tabsira_Vector_Assets_V1.zip`; a reconstruction per its own README, not the designer's master): mark, app icon (toolbar icons re-rendered), store lockup; the hand redraw is retired. Provenance in `docs/brand/vector/SOURCE.md`. Logic unchanged; package hashes changed.
 - **Built-in list: final Owner decision — licence-only sources.** The list is exactly ShadowWhisperer `Lists/Adult` (The Unlicense) ∪ Sinfonietta `pornography-hosts` (MIT):
   **242,750 domains** (was 714,093; originally 936,979). The Block List Project (including its 492,511 unattributed entries), HaGeZi, zachlagden and Clefspeare13 are no longer
   used. Inputs pinned to commits (`1404d49…`, `46f3097…`), git blob ids and SHA-256; licence texts verified byte-identical to the pinned commits; notices with the MIT copyright
