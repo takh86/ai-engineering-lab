@@ -4,18 +4,21 @@ A local-only extension for adults who chose to protect themselves online: it blo
 **you** choose, then turns the moment of blocking into a short, respectful pause with help. It complements the
 Android app and Family DNS; it is not a replacement for them and not a proven treatment.
 
-> **Status — release candidate, not published.** Code complete and verified by automated tests in real browsers
-> (Chromium 141: 122 checks pass · Edge 154: 122 · Firefox 157: 43, all on Linux; 0 failures). **Not yet verified:** branded Google Chrome,
-> Windows/macOS, Brave, Opera, the AMO-signed Firefox build, real user devices. Store packages are prepared but nothing was uploaded, merged or published.
-> See [`TESTING.md`](TESTING.md) for evidence and [`COMPATIBILITY.md`](COMPATIBILITY.md) for the browser table.
+> **Status — release candidate V1.1, not published.** The built ZIPs themselves were extracted and tested in real browsers on Linux:
+> Chromium 141, **Google Chrome for Testing 154** (an official Google build — *not* branded stable Chrome), Microsoft Edge 154, Firefox 157
+> including Firefox **private windows**. Exact counts, versions and package SHA-256 are in [`TESTING.md`](TESTING.md) and
+> [`test-evidence/SUMMARY.md`](test-evidence/SUMMARY.md). **Not verified:** branded Chrome stable, Windows/macOS, Brave, Opera, the AMO-signed
+> Firefox build, real user devices. The security review ([`../docs/tabsira-security-review.md`](../docs/tabsira-security-review.md)) is a
+> self-review, not an independent audit. Nothing was uploaded, merged or published. Browser table: [`COMPATIBILITY.md`](COMPATIBILITY.md).
 
 ## What it does
 
 - **Blocks sites you add** — the site and its subdomains, on DNS label boundaries (`example.com` blocks `mail.example.com`,
   not `badexample.com` or `example.com.evil.org`).
-- **Built-in adult-sites list (opt-in)** — a bundled snapshot of The Block List Project (Unlicense), 936,979 domains. Automated and
-  community-made: it **can block innocent sites**; use Exceptions. Details and licence in
-  [`data/base-list/README.md`](data/base-list/README.md). Nothing is downloaded at run time.
+- **Built-in adult-sites list (opt-in)** — a bundled snapshot of 714,093 domains built only from sources whose licence is documented
+  (ShadowWhisperer and The Block List Project, both Unlicense; Sinfonietta, MIT; entries that trace only to GPL/unlicensed upstreams were
+  removed). Automated and community-made: it **can block innocent sites**; use Exceptions. Sources, licences, pinned hashes and the
+  residual legal risk: [`data/base-list/README.md`](data/base-list/README.md). Nothing is downloaded at run time.
 - **Search phrases (Arabic and English)** — matched only inside the search parameter (`q`, `p`, `search_query`, `text`) of
   Google (all regional domains), Bing (web/images/video), DuckDuckGo, Yahoo, YouTube, Yandex, Brave, Ecosia and Qwant;
   `+` or `%20`, upper/lower case, Unicode-normalized. Whole-word (default) or partial (broader, more false blocks).
@@ -30,8 +33,10 @@ Android app and Family DNS; it is not a replacement for them and not a proven tr
 While a session is active, **inside the extension** these are refused: deleting a site or phrase, turning off the built-in list or
 starter phrases, adding an exception, importing settings that would weaken anything, resetting. Adding **stronger** protection is
 always allowed. The same rules apply from a private window and from several windows at once (one shared state).
-It is a time stamp in storage — no timer, so a sleeping/restarted worker cannot lose it. When it ends it **only re-allows
-editing**; it never removes a rule.
+It is a time stamp in storage — no timer, so a sleeping/restarted worker cannot lose it. The end time is kept in grow-only entries (the
+effective end is the maximum), and every change goes through a cross-instance write lock, so a late or concurrent write from another window
+**cannot shorten or erase a running session** (regression-tested, including in a real normal + private window pair). When it ends it **only
+re-allows editing**; it never removes a rule.
 
 It is friction, **not tamper resistance**: the user can still disable or uninstall the extension, use another browser/profile,
 or change the device clock (moving the clock forward ends the session early; backward lengthens it). Nothing prevents removal at
@@ -50,7 +55,10 @@ OS level and no enterprise policy or device permission is used.
 
 No accounts, analytics, telemetry, browsing history, server, or remote list. Stored locally in `storage.local` (**not encrypted**):
 sites, exceptions, phrases, switches, a revision number, and the session end time. Block attempts, URLs and search words are never
-stored or logged; the stop page cannot see which rule matched. Full text: [`store/privacy-policy.html`](store/privacy-policy.html).
+stored or logged by Tabsira; the stop page cannot see which rule matched (verified by scanning the profile after blocked visits).
+**Your browser itself still records the address you tried to open in its normal history, as for any page** (measured in Chromium) —
+Tabsira has no history permission and neither reads nor copies it. The settings export is plain text listing your sites and phrases: keep it
+private. Full text: [`store/privacy-policy.html`](store/privacy-policy.html).
 
 | Permission | Why |
 |---|---|
@@ -59,7 +67,7 @@ stored or logged; the stop page cannot see which rule matched. Full text: [`stor
 | Website access (`http://*/*`, `https://*/*`) | Required by the browser to *redirect* a blocked page to the help page for any site you choose. Not used to read or change pages; **no content scripts.** |
 
 Not requested: `tabs`, `webNavigation`, `webRequest`, `history`, `cookies`, `activeTab`, `scripting`, `alarms`, `downloads`.
-No `web_accessible_resources` in the Chrome/Edge package, so websites cannot detect the extension by its fixed ID; Firefox requires exactly one (`blocked.html`) for the redirect and its add-on host is a random per-profile UUID. CSP `default-src 'none'; script-src 'self'`.
+No `web_accessible_resources` in the Chrome/Edge package, so websites cannot detect the extension by its fixed ID (verified: a hostile page cannot frame, load, script or fetch any extension file); Chrome/Edge do set `incognito: "split"` so the stop page can be shown in private windows. Firefox requires exactly one web-accessible resource (`blocked.html`) for the redirect, and its add-on host is a random per-profile UUID. CSP `default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'`.
 The worker accepts only schema-validated messages from the extension's own popup/settings/onboarding pages.
 
 ## Limits (by design and by browser)
@@ -72,8 +80,10 @@ The worker accepts only schema-validated messages from the extension's own popup
   phrase fits about 12–14 letters (fewer with spaces); English ≈ 80 letters. Over-long phrases are refused with the line number.
   Diacritics/tatweel are removed from stored phrases; alef/ya/ta-marbuta variants are **not** unified.
 - **List quality.** Classification is automated; false positives exist (a 60-name sample showed one). Updates only with new versions.
-- **Private windows** need the browser's manual "allow in private/incognito" switch. Chromium: the stop page shows in private windows
-  (`incognito: split`, shared storage, verified); two windows saving within the same few milliseconds → last write wins and rules follow storage.
+- **Private windows** need the browser's manual "allow in private/incognito" switch (without it the extension is simply not applied there — tested in
+  Chromium-family and Firefox). With it: the stop page shows (Chromium `incognito: split`, shared storage; Firefox spans), the commitment holds, weakening
+  from the private window is refused. Two windows saving at once are serialised by a lease-based lock; if a worker is frozen for longer than the 20 s
+  lease the other one proceeds and the late one is refused (`busy`), and rules are rebuilt from storage.
 - **Clock changes, disabling, removing, other browsers/profiles, local files** are outside any guarantee.
 - **Updates:** browsers reset which static ruleset is enabled on an extension update; the worker re-applies your settings
   immediately (verified) but there can be a brief gap.
@@ -90,29 +100,35 @@ access automatically, the onboarding page has a button to request it.
 
 ## Build and test
 
-Requires Node ≥ 20.11. No runtime dependencies; dev dependency `playwright-core@1.56.1` (exact) only for browser tests.
+Requires Node ≥ 20.11. No runtime dependencies; dev dependency `playwright-core@1.56.1` (exact) only for Chromium-family tests.
 
 ```sh
 npm ci
-npm test                       # unit + static + build-reproducibility tests (no browser)
+npm test                       # unit + static + adversarial + build-reproducibility tests (no browser)
 npm run build                  # dist/tabsira-chromium-1.0.0.zip, dist/tabsira-firefox-1.0.0.zip (byte-reproducible)
 npm run verify-reproducible    # builds twice, compares SHA-256
-# real browsers (see TESTING.md):
-node scripts/build.mjs --test && node scripts/build.mjs --test --optional-hosts
-CHROMIUM=/path/to/chrome-or-chromium node tests/e2e/run.mjs --browser chromium
+# real browsers - they EXTRACT AND TEST THE BUILT ZIPs (see TESTING.md):
+CHROMIUM=/path/to/chromium  node tests/e2e/run.mjs --browser chromium
+CHROME=/path/to/chrome      node tests/e2e/run.mjs --browser chrome      # official Google build (Chrome for Testing or branded Chrome)
 EDGE=/path/to/msedge        node tests/e2e/run.mjs --browser edge
 FIREFOX=/path/to/firefox GECKODRIVER=/path/to/geckodriver node tests/e2e/firefox-run.mjs
+FIREFOX=... GECKODRIVER=... node tests/e2e/firefox-private.mjs
+node scripts/summarize-evidence.mjs   # test-evidence/SUMMARY.md
+node scripts/make-store-assets.mjs    # store/images from the release package
 ```
 
-`dist-test*` builds add test-only permissions (`declarativeNetRequestFeedback`) and are never packaged for stores.
+The test harness derives variants from the release package by editing `manifest.json` only (extra `declarativeNetRequestFeedback` for the two
+checks that call `testMatchOutcome`; host access made optional for the "permission missing" state; a higher version for the update test) and
+proves every other file is byte-identical. Most checks run on the unmodified release package.
 
 ## Layout
 
 `src/core` pure logic (domains, phrases, rules, settings, session) · `src/background` controller, message validation, browser
 adapter, worker · `src/ui` pages (copied flat into the package) · `src/_locales` ar/en/de · `scripts` build, ZIP, base-list updater,
-icon/asset generators · `data/base-list` snapshot + provenance + canaries · `tests` unit and real-browser suites ·
-`store` listing text, privacy policy, images, submission checklist · [`UPDATING.md`](UPDATING.md) list/extension update plan ·
-[`CHANGELOG.md`](CHANGELOG.md).
+icon/asset generators · `data/base-list` snapshot + provenance + licences + canaries · `src/brand`, `src/fonts`, `src/ui/tokens.css` approved
+identity ([`docs/brand/ASSETS.md`](docs/brand/ASSETS.md) — the mark is a **redraw** of the Owner's reference image, not the designer's SVG) ·
+`tests` unit and real-browser suites · `store` listing text, privacy policy, images, submission checklist ·
+[`UPDATING.md`](UPDATING.md) list/extension update plan · [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Proposals needing an Owner decision (not implemented)
 

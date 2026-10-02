@@ -3,13 +3,31 @@
 All notable changes to the Tabsira browser extension. Format: [Keep a Changelog](https://keepachangelog.com/);
 versions follow `package.json`. The built-in list version is the version of the extension that ships it.
 
-## [1.0.0] — unreleased (release candidate, not published)
+## [1.0.0] — unreleased (release candidate V1.1, not published)
+
+### V1.1 (Owner decisions of 2026-10-02) — changes since the first release candidate
+- **Fixed (High): commitment-session race.** A settings write paused after its "unchanged?" check could reset a session started meanwhile from the other
+  worker instance (normal vs private window). The end time now lives in grow-only per-instance entries (the effective end is the maximum); configuration
+  writes never touch it; every state change runs inside a storage-based cross-instance write lock with a lease (`busy` instead of writing blindly).
+  Deterministic regression tests (written first; the output on the old commit is archived) and a real-browser test with a paused real worker.
+- **Fixed (Medium):** a repair paused past its lease could leave stale rules after another instance's newer save; rules-only writes now re-verify.
+- **Built-in list rebuilt from documented sources.** 714,093 domains (was 936,979): ShadowWhisperer (Unlicense) + Block List Project (Unlicense) + Sinfonietta (MIT,
+  attribution); 234,341 entries traceable only to GPL-3.0 / unlicensed / unverifiable upstreams removed; inputs pinned by SHA-256; licences and
+  `THIRD_PARTY_NOTICES.txt` shipped in the package and linked from Settings. Package is ~1 MB smaller.
+- **Approved visual identity** on Popup, Options, Onboarding, Stop and Help pages: shared design tokens (`tokens.css`), Cairo Bold + Tajawal (OFL, bundled, no
+  network), blue/lime filter mark (redrawn from the Owner's reference — not the designer's SVG), lime primary action with dark text, status by text + icon + colour,
+  dark scheme, AA contrast and layout tests (200 % text, 320 px width). New icons.
+- **Tests now run on the built ZIPs.** The harness extracts the release ZIP; variants differ only in `manifest.json`. New suites: normal + private concurrency (S16), identity
+  and layout (S15), hostile page + leakage scan (S17), Firefox private windows, Google Chrome for Testing. Adversarial unit tests (import, domains, phrases, messages, lock).
+- Export hint: the file is plain text listing your sites; privacy policy and README state that the browser's own history keeps the addresses you tried to open.
+- Docs corrected: Chrome/Edge use `incognito: "split"` and no `web_accessible_resources`; Firefox needs one web-accessible resource.
+- Removed the separate test builds (`--test`, `--optional-hosts`).
 
 Builds on the v0.1 personal prototype (PR #73). Nothing here is published to any store.
 
 ### Added
 - Built-in adult-sites list: one static DNR ruleset generated from a bundled, licensed snapshot
-  (The Block List Project `porn.txt`, Unlicense; 936,979 domains after de-duplication; provenance and SHA-256
+  (first RC: Block List Project `porn.txt` alone, 936,979 domains — replaced in V1.1, see above; provenance and SHA-256
   in `data/base-list/PROVENANCE.json`). Off until the user accepts it in onboarding.
 - Exceptions (allow list) with defined precedence: exception > user rules > built-in list.
 - Search phrases: whole-word and partial modes, per-engine query parameter (`q`, `p`, `search_query`, `text`),
@@ -33,7 +51,7 @@ Builds on the v0.1 personal prototype (PR #73). Nothing here is published to any
   (`blocked.html`) and uses random per-profile add-on hosts.
 - Chrome/Edge keep `incognito: "split"` on purpose: with the default `spanning` mode Chromium redirects a private window but cannot
   show the stop page (`ERR_BLOCKED_BY_CLIENT`). Verified: the private-window instance shares `storage.local`, so the commitment
-  holds there too; a compare-and-set guard and repair-on-status cover two windows saving at once. Private-window use still needs
+  holds there too; since V1.1 the cross-instance write lock (see above) covers two windows saving at once. Private-window use still needs
   the browser’s manual “allow” switch.
 
 ### Fixed

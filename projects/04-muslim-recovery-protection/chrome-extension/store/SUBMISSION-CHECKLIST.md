@@ -5,10 +5,10 @@ Nothing below has been done. No account was created, no fee paid, nothing upload
 ## Before any submission
 - [ ] Review and approve: Arabic/English/German copy (UI, `store/LISTING.md`, privacy policy) by native speakers.
 - [ ] Review the **starter search phrases** (`src/core/starter-terms.js`) and the **built-in list decision** (`data/base-list/README.md`).
-- [ ] Approve or replace the **temporary icon** (`src/icons/icon.svg`) and the generated screenshots/promo images in `store/`.
+- [ ] Provide the designer's **master SVG** of the mark (the shipped mark is a redraw of the approved reference image, `docs/brand/ASSETS.md`) and approve the generated icon, screenshots and promo images in `store/images/`.
 - [ ] Decide the Firefox add-on ID (`{6e6f9f5e-…}` is a placeholder GUID; it cannot change after the first AMO upload).
 - [ ] Publish `store/privacy-policy.html` at a stable HTTPS URL (any static host, e.g. GitHub Pages) and add the publication date and a contact address (marked in the file).
-- [ ] Legal sign-off on redistributing the list (see `data/base-list/README.md` "Open questions").
+- [ ] Legal sign-off on redistributing the list (see `data/base-list/README.md`, "Residual risk": the 492,511 entries attributed to Block List Project's own curation; strict alternative available).
 - [ ] Confirm the target-device manual checks in `TESTING.md` ("Manual steps") on the machines you will actually use (real Chrome/Edge/Firefox release builds, Windows/macOS).
 
 ## Chrome Web Store

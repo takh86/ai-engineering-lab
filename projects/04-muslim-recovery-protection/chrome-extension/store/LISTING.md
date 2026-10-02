@@ -2,7 +2,7 @@
 
 Status: **prepared, not submitted.** Nothing here has been uploaded. Account creation, fees, upload and
 publication need the Owner (see `SUBMISSION-CHECKLIST.md`). Arabic, English and German copy needs a native
-review before submission. Icon/screenshots use a **temporary** design, not an approved Tabsira identity.
+review before submission. Icon, screenshots and promo tiles use the **Owner-approved identity**; the mark is a **redraw** of the reference image (not the designer's master SVG) — see `docs/brand/ASSETS.md`.
 
 ## Single purpose (Chrome Web Store "Privacy practices" → Single purpose)
 
@@ -27,8 +27,8 @@ one helpful step.
 
 **What it does**
 - Blocks sites you add (including their subdomains, on exact domain boundaries).
-- Optional built-in list of adult sites, bundled inside the extension (snapshot of The Block List Project,
-  Unlicense). It is automated and community-made and can block a site by mistake — use **Exceptions**.
+- Optional built-in list of adult sites, bundled inside the extension (snapshot assembled from community lists with
+  documented redistribution licences: Unlicense/MIT). It is automated and community-made and can block a site by mistake — use **Exceptions**.
 - Blocks search phrases (Arabic and English) in the search box of Google, Bing, DuckDuckGo, Yahoo, YouTube,
   Yandex, Brave, Ecosia and Qwant. Whole-word or partial matching.
 - **Commitment session (60/90/120 min):** during the session nothing that would weaken protection is possible
@@ -52,7 +52,7 @@ without loading a new one are not caught. It is a self-help tool, not treatment,
 
 **ماذا تفعل**
 - تحجب المواقع التي تضيفها ونطاقاتها الفرعية على حدود النطاق الصحيحة.
-- قائمة أساسية اختيارية لمواقع البالغين مضمّنة في الإضافة (نسخة من The Block List Project بترخيص Unlicense).
+- قائمة أساسية اختيارية لمواقع البالغين مضمّنة في الإضافة (لقطة مجمَّعة من قوائم مجتمعية بتراخيص موثّقة: Unlicense/MIT).
   التصنيف آلي مجتمعي وقد يحجب موقعًا بالخطأ — استخدم **الاستثناءات**.
 - تحجب عبارات البحث (عربية وإنجليزية) في Google وBing وDuckDuckGo وYahoo وYouTube وYandex وBrave وEcosia وQwant،
   بمطابقة كلمات كاملة أو جزئية.
@@ -76,8 +76,8 @@ hilfreichen Schritt zu gehen.
 
 **Was es tut**
 - Blockiert Websites, die du hinzufügst (inklusive Subdomains, an exakten Domain-Grenzen).
-- Optionale integrierte Liste für Erwachsenen-Websites, in der Erweiterung enthalten (Snapshot von The Block List
-  Project, Unlicense). Sie ist automatisiert und von der Community und kann eine Seite fälschlich blockieren – nutze **Ausnahmen**.
+- Optionale integrierte Liste für Erwachsenen-Websites, in der Erweiterung enthalten (Snapshot aus Community-Listen mit
+  dokumentierten Weitergabe-Lizenzen: Unlicense/MIT). Sie ist automatisiert und von der Community und kann eine Seite fälschlich blockieren – nutze **Ausnahmen**.
 - Blockiert Suchbegriffe (Arabisch und Englisch) im Suchfeld von Google, Bing, DuckDuckGo, Yahoo, YouTube, Yandex,
   Brave, Ecosia und Qwant – als ganzes Wort oder als Teilübereinstimmung.
 - **Selbstverpflichtung (60/90/120 Min.):** In dieser Zeit ist innerhalb der Erweiterung nichts möglich, was den
