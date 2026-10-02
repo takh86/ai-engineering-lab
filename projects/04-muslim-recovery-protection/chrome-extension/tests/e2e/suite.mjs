@@ -160,7 +160,9 @@ export async function runSuite({ browserName, executablePath, report }) {
             const [host, ...rest] = e.split('/'); const p = param(host); const target = (value, extra = '') => url(host, `/${rest.join('/')}?${extra}${p}=${value}`);
             const hit = await visit(b.context, target(encode('tabsira word')));
             const miss = await visit(b.context, target('ordinary'));
-            check(`S5.1 ${host}: phrase blocked, ordinary search allowed`, hit.blocked && miss.real, `hit=${hit.blocked} miss=${miss.real}`);
+            // "Allowed" means: NOT redirected to the stop page. Some browsers (Edge) reset connections to their own/partner search hosts
+            // before they reach the local test server, so the page itself may not load; that is not the extension's doing.
+            check(`S5.1 ${host}: phrase blocked, ordinary search not blocked`, hit.blocked && !miss.blocked, `hit.blocked=${hit.blocked} ordinary: ${miss.real ? 'loaded' : `not blocked; page did not load (${String(miss.error).slice(0, 60)})`}`);
         }
         const variants = [
             ['plus-encoded', `q=tabsira+word`], ['percent20', `q=tabsira%20word`], ['upper case', `q=TABSIRA%20Word`], ['extra params before', `hl=en&q=tabsira+word&safe=active`],
@@ -252,23 +254,26 @@ export async function runSuite({ browserName, executablePath, report }) {
         const stronger = await save(options, { baseList: true, domains: ['lock-site.test', 'extra-lock.test'], words: ['lock phrase'] });
         check('S7.7 adding stronger protection is allowed during session', stronger.ok && (await visit(b.context, url('extra-lock.test'))).blocked);
         const untilBefore = (await status(options)).lock.until;
-        // Service worker stop/restart: prove the worker really restarted (new timeOrigin), then check state survived.
-        const originBefore = await b.getWorker().evaluate(() => performance.timeOrigin);
+        // Service worker stop/restart: the old worker instance must be gone (its execution context is destroyed), and the
+        // next message must be answered by a fresh instance that recovers everything from storage.
+        const oldWorker = b.getWorker();
+        const within = (promise, ms, fallback) => Promise.race([promise, sleep(ms).then(() => fallback)]);
+        const originBefore = await oldWorker.evaluate(() => performance.timeOrigin);
         const cdp = await b.context.newCDPSession(b.context.pages()[0]);
-        await cdp.send('ServiceWorker.enable').catch(() => {});
-        await cdp.send('ServiceWorker.stopAllWorkers').catch(() => {});
+        await within(cdp.send('ServiceWorker.enable').catch(() => {}), 5000);
+        await within(cdp.send('ServiceWorker.stopAllWorkers').catch(() => {}), 5000);
         await sleep(1000);
+        const oldAlive = await within(oldWorker.evaluate(() => performance.timeOrigin).then(origin => origin === originBefore, () => false), 5000, false);
         s = await status(options);                                  // wakes a fresh worker
-        const originAfter = await b.getWorker().evaluate(() => performance.timeOrigin).catch(() => null);
-        check('S7.8 session survives a real service-worker stop/restart (new worker instance; state in storage, no timer)', s.lock.active && s.lock.until === untilBefore && s.state === 'active' && originAfter !== null && originAfter !== originBefore, JSON.stringify({ restarted: originAfter !== originBefore, state: s.state, reasons: s.reasons, lockActive: s.lock.active, sameUntil: s.lock.until === untilBefore }));
+        check('S7.8 session survives a real service-worker stop/restart (old instance destroyed; new one recovers state from storage; no timer)', !oldAlive && s.lock.active && s.lock.until === untilBefore && s.state === 'active', JSON.stringify({ oldInstanceAlive: oldAlive, state: s.state, lockActive: s.lock.active, sameUntil: s.lock.until === untilBefore }));
         await finish(b);
         // Browser restart with the same profile
         b = await open({ profileDir: profile });
         await sleep(1500);
         options = await openExtPage(b.context, b.extensionId, 'options.html');
         s = await status(options);
-        check('S7.11 after full browser restart: session, rules and base list persist', s.lock.active && s.lock.until === untilBefore && s.state === 'active' && s.base.enabled, JSON.stringify({ state: s.state, base: s.base.enabled }));
-        check('S7.12 after browser restart: navigation is still blocked', (await visit(b.context, url('extra-lock.test'))).blocked && (await visit(b.context, url('www.google.com', `/search?q=${encode('lock phrase')}`))).blocked);
+        check('S7.9 after full browser restart: session, rules and base list persist', s.lock.active && s.lock.until === untilBefore && s.state === 'active' && s.base.enabled, JSON.stringify({ state: s.state, base: s.base.enabled }));
+        check('S7.10 after browser restart: navigation is still blocked', (await visit(b.context, url('extra-lock.test'))).blocked && (await visit(b.context, url('www.google.com', `/search?q=${encode('lock phrase')}`))).blocked);
         await finish(b);
         // Extension update: same unpacked path, higher version, same profile (Chrome fires onInstalled "update").
         const rebuild = version => execFileSync('node', ['scripts/build.mjs', '--test'], { cwd: root, env: { ...process.env, ...(version ? { TABSIRA_VERSION: version } : {}) }, stdio: 'pipe' });
@@ -278,8 +283,8 @@ export async function runSuite({ browserName, executablePath, report }) {
         options = await openExtPage(b.context, b.extensionId, 'options.html');
         s = await status(options);
         const manifestVersion = await options.evaluate(() => chrome.runtime.getManifest().version);
-        check('S7.9 after an extension UPDATE (1.0.0 → 1.0.1, same profile): rules, base list and session are back', manifestVersion === '1.0.1' && s.state === 'active' && s.base.enabled && s.lock.until === untilBefore, JSON.stringify({ version: manifestVersion, state: s.state, base: s.base.enabled, reasons: s.reasons }));
-        check('S7.10 blocking works after the update (real navigation)', (await visit(b.context, url('lock-site.test'))).blocked && (await visit(b.context, url('tabsira-selftest.test'))).blocked);
+        check('S7.11 after an extension UPDATE (1.0.0 → 1.0.1, same profile): rules, base list and session are back', manifestVersion === '1.0.1' && s.state === 'active' && s.base.enabled && s.lock.until === untilBefore, JSON.stringify({ version: manifestVersion, state: s.state, base: s.base.enabled, reasons: s.reasons }));
+        check('S7.12 blocking works after the update (real navigation)', (await visit(b.context, url('lock-site.test'))).blocked && (await visit(b.context, url('tabsira-selftest.test'))).blocked);
         // Wipe DNR state behind the extension's back, then ask for status (self-heal)
         await b.getWorker().evaluate(async () => { const rules = await chrome.declarativeNetRequest.getDynamicRules(); await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: rules.map(r => r.id) }); await chrome.declarativeNetRequest.updateEnabledRulesets({ disableRulesetIds: ['base_adult'] }); });
         const healed = await status(options);
@@ -406,6 +411,8 @@ export async function runSuite({ browserName, executablePath, report }) {
         const onTimes = await navTimes(25);
         const matchMs = await b.getWorker().evaluate(async () => { const t = performance.now(); for (let i = 0; i < 200; i++) await chrome.declarativeNetRequest.testMatchOutcome({ url: `https://perf-${i}.example.org/x?q=${i}`, type: 'main_frame', method: 'get' }); return (performance.now() - t) / 200; });
         const matchPhraseMs = await b.getWorker().evaluate(async () => { const t = performance.now(); for (let i = 0; i < 200; i++) await chrome.declarativeNetRequest.testMatchOutcome({ url: `https://www.google.com/search?q=ordinary+${i}`, type: 'main_frame', method: 'get' }); return (performance.now() - t) / 200; });
+        const limits = await b.getWorker().evaluate(async () => { const d = chrome.declarativeNetRequest; return { MAX_NUMBER_OF_DYNAMIC_RULES: d.MAX_NUMBER_OF_DYNAMIC_RULES, MAX_NUMBER_OF_UNSAFE_DYNAMIC_RULES: d.MAX_NUMBER_OF_UNSAFE_DYNAMIC_RULES, MAX_NUMBER_OF_REGEX_RULES: d.MAX_NUMBER_OF_REGEX_RULES, GUARANTEED_MINIMUM_STATIC_RULES: d.GUARANTEED_MINIMUM_STATIC_RULES, MAX_NUMBER_OF_STATIC_RULESETS: d.MAX_NUMBER_OF_STATIC_RULESETS, MAX_NUMBER_OF_ENABLED_STATIC_RULESETS: d.MAX_NUMBER_OF_ENABLED_STATIC_RULESETS, availableStaticRules: await d.getAvailableStaticRuleCount() }; });
+        note('S11-limits', JSON.stringify(limits));
         note('S11', JSON.stringify({ browser: executablePath.split('/').slice(-2).join('/'), listDomains: 936979, extensionReadyMs: startMs, enableBaseListMs: enableMs, navMedianOffMs: median(offTimes), navMedianOnMs: median(onTimes), rssOffMB: rssOff, rssOnMB: rssOn, matchMsPerUrl: Number(matchMs.toFixed(2)), phraseMatchMsPerUrl: Number(matchPhraseMs.toFixed(2)) }));
         check('S11.1 enabling the 937k-domain list succeeds', enabled.ok, `${enableMs} ms`);
         check('S11.2 enabling takes under 15 s', enableMs < 15000, `${enableMs} ms`);
@@ -510,13 +517,42 @@ export async function runSuite({ browserName, executablePath, report }) {
         await finish(b);
     }
 
+    // ================= S14: export / import through the real UI =================
+    if (want('S14')) {
+        const b = await open();
+        const options = await openExtPage(b.context, b.extensionId, 'options.html');
+        await onboard(options); await save(options, { domains: ['export-a.test'], words: ['export phrase'] });
+        await options.reload();
+        const [download] = await Promise.all([options.waitForEvent('download'), options.click('#export')]);
+        const file = path.join(os.tmpdir(), `tabsira-export-${Date.now()}.json`);
+        await download.saveAs(file);
+        const exported = JSON.parse(fs.readFileSync(file, 'utf8'));
+        check('S14.1 export downloads a settings file with only user settings (no lock/revision/attempts)', exported.format === 'tabsira-settings' && exported.settings.domains.includes('export-a.test') && !JSON.stringify(exported).includes('lock') && !JSON.stringify(exported).includes('revision'), JSON.stringify(Object.keys(exported.settings)));
+        await save(options, { domains: ['export-a.test', 'extra-b.test'], words: ['export phrase'] });
+        await options.setInputFiles('#importFile', file);
+        await options.waitForFunction(() => document.querySelector('#message').textContent.length > 0);
+        check('S14.2 importing the exported file merges without losing newer settings', (await status(options)).settings.domains.sort().join() === 'export-a.test,extra-b.test');
+        fs.writeFileSync(file, JSON.stringify({ format: 'tabsira-settings', version: 2, settings: { ...NO_LIST, domains: ['bad domain'] } }));
+        await options.setInputFiles('#importFile', file);
+        await options.waitForFunction(() => document.querySelector('#message').className.includes('error') || document.querySelector('#domains-err').textContent.length > 0);
+        check('S14.3 an invalid import is refused with a specific message and changes nothing', (await status(options)).settings.domains.length === 2);
+        fs.writeFileSync(file, 'not json at all');
+        await options.setInputFiles('#importFile', file);
+        await options.waitForFunction(() => document.querySelector('#message').className.includes('error'));
+        check('S14.4 a non-Tabsira file is refused', (await options.textContent('#message')).length > 5);
+        fs.unlinkSync(file);
+        await finish(b);
+    }
+
     // ================= S10: no sensitive logging =================
     if (want('S10')) {
         const secrets = ['tabsira word', 'tabsira%20word', 'lock-site', 'blocked-user', 'perm-site', 'loop-check', 'selftest', 'extra-lock', 'lock phrase'];
         const leaks = allLogs.filter(line => secrets.some(secret => line.toLowerCase().includes(secret)));
         check(`S10.1 no console output in any extension page or worker mentions a tested URL or phrase (${allLogs.length} console messages captured)`, leaks.length === 0, leaks.slice(0, 3).join(' | '));
-        const errors = allLogs.filter(line => line.startsWith('error:'));
-        check('S10.2 no console errors from the extension during the whole run', errors.length === 0, errors.slice(0, 3).join(' | '));
+        // S13.8 deliberately triggers CSP violations (inline script, eval) to prove they are blocked; those two messages are expected.
+        const expected = line => /violates the following Content Security Policy|Refused to (execute inline script|evaluate a string as JavaScript)/u.test(line);
+        const errors = allLogs.filter(line => line.startsWith('error:') && !expected(line));
+        check('S10.2 no unexpected console errors from the extension during the whole run (CSP-violation probes of S13.8 excluded)', errors.length === 0, errors.slice(0, 3).join(' | '));
     }
 
     await site.close();

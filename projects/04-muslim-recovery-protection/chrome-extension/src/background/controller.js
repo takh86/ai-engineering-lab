@@ -115,7 +115,7 @@ export function createController(api) {
             const attempt = async step => { try { await step(); } catch { restored = false; } };
             // If another worker instance (private window) wrote the configuration after we did, its write is the
             // newer truth: keep it and make the browser rules follow it instead of restoring our snapshot.
-            let supersededByOther = false;
+            let supersededByOther = !touchedStorage && error instanceof TabsiraError && error.code === 'stale';
             if (touchedStorage) {
                 try {
                     const stored = (await api.storage.get('config')).config;

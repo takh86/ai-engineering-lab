@@ -26,14 +26,17 @@ async function session(lang) {
 
 // ---- Arabic (default) ----
 {
-    const { b, options } = await session('ar');
     const size = { width: 1280, height: 800 };
-    const onboarding = await openExtPage(b.context, b.extensionId, 'onboarding.html');
-    await onboarding.setViewportSize(size);
+    // Onboarding is captured on a fresh install, before any setup is completed.
+    const fresh = await launch({ executablePath, extensionDir, lang: 'ar' });
+    const onboarding = await openExtPage(fresh.context, fresh.extensionId, 'onboarding.html');
+    await onboarding.setViewportSize(size); await sleep(300);
     await shot(onboarding, 'screenshot-ar-1-onboarding.png');
     for (let i = 0; i < 4; i++) await onboarding.click('#next');
-    await onboarding.setViewportSize(size); await sleep(300);
+    await sleep(300);
     await shot(onboarding, 'screenshot-ar-2-onboarding-choices.png');
+    await fresh.context.close();
+    const { b, options } = await session('ar');
     await options.setViewportSize(size); await sleep(400);
     await shot(options, 'screenshot-ar-3-settings.png');
     const stop = await b.context.newPage(); await stop.setViewportSize(size);
@@ -62,7 +65,7 @@ for (const lang of ['de', 'en']) {
 const icon = fs.readFileSync(path.join(root, 'src', 'icons', 'icon-128.png')).toString('base64');
 const promo = (width, height, big) => `<!doctype html><html lang="ar" dir="rtl"><body style="margin:0;width:${width}px;height:${height}px;background:linear-gradient(135deg,#1f4a3a,#2b6650);color:#f6f5ee;font-family:system-ui,'Noto Sans Arabic',sans-serif;display:flex;align-items:center;justify-content:center;gap:${big ? 48 : 24}px">
 <img src="data:image/png;base64,${icon}" style="width:${big ? 220 : 120}px;height:${big ? 220 : 120}px">
-<div><div style="font-size:${big ? 92 : 52}px;font-weight:700;line-height:1.2">تبصرة</div><div style="font-size:${big ? 36 : 20}px;opacity:.92;margin-top:8px">مساحة تختار فيها</div><div style="font-size:${big ? 24 : 15}px;opacity:.75;margin-top:6px">Tabsira · local · no accounts · no tracking</div></div></body></html>`;
+<div><div style="font-size:${big ? 92 : 52}px;font-weight:700;line-height:1.2">تبصرة</div><div style="font-size:${big ? 36 : 20}px;opacity:.92;margin-top:8px">مساحة تختار فيها</div><div style="font-size:${big ? 24 : 12}px;opacity:.75;margin-top:6px;white-space:nowrap;direction:ltr">Tabsira · local · no accounts · no tracking</div></div></body></html>`;
 const browser = await launch({ executablePath, extensionDir, lang: 'ar' });
 for (const [name, w, h, big] of [['promo-small-440x280.png', 440, 280, false], ['promo-marquee-1400x560.png', 1400, 560, true]]) {
     const page = await browser.context.newPage(); await page.setViewportSize({ width: w, height: h });

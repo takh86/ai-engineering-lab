@@ -8,6 +8,8 @@ const SESSION_MINUTES = [60, 90, 120];
 let revision = 0;
 let pendingMinutes = null;
 
+// Left-to-right isolate: keeps numbers and ISO dates intact inside right-to-left sentences.
+const isolate = text => `\u2066${text}\u2069`;
 const lines = value => value.split(/\r?\n/u).map(line => line.trim()).filter(Boolean);
 const say = (text, kind = '') => { const box = $('#message'); box.textContent = text; box.className = `msg ${kind}`.trim(); };
 const clearFieldErrors = () => { for (const name of FIELDS) $(`#${name}-err`).textContent = ''; };
@@ -23,8 +25,7 @@ function fill(status) {
 function render(status) {
     renderStatus(status, { box: $('#status'), reasonList: $('#reasons'), lock: $('#lock'), incognito: $('#incognito') });
     $('#repair').hidden = !(status?.reasons ?? []).some(reason => ['rules_mismatch', 'api_error'].includes(reason));
-    if (status?.base) $('#baseInfo').textContent = t('opt_base_info', status.base.domainCount.toLocaleString(document.documentElement.lang), formatDate(status.base.date));
-    $('#reset').disabled = false;
+    if (status?.base) $('#baseInfo').textContent = t('opt_base_info', isolate(status.base.domainCount.toLocaleString(document.documentElement.lang)), isolate(formatDate(status.base.date)));
 }
 
 function showError(error) {
@@ -48,11 +49,12 @@ function collect() {
     };
 }
 
-async function act(message, successText) {
+// `refill: false` keeps unsaved edits in the text boxes (starting a session changes no settings).
+async function act(message, successText, { refill = true } = {}) {
     say(''); clearFieldErrors();
     const reply = await send(message);
     if (reply.status) render(reply.status);
-    if (reply.ok) { fill(reply.status); say(successText, 'ok'); return reply; }
+    if (reply.ok) { if (refill) fill(reply.status); say(successText, 'ok'); return reply; }
     showError(reply.error);
     if (reply.error?.code === 'stale') fill(reply.status);
     return reply;
@@ -82,7 +84,7 @@ $('#sessionNo').addEventListener('click', () => { $('#sessionConfirm').hidden = 
 $('#sessionYes').addEventListener('click', async () => {
     const minutes = pendingMinutes;
     $('#sessionConfirm').hidden = true; pendingMinutes = null;
-    if (minutes) await act({ type: 'START_SESSION', minutes }, t('opt_session_started'));
+    if (minutes) await act({ type: 'START_SESSION', minutes }, t('opt_session_started'), { refill: false });
 });
 
 // ---- backup ----

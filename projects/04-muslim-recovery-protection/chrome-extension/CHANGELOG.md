@@ -28,10 +28,13 @@ Builds on the v0.1 personal prototype (PR #73). Nothing here is published to any
 - All blocking changes are applied transactionally (snapshot → install → verify → persist, restore on failure),
   with reconciliation on browser start, extension update and permission changes.
 - Messages are allow-listed and schema-validated; only the popup, settings and onboarding pages may send them.
-- Stricter CSP (`default-src 'none'`); `web_accessible_resources` removed (redirecting to the stop page does not
-  need them, and removing them stops websites detecting the extension).
-- Extension no longer sets `incognito: "split"` (one worker for all windows, so a commitment cannot be bypassed
-  from another window). Private-window use still needs the browser’s manual “allow” switch.
+- Stricter CSP (`default-src 'none'`); `web_accessible_resources` removed from the Chrome/Edge package (redirecting to the stop
+  page does not need them in Chromium, and removing them stops websites detecting the extension). Firefox needs one entry
+  (`blocked.html`) and uses random per-profile add-on hosts.
+- Chrome/Edge keep `incognito: "split"` on purpose: with the default `spanning` mode Chromium redirects a private window but cannot
+  show the stop page (`ERR_BLOCKED_BY_CLIENT`). Verified: the private-window instance shares `storage.local`, so the commitment
+  holds there too; a compare-and-set guard and repair-on-status cover two windows saving at once. Private-window use still needs
+  the browser’s manual “allow” switch.
 
 ### Fixed
 - Prototype regex rule stored a 60-character Arabic phrase that real Chromium cannot compile (2 KB regex memory

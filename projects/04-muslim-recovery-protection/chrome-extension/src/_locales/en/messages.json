@@ -224,6 +224,9 @@
   "ob5_done": {
     "message": "Setup finished. Run the safe test to confirm."
   },
+  "ob_already_done": {
+    "message": "First-time setup is already done. You can change everything in Settings."
+  },
   "safe_test": {
     "message": "Safe test"
   },

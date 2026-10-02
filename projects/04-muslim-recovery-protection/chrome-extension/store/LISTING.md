@@ -80,7 +80,7 @@ hilfreichen Schritt zu gehen.
   Project, Unlicense). Sie ist automatisiert und von der Community und kann eine Seite fälschlich blockieren – nutze **Ausnahmen**.
 - Blockiert Suchbegriffe (Arabisch und Englisch) im Suchfeld von Google, Bing, DuckDuckGo, Yahoo, YouTube, Yandex,
   Brave, Ecosia und Qwant – als ganzes Wort oder als Teilübereinstimmung.
-- **Verbindlichkeits-Sitzung (60/90/120 Min.):** In dieser Zeit ist innerhalb der Erweiterung nichts möglich, was den
+- **Selbstverpflichtung (60/90/120 Min.):** In dieser Zeit ist innerhalb der Erweiterung nichts möglich, was den
   Schutz schwächt (Regel löschen, Liste ausschalten, Ausnahme hinzufügen, schwächere Einstellungen importieren).
   Stärkeren Schutz kannst du immer hinzufügen. Nach Ablauf wird nur das Bearbeiten wieder erlaubt; nichts wird entfernt.
 - **Hilf mir jetzt:** eine Minute Pause, die nie eine blockierte Seite öffnet. Ohne Vorwurf, Diagnose oder Versprechen.

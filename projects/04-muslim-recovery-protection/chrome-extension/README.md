@@ -1,60 +1,125 @@
-# تبصرة — Tabsira Chrome, personal prototype v0.1
+# تبصرة — Tabsira (browser extension)
 
-An Arabic, local-only companion extension for desktop Chrome 120+. User-defined domain redirects, selected search-query phrase redirects, commitment sessions and a short Help Now page. No automatic adult-site classification or built-in adult-domain list. Configure your own rules; this complements an existing family DNS setup and does not replace it.
+A local-only extension for adults who chose to protect themselves online: it blocks websites and search phrases
+**you** choose, then turns the moment of blocking into a short, respectful pause with help. It complements the
+Android app and Family DNS; it is not a replacement for them and not a proven treatment.
 
-## Install on your computer
-
-1. Extract `Tabsira_Chrome_v0.1.zip` into a permanent folder.
-2. Open `chrome://extensions` in desktop Chrome.
-3. Enable **Developer mode**.
-4. Click **Load unpacked**, then select the extracted `tabsira-chrome` folder containing `manifest.json`.
-5. Open Tabsira → **إعداد الحجب**. No blocking rules are installed initially.
-6. Add domain names (one per line), optionally search phrases, then **حفظ القواعد**.
-7. For a harmless test, click **أضف example.com للاختبار الآمن**, save, then open `https://example.com` in a new tab. The Tabsira stop page should appear. Remove the test rule afterward, before starting a commitment session.
-8. In extension details, manually enable **Allow in incognito** if you want that coverage. Test there separately. Removing or disabling the extension remains possible.
-
-Chrome on Android is not the target. No store publication or Android release is included.
+> **Status — release candidate, not published.** Code complete and verified by automated tests in real browsers
+> (Chromium 141: 122 checks pass · Edge 154: 122 · Firefox 157: 43, all on Linux; 0 failures). **Not yet verified:** branded Google Chrome,
+> Windows/macOS, Brave, Opera, the AMO-signed Firefox build, real user devices. Store packages are prepared but nothing was uploaded, merged or published.
+> See [`TESTING.md`](TESTING.md) for evidence and [`COMPATIBILITY.md`](COMPATIBILITY.md) for the browser table.
 
 ## What it does
 
-- Redirects top-level HTTP/HTTPS requests for the configured domains and their subdomains to a local stop page using Manifest V3 declarativeNetRequest.
-- Matches partial phrases in `q`, `p`, or `search_query` URL parameters on Google `.com`, `.de`, `.com.eg`, Bing, DuckDuckGo, Yahoo Search and YouTube.
-- Matches normal `encodeURIComponent` encoding, `%20` or `+` spaces, case-insensitive; Unicode phrases normalized to NFC when configured. Alternate encoding, language inflection, diacritics, synonyms and in-page SPA navigation are not guaranteed.
-- Installs persistent dynamic rules. A status check compares installed rules with configured rules; this is configuration evidence, not comprehensive protection evidence.
-- A 60/90/120-minute commitment prevents removing existing rules through this extension's settings, while allowing new rules. No automatic unblock occurs when commitment expires. Rules remain until edited.
-- Local 60-second Help Now timer; its expiry never opens a blocked URL.
+- **Blocks sites you add** — the site and its subdomains, on DNS label boundaries (`example.com` blocks `mail.example.com`,
+  not `badexample.com` or `example.com.evil.org`).
+- **Built-in adult-sites list (opt-in)** — a bundled snapshot of The Block List Project (Unlicense), 936,979 domains. Automated and
+  community-made: it **can block innocent sites**; use Exceptions. Details and licence in
+  [`data/base-list/README.md`](data/base-list/README.md). Nothing is downloaded at run time.
+- **Search phrases (Arabic and English)** — matched only inside the search parameter (`q`, `p`, `search_query`, `text`) of
+  Google (all regional domains), Bing (web/images/video), DuckDuckGo, Yahoo, YouTube, Yandex, Brave, Ecosia and Qwant;
+  `+` or `%20`, upper/lower case, Unicode-normalized. Whole-word (default) or partial (broader, more false blocks).
+  Optional conservative starter phrases.
+- **Exceptions** — fix wrong blocks. Precedence: **exception > your sites/phrases > built-in list.**
+- **Commitment session (60 / 90 / 120 min)** — see below.
+- **Help me now** — one-minute pause; never opens the blocked site; no blame, diagnosis or promise; nothing is stored.
+- **Settings export/import** (merge-only), **Arabic (RTL) / English / German** UI, keyboard-operable, light/dark.
+
+## Commitment session — exactly what it does
+
+While a session is active, **inside the extension** these are refused: deleting a site or phrase, turning off the built-in list or
+starter phrases, adding an exception, importing settings that would weaken anything, resetting. Adding **stronger** protection is
+always allowed. The same rules apply from a private window and from several windows at once (one shared state).
+It is a time stamp in storage — no timer, so a sleeping/restarted worker cannot lose it. When it ends it **only re-allows
+editing**; it never removes a rule.
+
+It is friction, **not tamper resistance**: the user can still disable or uninstall the extension, use another browser/profile,
+or change the device clock (moving the clock forward ends the session early; backward lengthens it). Nothing prevents removal at
+OS level and no enterprise policy or device permission is used.
+
+## Status shown to the user (never "fully protected")
+
+| State | Meaning |
+|---|---|
+| Not configured | Onboarding not finished, or everything switched off. Nothing is blocked. |
+| Rules installed, permission available | Browser holds exactly the rules your settings imply and website access is granted. (Verified by read-back, not a guarantee of coverage.) |
+| Partial | Missing website permission, rules differ from settings (auto-repair offered), or some phrases exceed browser limits. |
+| Unknown | Settings unreadable/corrupt or the browser API failed. Existing rules are **left untouched**, never deleted because of a read error. |
 
 ## Privacy and permissions
 
-`storage` holds domains, phrases and `lockedUntil`, unencrypted, in `chrome.storage.local`; no browsing URLs, search history, attempt logs, notes, telemetry, account or server. The service worker does not subscribe to browsing events or read page content. Storage is restricted to trusted extension contexts. HTTP/HTTPS host permissions support DNR redirects, and require deliberate user review. There are no content scripts, TLS interception, analytics or external libraries.
+No accounts, analytics, telemetry, browsing history, server, or remote list. Stored locally in `storage.local` (**not encrypted**):
+sites, exceptions, phrases, switches, a revision number, and the session end time. Block attempts, URLs and search words are never
+stored or logged; the stop page cannot see which rule matched. Full text: [`store/privacy-policy.html`](store/privacy-policy.html).
 
-## Known limits
+| Permission | Why |
+|---|---|
+| `storage` | Keep your settings across restarts. |
+| `declarativeNetRequest` | Let the browser apply the rules itself. |
+| Website access (`http://*/*`, `https://*/*`) | Required by the browser to *redirect* a blocked page to the help page for any site you choose. Not used to read or change pages; **no content scripts.** |
 
-Disabling/removing the extension, other browsers/profiles without it, incognito without permission, device-clock changes affecting commitment, local files and already loaded/cached/in-page content are outside its guarantee. It does not blur images, classify posts, lock the OS or verify DNS. The web-accessible stop/help pages expose no browsing data. Opening them directly must not grant access to privileged extension messages from ordinary web pages.
+Not requested: `tabs`, `webNavigation`, `webRequest`, `history`, `cookies`, `activeTab`, `scripting`, `alarms`, `downloads`.
+No `web_accessible_resources` in the Chrome/Edge package, so websites cannot detect the extension by its fixed ID; Firefox requires exactly one (`blocked.html`) for the redirect and its add-on host is a random per-profile UUID. CSP `default-src 'none'; script-src 'self'`.
+The worker accepts only schema-validated messages from the extension's own popup/settings/onboarding pages.
 
-## Verification
+## Limits (by design and by browser)
 
-Run from this folder with Node 20+:
+- **URL-level only.** No reading of page content, screen or images; no AI classification. Such features would need new
+  permissions and a decision (see "Proposals").
+- **Top-level pages only** (`main_frame`). Embedded frames and images from listed sites are not blocked.
+- **No new navigation, no catch**: a search that updates the page in place (suggestion boxes, single-page apps) is invisible to URL rules.
+- **Arabic phrases are short.** The browser caps each rule's regex memory (2 KB): measured in Chromium 141, a whole-word Arabic
+  phrase fits about 12–14 letters (fewer with spaces); English ≈ 80 letters. Over-long phrases are refused with the line number.
+  Diacritics/tatweel are removed from stored phrases; alef/ya/ta-marbuta variants are **not** unified.
+- **List quality.** Classification is automated; false positives exist (a 60-name sample showed one). Updates only with new versions.
+- **Private windows** need the browser's manual "allow in private/incognito" switch. Chromium: the stop page shows in private windows
+  (`incognito: split`, shared storage, verified); two windows saving within the same few milliseconds → last write wins and rules follow storage.
+- **Clock changes, disabling, removing, other browsers/profiles, local files** are outside any guarantee.
+- **Updates:** browsers reset which static ruleset is enabled on an extension update; the worker re-applies your settings
+  immediately (verified) but there can be a brief gap.
+
+## Install (testing)
+
+**Chrome / Edge / Brave (unpacked):** unzip `tabsira-chromium-<v>.zip` to a permanent folder → `chrome://extensions` (or `edge://extensions`)
+→ Developer mode → *Load unpacked* → select the folder with `manifest.json`. The onboarding page opens.
+**Firefox:** `about:debugging#/runtime/this-firefox` → *Load Temporary Add-on* → pick `manifest.json` from the unzipped
+`tabsira-firefox-<v>.zip`. (Temporary add-ons vanish on restart; the AMO-signed build is a later step.) If Firefox does not grant website
+access automatically, the onboarding page has a button to request it.
+**Safe test:** open `https://tabsira-selftest.test/` — a reserved name that never resolves; the redirect happens first. Never test with real adult sites.
+**Private window:** enable "Allow in Incognito" (Chrome/Edge) or "Run in Private Windows" (Firefox) in the extension's details.
+
+## Build and test
+
+Requires Node ≥ 20.11. No runtime dependencies; dev dependency `playwright-core@1.56.1` (exact) only for browser tests.
 
 ```sh
-npm test
+npm ci
+npm test                       # unit + static + build-reproducibility tests (no browser)
+npm run build                  # dist/tabsira-chromium-1.0.0.zip, dist/tabsira-firefox-1.0.0.zip (byte-reproducible)
+npm run verify-reproducible    # builds twice, compares SHA-256
+# real browsers (see TESTING.md):
+node scripts/build.mjs --test && node scripts/build.mjs --test --optional-hosts
+CHROMIUM=/path/to/chrome-or-chromium node tests/e2e/run.mjs --browser chromium
+EDGE=/path/to/msedge        node tests/e2e/run.mjs --browser edge
+FIREFOX=/path/to/firefox GECKODRIVER=/path/to/geckodriver node tests/e2e/firefox-run.mjs
 ```
 
-2026-10-02: **9 automated tests passed**: domain validation and boundaries, Unicode normalization, search parameter matching, commitment enforcement, worker serialization, storage rollback, configuration status and sender boundary. Worker tests mock Chrome APIs; they are not evidence of native DNR behavior.
+`dist-test*` builds add test-only permissions (`declarativeNetRequestFeedback`) and are never packaged for stores.
 
-All JS syntax checks and manifest/file-reference checks passed. Native Chrome install/redirect/UI/incognito verification remains **NOT RUN**: no local browser binary was available, and the browser download failed. Treat this as a reviewable prototype until the manual checks below pass. Android files were not modified and Android checks were not run.
+## Layout
 
-### Manual acceptance before relying on it
+`src/core` pure logic (domains, phrases, rules, settings, session) · `src/background` controller, message validation, browser
+adapter, worker · `src/ui` pages (copied flat into the package) · `src/_locales` ar/en/de · `scripts` build, ZIP, base-list updater,
+icon/asset generators · `data/base-list` snapshot + provenance + canaries · `tests` unit and real-browser suites ·
+`store` listing text, privacy policy, images, submission checklist · [`UPDATING.md`](UPDATING.md) list/extension update plan ·
+[`CHANGELOG.md`](CHANGELOG.md).
 
-- Empty installation accurately says blocking is not configured.
-- `example.com` and its subdomain redirect; `example.org` and `example.com.example.org` do not match its domain rule. Use Chrome's unpacked-extension `testMatchOutcome` for synthetic subdomains rather than opening unknown sites.
-- Add harmless phrase `tabsira test`; Google normal search containing that phrase redirects, ordinary search stays accessible. Repeat with `عبارة اختبار`; test both `+` and `%20` spaces.
-- Help timer ends without opening a blocked site; keyboard focus and RTL layout are usable.
-- Settings and actual rules survive browser restart.
-- During a commitment, deletion fails, additions work; after expiry, editing works and no rule disappears automatically.
-- Incognito works only after its permission is enabled; other profiles remain explicitly outside coverage.
-- Extensions page shows no manifest/worker errors. Review requested permissions before public distribution.
+## Proposals needing an Owner decision (not implemented)
 
-## Scope record
-
-This desktop-only personal prototype implements the Owner's 2026-10-02 instruction to add a Tabsira Chrome extension alongside Project 04. It does not certify or change the Android DNS candidate, Android H9/screen-reading gates, clinical content review, discovery records, release gates or live tracker decisions. No claim of recovery efficacy is made.
+1. **In-page search detection** (SPA) — a content script limited to the nine search engines that only watches `location` changes (no DOM
+   reading): no new install warning (host access already exists) but new code in pages; privacy review needed.
+2. **Block embedded frames/images** from the built-in list (`sub_frame`, `image` types): small change, more coverage, pages may look broken.
+3. **Remote list updates** — needs a server/provider and a signed feed; conflicts with the "no server" stance.
+4. **Image/screen/DOM classification** — large permission, privacy and cost implications; not recommended for V1.
+5. **Stronger removal resistance** — only via enterprise/OS policy; explicitly out of scope.
+6. **Safari / Firefox Android** — separate projects (see `COMPATIBILITY.md`).

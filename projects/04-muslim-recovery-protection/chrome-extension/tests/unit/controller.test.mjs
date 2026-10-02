@@ -248,6 +248,26 @@ test('two worker instances (normal + private window) writing within the same few
     assert.ok(mine.ok || ['stale', 'apply_failed'].includes(code(mine)));
 });
 
+test('another instance commits after our rules were installed but before our write: ours is refused and rules follow the stored (other) config', async () => {
+    const t = setup(); await t.onboard(false, false); await t.save({ domains: ['example.com'] });
+    const other = createController(t.api);
+    const rev = t.state.storage.config.revision;
+    const realUpdate = t.api.dnr.updateDynamicRules; let first = true;
+    t.api.dnr.updateDynamicRules = async options => {
+        await realUpdate(options);
+        if (first) {
+            first = false; t.api.dnr.updateDynamicRules = realUpdate;
+            await other.handle(validateMessage({ type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...noList, domains: ['example.com', 'theirs.org'] } }));
+        }
+    };
+    const mine = await t.send({ type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...noList, domains: ['example.com', 'mine.org'] } });
+    assert.equal(code(mine), 'stale');
+    const status = (await t.send({ type: 'GET_STATUS' })).status;
+    assert.equal(status.state, 'active');
+    assert.deepEqual([...status.settings.domains].sort(), ['example.com', 'theirs.org']);
+    assert.deepEqual([...t.state.rules[0].condition.requestDomains].sort(), ['example.com', 'theirs.org']);
+});
+
 test('a stale base (another instance saved first) is refused before any rule changes', async () => {
     const t = setup(); await t.onboard(false, false); await t.save({ domains: ['example.com'] });
     const rev = t.state.storage.config.revision;

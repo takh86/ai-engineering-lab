@@ -57,7 +57,7 @@ export function renderStatus(status, { box, reasonList, lock, incognito }) {
     box.querySelector('.state-text').textContent = t(`state_${state}`);
     reasonList.replaceChildren(...(status?.reasons ?? []).map(reason => Object.assign(document.createElement('li'), { textContent: t(`reason_${reason}`) })));
     reasonList.hidden = !reasonList.children.length;
-    if (lock) lock.textContent = status?.lock?.active ? t('lock_active', formatTime(status.lock.until)) : t('lock_none');
+    if (lock) lock.textContent = status?.lock?.active ? t('lock_active', `\u2066${formatTime(status.lock.until)}\u2069`) : t('lock_none');
     if (incognito) incognito.textContent = status?.incognitoAllowed === true ? t('incog_on') : status?.incognitoAllowed === false ? t('incog_off') : t('incog_unknown');
 }
 

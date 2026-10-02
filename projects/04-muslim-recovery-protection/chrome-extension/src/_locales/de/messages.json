@@ -92,10 +92,10 @@
     "message": "Privates Surfen: nicht überprüfbar."
   },
   "lock_none": {
-    "message": "Keine Verbindlichkeits-Sitzung aktiv."
+    "message": "Keine Selbstverpflichtung aktiv."
   },
   "lock_active": {
-    "message": "Verbindlichkeits-Sitzung aktiv bis $P1$. Du kannst nur stärkeren Schutz hinzufügen.",
+    "message": "Selbstverpflichtung aktiv bis $P1$. Du kannst nur stärkeren Schutz hinzufügen.",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -121,7 +121,7 @@
     "message": "Wir speichern weder die Seitenadresse noch den Suchtext, der hierher geführt hat."
   },
   "blocked_wrong": {
-    "message": "Falsch blockiert? Füge die Seite in den Einstellungen zu den Ausnahmen hinzu (während einer Verbindlichkeits-Sitzung nicht möglich)."
+    "message": "Falsch blockiert? Füge die Seite in den Einstellungen zu den Ausnahmen hinzu (während einer Selbstverpflichtung nicht möglich)."
   },
   "help_title": {
     "message": "Schaffe Raum vor der Entscheidung"
@@ -224,6 +224,9 @@
   "ob5_done": {
     "message": "Einrichtung abgeschlossen. Mache den sicheren Test zur Bestätigung."
   },
+  "ob_already_done": {
+    "message": "Die Ersteinrichtung ist bereits abgeschlossen. Du kannst alles in den Einstellungen ändern."
+  },
   "safe_test": {
     "message": "Sicherer Test"
   },
@@ -240,7 +243,7 @@
     "message": "Integrierte Website-Liste"
   },
   "opt_base_label": {
-    "message": "Als jugendgefährdend eingestufte Websites blockieren"
+    "message": "Websites blockieren, die als Inhalte für Erwachsene eingestuft sind"
   },
   "opt_base_info": {
     "message": "$P1$ Domains · Quelle: The Block List Project (Unlicense) · Quelle zuletzt aktualisiert: $P2$. Die Einstufung ist automatisiert und von der Community; sie kann falsch sein, einzelne Domains werden nicht geprüft.",
@@ -275,7 +278,7 @@
     "message": "Erlaubte Websites (fälschlich blockiert) – eine pro Zeile"
   },
   "opt_allow_hint": {
-    "message": "Eine Ausnahme hat Vorrang vor der integrierten Liste und deinen Websites. Suchmaschinen können nicht ausgenommen werden. Eine Ausnahme schwächt den Schutz und ist daher während einer Verbindlichkeits-Sitzung nicht erlaubt."
+    "message": "Eine Ausnahme hat Vorrang vor der integrierten Liste und deinen Websites. Suchmaschinen können nicht ausgenommen werden. Eine Ausnahme schwächt den Schutz und ist daher während einer Selbstverpflichtung nicht erlaubt."
   },
   "opt_phrases_title": {
     "message": "Suchbegriffe"
@@ -299,7 +302,7 @@
     "message": "Ich brauche jetzt stärkere Grenzen"
   },
   "opt_session_body": {
-    "message": "Eine Verbindlichkeits-Sitzung verhindert innerhalb der Erweiterung alles, was den Schutz schwächt: Regel löschen, integrierte Liste ausschalten, Ausnahme hinzufügen, schwächere Einstellungen importieren oder zurücksetzen. Du kannst nur stärkeren Schutz hinzufügen. Sie endet pünktlich und erlaubt dann nur das Bearbeiten; sie entfernt keine Sperre. Eine Änderung der Geräteuhr verschiebt das Ende, und die Erweiterung kann im Browser weiterhin entfernt oder deaktiviert werden."
+    "message": "Eine Selbstverpflichtung verhindert innerhalb der Erweiterung alles, was den Schutz schwächt: Regel löschen, integrierte Liste ausschalten, Ausnahme hinzufügen, schwächere Einstellungen importieren oder zurücksetzen. Du kannst nur stärkeren Schutz hinzufügen. Sie endet pünktlich und erlaubt dann nur das Bearbeiten; sie entfernt keine Sperre. Eine Änderung der Geräteuhr verschiebt das Ende, und die Erweiterung kann im Browser weiterhin entfernt oder deaktiviert werden."
   },
   "opt_session_start": {
     "message": "$P1$ Minuten",
@@ -310,7 +313,7 @@
     }
   },
   "opt_session_confirm": {
-    "message": "Eine Verbindlichkeits-Sitzung von $P1$ Minuten starten? Bis zum Ende kannst du keine Regeln löschen, die Liste ausschalten oder Ausnahmen hinzufügen.",
+    "message": "Eine Selbstverpflichtung von $P1$ Minuten starten? Bis zum Ende kannst du keine Regeln löschen, die Liste ausschalten oder Ausnahmen hinzufügen.",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -318,13 +321,13 @@
     }
   },
   "opt_session_started": {
-    "message": "Verbindlichkeits-Sitzung gestartet."
+    "message": "Selbstverpflichtung gestartet."
   },
   "opt_backup_title": {
     "message": "Sicherung"
   },
   "opt_backup_body": {
-    "message": "Der Export speichert deine Einstellungen (Websites, Begriffe, Ausnahmen) in einer Datei auf deinem Gerät. Die Datei ist nicht verschlüsselt, bewahre sie sorgfältig auf. Der Import führt die Datei mit deinen Einstellungen zusammen und schwächt den Schutz nie; während einer Verbindlichkeits-Sitzung wird er abgelehnt, wenn er Ausnahmen hinzufügt."
+    "message": "Der Export speichert deine Einstellungen (Websites, Begriffe, Ausnahmen) in einer Datei auf deinem Gerät. Die Datei ist nicht verschlüsselt, bewahre sie sorgfältig auf. Der Import führt die Datei mit deinen Einstellungen zusammen und schwächt den Schutz nie; während einer Selbstverpflichtung wird er abgelehnt, wenn er Ausnahmen hinzufügt."
   },
   "opt_export": {
     "message": "Einstellungen exportieren"
@@ -426,7 +429,7 @@
     "message": "Die Einstellungen sind ungültig."
   },
   "err_config_corrupt": {
-    "message": "Die gespeicherten Einstellungen sind beschädigt. Du kannst sie in den Einstellungen löschen (während einer Verbindlichkeits-Sitzung nicht möglich)."
+    "message": "Die gespeicherten Einstellungen sind beschädigt. Du kannst sie in den Einstellungen löschen (während einer Selbstverpflichtung nicht möglich)."
   },
   "err_import_invalid": {
     "message": "Die Datei ist kein gültiger Tabsira-Export."
@@ -438,7 +441,7 @@
     "message": "Die Datei ist zu groß."
   },
   "err_locked_weakening": {
-    "message": "Eine Verbindlichkeits-Sitzung ist aktiv: Diese Änderung würde den Schutz schwächen und ist jetzt nicht erlaubt. Du kannst nur stärkeren Schutz hinzufügen."
+    "message": "Eine Selbstverpflichtung ist aktiv: Diese Änderung würde den Schutz schwächen und ist jetzt nicht erlaubt. Du kannst nur stärkeren Schutz hinzufügen."
   },
   "err_stale": {
     "message": "Die Einstellungen wurden in einem anderen Fenster geändert. Sie wurden neu geladen; prüfe und speichere erneut."

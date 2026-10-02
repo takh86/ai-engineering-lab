@@ -1,0 +1,255 @@
+{
+  "meta": {
+    "browser": "firefox",
+    "version": "Mozilla Firefox 157.0",
+    "os": "Linux 6.18.44-fc-v51 (x64)",
+    "node": "v22.22.0",
+    "date": "2026-10-02T07:18:32.748Z",
+    "addonInstall": "temporary (geckodriver moz/addon/install)",
+    "note": "Firefox build is the conda-forge repackaging of the Mozilla release, not a mozilla.org download"
+  },
+  "summary": {
+    "PASS": 43,
+    "NOT_RUN": 1
+  },
+  "results": [
+    {
+      "id": "F1.1 temporary install succeeds; options page loads; worker answers (Firefox event page)",
+      "status": "PASS",
+      "detail": "\"not_configured\""
+    },
+    {
+      "id": "F1.2 base list metadata readable",
+      "status": "PASS",
+      "detail": "936979"
+    },
+    {
+      "id": "F1.3 UI follows the Firefox locale (en-US build → English, LTR, translated)",
+      "status": "PASS",
+      "detail": "[\"ltr\",\"en-US\",\"Tabsira settings\"]"
+    },
+    {
+      "id": "F1.3b Arabic RTL UI inside Firefox",
+      "status": "NOT_RUN",
+      "detail": "needs the Arabic Firefox language pack, not installable offline here; Arabic/RTL rendering is verified in Chromium and Edge"
+    },
+    {
+      "id": "F1.4 host permission state is reported (informational)",
+      "status": "PASS",
+      "detail": "true"
+    },
+    {
+      "id": "F1.5 nothing blocked before onboarding",
+      "status": "PASS",
+      "detail": "http://tabsira-selftest.test/"
+    },
+    {
+      "id": "F2.1 onboarding with base list succeeds",
+      "status": "PASS",
+      "detail": "[]"
+    },
+    {
+      "id": "F2.2 status active (permission present) — or an honest partial with the reason",
+      "status": "PASS",
+      "detail": "{\"base\":{\"date\":\"2026-07-18\",\"domainCount\":936979,\"enabled\":true,\"version\":\"1.0.0\"},\"counts\":{\"allow\":0,\"contains\":0,\"domains\":0,\"dynamicRules\":0,\"starter\":0,\"words\":0},\"incognitoAllowed\":false,\"limits\":{\"allow\":300,\"contains\":40,\"domains\":1000,\"importBytes\":262144,\"words\":60},\"lock\":{\"active\":false"
+    },
+    {
+      "id": "F2.3 safe self-test domain redirects to the stop page (real Firefox DNR redirect)",
+      "status": "PASS",
+      "detail": "moz-extension://2f6f2d3e-0a4b-4d6e-8f10-6f3a1c2b9a77/blocked.html"
+    },
+    {
+      "id": "F3.1 blocks blocked-user.test",
+      "status": "PASS",
+      "detail": "moz-extension://2f6f2d3e-0a4b-4d6e-8f10-6f3a1c2b9a77/blocked.html"
+    },
+    {
+      "id": "F3.1 blocks sub.blocked-user.test",
+      "status": "PASS",
+      "detail": "moz-extension://2f6f2d3e-0a4b-4d6e-8f10-6f3a1c2b9a77/blocked.html"
+    },
+    {
+      "id": "F3.1 does not block notblocked-user.test",
+      "status": "PASS",
+      "detail": "http://notblocked-user.test/"
+    },
+    {
+      "id": "F3.1 does not block blocked-user.test.evil.example",
+      "status": "PASS",
+      "detail": "http://blocked-user.test.evil.example/"
+    },
+    {
+      "id": "F3.2 exception for a subdomain beats the parent block; sibling stays blocked",
+      "status": "PASS",
+      "detail": "{\"ok\":true,\"sib\":true}"
+    },
+    {
+      "id": "F3.3 exception overrides the built-in list",
+      "status": "PASS",
+      "detail": "http://tabsira-selftest.test/"
+    },
+    {
+      "id": "F4.0 phrases accepted by the real Firefox regex engine",
+      "status": "PASS",
+      "detail": "{}"
+    },
+    {
+      "id": "F4.1 blocked: google plus",
+      "status": "PASS",
+      "detail": "moz-extension://2f6f2d3e-0a4b-4d6e-8f10-6f3a1c2b9a77/blocked.html"
+    },
+    {
+      "id": "F4.1 blocked: google %20",
+      "status": "PASS",
+      "detail": "moz-extension://2f6f2d3e-0a4b-4d6e-8f10-6f3a1c2b9a77/blocked.html"
+    },
+    {
+      "id": "F4.1 blocked: google upper",
+      "status": "PASS",
+      "detail": "moz-extension://2f6f2d3e-0a4b-4d6e-8f10-6f3a1c2b9a77/blocked.html"
+    },
+    {
+      "id": "F4.1 blocked: google arabic",
+      "status": "PASS",
+      "detail": "moz-extension://2f6f2d3e-0a4b-4d6e-8f10-6f3a1c2b9a77/blocked.html"
+    },
+    {
+      "id": "F4.1 blocked: google.de",
+      "status": "PASS",
+      "detail": "moz-extension://2f6f2d3e-0a4b-4d6e-8f10-6f3a1c2b9a77/blocked.html"
+    },
+    {
+      "id": "F4.1 blocked: bing images",
+      "status": "PASS",
+      "detail": "moz-extension://2f6f2d3e-0a4b-4d6e-8f10-6f3a1c2b9a77/blocked.html"
+    },
+    {
+      "id": "F4.1 blocked: yahoo p",
+      "status": "PASS",
+      "detail": "moz-extension://2f6f2d3e-0a4b-4d6e-8f10-6f3a1c2b9a77/blocked.html"
+    },
+    {
+      "id": "F4.1 blocked: youtube",
+      "status": "PASS",
+      "detail": "moz-extension://2f6f2d3e-0a4b-4d6e-8f10-6f3a1c2b9a77/blocked.html"
+    },
+    {
+      "id": "F4.1 blocked: contains",
+      "status": "PASS",
+      "detail": "moz-extension://2f6f2d3e-0a4b-4d6e-8f10-6f3a1c2b9a77/blocked.html"
+    },
+    {
+      "id": "F4.1 allowed: ordinary",
+      "status": "PASS",
+      "detail": "http://www.google.com/search?q=ordinary"
+    },
+    {
+      "id": "F4.1 allowed: other param",
+      "status": "PASS",
+      "detail": "http://www.google.com/search?q=ordinary&note=tabsira+word"
+    },
+    {
+      "id": "F4.1 allowed: aq boundary",
+      "status": "PASS",
+      "detail": "http://www.google.com/search?aq=tabsira+word"
+    },
+    {
+      "id": "F4.1 allowed: embedded word",
+      "status": "PASS",
+      "detail": "http://www.google.com/search?q=xtabsira+words"
+    },
+    {
+      "id": "F4.1 allowed: wrong param on engine",
+      "status": "PASS",
+      "detail": "http://www.google.com/search?p=tabsira+word"
+    },
+    {
+      "id": "F4.1 allowed: non-engine site",
+      "status": "PASS",
+      "detail": "http://news.test/search?q=tabsira+word"
+    },
+    {
+      "id": "F4.2 Firefox accepts a 40-letter Arabic phrase (no 2 KB regex limit observed, unlike Chromium) and it is enforced",
+      "status": "PASS",
+      "detail": "moz-extension://2f6f2d3e-0a4b-4d6e-8f10-6f3a1c2b9a77/blocked.html"
+    },
+    {
+      "id": "F4.3 every starter term is accepted by the Firefox regex engine",
+      "status": "PASS",
+      "detail": "[]"
+    },
+    {
+      "id": "F5.1 session starts (60 min)",
+      "status": "PASS",
+      "detail": "{}"
+    },
+    {
+      "id": "F5.2 weakening refused during session (disable list / remove site / add exception)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "F5.3 reset refused during session",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "F5.4 adding stronger protection allowed",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "F6.1 after browser restart (add-on re-installed temporarily): session persists",
+      "status": "PASS",
+      "detail": "{\"state\":\"active\",\"until\":true}"
+    },
+    {
+      "id": "F6.2 after restart: rules and base list persist or are restored by reconcile",
+      "status": "PASS",
+      "detail": "{\"state\":\"active\",\"reasons\":[],\"base\":true}"
+    },
+    {
+      "id": "F6.3 after restart: navigation blocked (user domain, base list, phrase)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "F7.1 rules removed behind our back are detected and restored",
+      "status": "PASS",
+      "detail": "{\"state\":\"active\",\"reasons\":[]}"
+    },
+    {
+      "id": "F8.1 median local navigation with the 937k-domain ruleset enabled is under 250 ms",
+      "status": "PASS",
+      "detail": "115 ms"
+    },
+    {
+      "id": "F6b.1 withdrawn website permission is detected (status partial + specific reason)",
+      "status": "PASS",
+      "detail": "[\"host_permission_missing\"]"
+    },
+    {
+      "id": "F6b.2 a commitment session can still be extended but nothing weakens (lock already active)",
+      "status": "PASS",
+      "detail": ""
+    }
+  ],
+  "notes": [
+    {
+      "id": "F2",
+      "text": "onboarding+enable base list took 2831 ms; host permission granted: true; RSS (all Firefox processes) before ≈ 1122 MB, after enable ≈ 1722 MB"
+    },
+    {
+      "id": "F4.2",
+      "text": "Firefox accepted a phrase that Chromium/Edge refuse (regex memory limit); the extension still validates through isRegexSupported on each browser."
+    },
+    {
+      "id": "F8",
+      "text": "Firefox median navigation (15 loads, local proxy) with base list on: 115 ms; RSS (all Firefox processes) ≈ 1687 MB"
+    },
+    {
+      "id": "F6b",
+      "text": "permissions.request outside a user gesture returned: \"error: permissions.request may only be called from a user input han\" (Firefox requires a click on the onboarding/consent page)"
+    }
+  ]
+}

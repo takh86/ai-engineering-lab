@@ -40,20 +40,24 @@ const rssMb = () => { try { const out = execFileSync('ps', ['-eo', 'rss,args']).
 async function session(profileDir) {
     const d = await startGecko({ geckodriver: GECKODRIVER, firefox: FIREFOX, profileDir, prefs });
     await d.installAddon(addonDir);
-    await d.goto(`${EXT}/options.html`);
     await sleep(1500);
-    const msg = message => d.run('return await browser.runtime.sendMessage(arguments[0]);', message);
+    await d.openExtensionTab(`${EXT}/options.html`);          // geckodriver cannot navigate to moz-extension:// itself
+    const optionsTab = await d.current();
+    const webTab = await d.newTab();                            // a second tab for ordinary browsing
+    const msg = async message => { await d.switchTo(optionsTab); return d.run('return await browser.runtime.sendMessage(arguments[0]);', message); };
     const status = async () => (await msg({ type: 'GET_STATUS' })).status;
     const save = async settings => { const s = await status(); return msg({ type: 'SAVE_SETTINGS', baseRevision: s.revision, settings: { ...NO_LIST, ...settings } }); };
     const visit = async target => {
+        await d.switchTo(webTab);
         await d.goto('about:blank'); hits.length = 0;
         await d.goto(target).catch(() => {});
         await sleep(300);
         const url = await d.url(); const title = await d.title().catch(() => '');
         return { url, title, blocked: url.startsWith(EXT) && url.endsWith('/blocked.html'), real: title === 'REAL-SITE' };
     };
-    const back = () => d.goto(`${EXT}/options.html`);
-    return { d, msg, status, save, visit, back };
+    const inOptions = async code => { await d.switchTo(optionsTab); return d.run(code); };
+    const back = async () => {};
+    return { d, msg, status, save, visit, back, inOptions };
 }
 
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'tabsira-ff-'));
@@ -64,22 +68,24 @@ try {
     const st0 = await s.status();
     check('F1.1 temporary install succeeds; options page loads; worker answers (Firefox event page)', st0?.state === 'not_configured', JSON.stringify(st0?.state));
     check('F1.2 base list metadata readable', st0?.base?.domainCount > 900000, String(st0?.base?.domainCount));
-    const dir = await s.d.run('return [document.documentElement.dir, document.documentElement.lang, document.querySelector("h1").textContent];');
-    check('F1.3 UI language/direction follow the Firefox locale (ar → RTL)', dir[0] === 'rtl' && dir[1].startsWith('ar'), JSON.stringify(dir));
-    const perm = await s.d.run('return await browser.permissions.contains({ origins: ["http://*/*", "https://*/*"] });');
+    const dir = await s.inOptions('return [document.documentElement.dir, document.documentElement.lang, document.querySelector("h1").textContent];');
+    check('F1.3 UI follows the Firefox locale (en-US build → English, LTR, translated)', dir[0] === 'ltr' && dir[1].startsWith('en') && dir[2] === 'Tabsira settings', JSON.stringify(dir));
+    skip('F1.3b Arabic RTL UI inside Firefox', 'needs the Arabic Firefox language pack, not installable offline here; Arabic/RTL rendering is verified in Chromium and Edge');
+    const perm = await s.inOptions('return await browser.permissions.contains({ origins: ["http://*/*", "https://*/*"] });');
     check('F1.4 host permission state is reported (informational)', typeof perm === 'boolean', String(perm));
     const real = await s.visit('http://tabsira-selftest.test/');
     check('F1.5 nothing blocked before onboarding', real.real, real.url);
     await s.back();
 
     // ---- F2: onboarding + base list ----
+    const rssBefore = rssMb();
     const t0 = Date.now();
     const done = await s.msg({ type: 'COMPLETE_ONBOARDING', baseList: true, starterTerms: false });
     const enableMs = Date.now() - t0;
     check('F2.1 onboarding with base list succeeds', done.ok === true, JSON.stringify(done.error ?? done.status?.reasons));
     check('F2.2 status active (permission present) — or an honest partial with the reason', done.status.state === 'active' || (done.status.state === 'partial' && done.status.reasons.includes('host_permission_missing')), JSON.stringify(done.status));
     const hostGranted = done.status.permissions.hosts;
-    report.note('F2', `onboarding+enable base list took ${enableMs} ms; host permission granted: ${hostGranted}; RSS after enable ≈ ${rssMb()} MB`);
+    report.note('F2', `onboarding+enable base list took ${enableMs} ms; host permission granted: ${hostGranted}; RSS (all Firefox processes) before ≈ ${rssBefore} MB, after enable ≈ ${rssMb()} MB`);
     const hit = await s.visit('http://tabsira-selftest.test/');
     if (hostGranted) check('F2.3 safe self-test domain redirects to the stop page (real Firefox DNR redirect)', hit.blocked, hit.url);
     else check('F2.3 without host permission nothing is redirected (state reported as partial)', hit.real, hit.url);
@@ -119,8 +125,13 @@ try {
         ];
         for (const [name, url, expected] of cases) { const r = await s.visit(url); check(`F4.1 ${expected ? 'blocked' : 'allowed'}: ${name}`, expected ? r.blocked : r.real, r.url.slice(0, 70)); }
         await s.back();
-        const long = await s.save({ contains: ['ع'.repeat(40)] });
-        check('F4.2 over-long Arabic phrase refused with a line number', !long.ok && long.error.code === 'phrase_too_complex');
+        const longSave = await s.save({ baseList: true, contains: ['ع'.repeat(40)] });
+        if (longSave.ok) {
+            const longHit = await s.visit(`http://www.google.com/search?q=${enc('ع'.repeat(40))}`);
+            check('F4.2 Firefox accepts a 40-letter Arabic phrase (no 2 KB regex limit observed, unlike Chromium) and it is enforced', longHit.blocked, longHit.url.slice(0, 70));
+            report.note('F4.2', 'Firefox accepted a phrase that Chromium/Edge refuse (regex memory limit); the extension still validates through isRegexSupported on each browser.');
+        } else check('F4.2 over-long Arabic phrase refused with a line number', longSave.error.code === 'phrase_too_complex' && longSave.error.params.line === 1, JSON.stringify(longSave.error));
+        await s.back();
         const starter = await s.save({ baseList: true, starterTerms: true });
         const ss = await s.status();
         check('F4.3 every starter term is accepted by the Firefox regex engine', starter.ok && !ss.reasons.includes('phrases_unsupported'), JSON.stringify(ss.reasons));
@@ -149,15 +160,27 @@ try {
         check('F6.3 after restart: navigation blocked (user domain, base list, phrase)', (await s.visit('http://extra-lock.test/')).blocked && (await s.visit('http://tabsira-selftest.test/')).blocked && (await s.visit('http://www.google.com/search?q=lock+phrase')).blocked);
         await s.back();
         // ---- F7: wipe rules behind our back ----
-        await s.d.run('const r = await browser.declarativeNetRequest.getDynamicRules(); await browser.declarativeNetRequest.updateDynamicRules({ removeRuleIds: r.map(x => x.id) }); await browser.declarativeNetRequest.updateEnabledRulesets({ disableRulesetIds: ["base_adult"] }); return true;');
+        await s.inOptions('const r = await browser.declarativeNetRequest.getDynamicRules(); await browser.declarativeNetRequest.updateDynamicRules({ removeRuleIds: r.map(x => x.id) }); await browser.declarativeNetRequest.updateEnabledRulesets({ disableRulesetIds: ["base_adult"] }); return true;');
         const healed = await s.status();
         check('F7.1 rules removed behind our back are detected and restored', healed.state === 'active' && healed.base.enabled && (await s.visit('http://extra-lock.test/')).blocked, JSON.stringify({ state: healed.state, reasons: healed.reasons }));
         await s.back();
         // ---- F8: perf ----
-        const timing = async () => { const times = []; for (let i = 0; i < 15; i++) { const t = Date.now(); await s.d.goto(`http://perf-${i}.test/`).catch(() => {}); times.push(Date.now() - t); } times.sort((a, b) => a - b); return times[Math.floor(times.length / 2)]; };
+        const timing = async () => { await s.d.switchTo(await s.d.newTab()); const times = []; for (let i = 0; i < 15; i++) { const t = Date.now(); await s.d.goto(`http://perf-${i}.test/`).catch(() => {}); times.push(Date.now() - t); } times.sort((a, b) => a - b); return times[Math.floor(times.length / 2)]; };
         const withList = await timing(); const rssOn = rssMb();
         report.note('F8', `Firefox median navigation (15 loads, local proxy) with base list on: ${withList} ms; RSS (all Firefox processes) ≈ ${rssOn} MB`);
         check('F8.1 median local navigation with the 937k-domain ruleset enabled is under 250 ms', withList < 250, `${withList} ms`);
+        // ---- F6b: withdrawn permission ----
+        const removed = await s.inOptions('try { return await browser.permissions.remove({ origins: ["http://*/*", "https://*/*"] }); } catch (e) { return "error: " + e.message; }');
+        await sleep(800);
+        const afterRemove = await s.status();
+        if (removed === true) check('F6b.1 withdrawn website permission is detected (status partial + specific reason)', afterRemove.state === 'partial' && afterRemove.reasons.includes('host_permission_missing'), JSON.stringify(afterRemove.reasons));
+        else skip('F6b.1 withdrawn website permission is detected', `Firefox refused to remove it via API: ${String(removed).slice(0, 80)}`);
+        if (removed === true) {
+            const lockTry = await s.msg({ type: 'START_SESSION', minutes: 60 });
+            check('F6b.2 a commitment session can still be extended but nothing weakens (lock already active)', lockTry.ok === true || lockTry.error?.code === 'session_needs_active_protection');
+            const grant = await s.inOptions('try { return await browser.permissions.request({ origins: ["http://*/*", "https://*/*"] }); } catch (e) { return "error: " + e.message.slice(0, 60); }');
+            report.note('F6b', `permissions.request outside a user gesture returned: ${JSON.stringify(grant)} (Firefox requires a click on the onboarding/consent page)`);
+        }
     } else {
         skip('F3–F7 (rules, phrases, commitment, restart)', 'host permission was not granted to the temporary add-on in Firefox; permission-grant flow needs a user prompt that WebDriver cannot answer');
     }

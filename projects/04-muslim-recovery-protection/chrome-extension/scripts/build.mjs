@@ -32,14 +32,14 @@ function baseManifest() {
         manifest_version: 3,
         name: '__MSG_extName__', short_name: '__MSG_extShortName__', description: '__MSG_extDescription__',
         version: pkg.version, default_locale: 'ar',
-        icons: { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png', 48: 'icons/icon-48.png', 128: 'icons/icon-128.png' },
+        icons: { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png', 48: 'icons/icon-48.png', 96: 'icons/icon-96.png', 128: 'icons/icon-128.png' },
         permissions,
         ...(OPTIONAL_HOSTS ? { optional_host_permissions: HOSTS } : { host_permissions: HOSTS }),
         action: { default_popup: 'popup.html', default_title: '__MSG_extShortName__', default_icon: { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png' } },
         options_ui: { page: 'options.html', open_in_tab: true },
         declarative_net_request: { rule_resources: [{ id: 'base_adult', enabled: false, path: 'rulesets/base_adult.json' }] },
-        // No web_accessible_resources: redirecting to the stop page does not need them (verified in Chromium),
-        // and leaving them out stops websites from detecting the extension.
+        // Chromium: no web_accessible_resources - redirecting to the stop page does not need them (verified), and leaving
+        // them out stops websites from detecting the extension by its fixed ID. Firefox needs one (see MANIFESTS.firefox).
         content_security_policy: { extension_pages: "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'" }
     };
 }
@@ -51,6 +51,9 @@ const MANIFESTS = {
     firefox: () => ({
         ...baseManifest(),
         background: { scripts: ['background/service-worker.js'], type: 'module' },
+        // Firefox refuses a redirect to an extension page unless it is web-accessible (verified on Firefox 157). Its
+        // moz-extension:// host is a random per-profile UUID, so this does not let websites detect the extension.
+        web_accessible_resources: [{ resources: ['blocked.html'], matches: ['http://*/*', 'https://*/*'] }],
         browser_specific_settings: { gecko: { id: '{6e6f9f5e-6c45-4f0a-9d8a-5b1f0f6a7c11}', strict_min_version: '128.0', data_collection_permissions: { required: ['none'] } } }
     })
 };

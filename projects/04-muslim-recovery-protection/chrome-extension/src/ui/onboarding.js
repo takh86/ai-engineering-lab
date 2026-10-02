@@ -34,9 +34,18 @@ $('#finish').addEventListener('click', async () => {
     const reply = await send({ type: 'COMPLETE_ONBOARDING', baseList: $('#baseList').checked, starterTerms: $('#starterTerms').checked });
     const message = $('#message');
     if (!reply.ok) { message.textContent = errorText(reply.error); message.className = 'msg error'; return; }
-    message.textContent = t('ob5_done'); message.className = 'msg ok';
     $('#finish').hidden = true; $('#selftest').hidden = false; $('#toSettings').hidden = false;
     await refreshPermission();
+    // Never claim success the status does not support (for example when website access is still missing).
+    const state = reply.status?.state ?? 'unknown';
+    if (state === 'active') { message.textContent = t('ob5_done'); message.className = 'msg ok'; }
+    else {
+        message.textContent = [t(`state_${state}`), ...(reply.status?.reasons ?? []).map(reason => t(`reason_${reason}`))].join(' ');
+        message.className = 'msg error';
+    }
 });
 
+// Re-opening this page after setup: say so instead of offering setup again.
+const existing = (await send({ type: 'GET_STATUS' })).status;
+if (existing?.onboarded) { $('#finish').hidden = true; $('#toSettings').hidden = false; $('#selftest').hidden = false; $('#message').textContent = t('ob_already_done'); }
 showStep(0);

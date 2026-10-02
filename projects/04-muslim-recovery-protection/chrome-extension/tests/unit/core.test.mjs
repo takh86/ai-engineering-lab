@@ -196,3 +196,13 @@ test('rules: starter terms are whole-word, deduplicated with user words, and swi
     assert.ok(withStarter.rules.length > 0 && withStarter.baseListEnabled === false);
     assert.equal(new Set(STARTER_TERMS).size, STARTER_TERMS.length);
 });
+
+test('worst case: maximum phrases, one phrase per rule, stays far below the browser dynamic/regex rule limits', async () => {
+    const words = Array.from({ length: LIMITS.words }, (_, i) => `word${String(i).padStart(3, '0')} alpha`);
+    const contains = Array.from({ length: LIMITS.contains }, (_, i) => `part${String(i).padStart(3, '0')} beta`);
+    // supports() accepts only a single phrase per rule, the worst packing possible
+    const supports = async regex => !/\|/u.test(regex);
+    const plan = await planRules({ ...defaultConfig(), onboarded: true, baseList: true, starterTerms: true, words, contains, domains: ['a.example'], allow: ['b.example'] }, supports);
+    const regexRules = plan.rules.filter(rule => rule.condition.regexFilter).length;
+    assert.ok(plan.rules.length < 1000 && regexRules < 1000, `rules=${plan.rules.length} regex=${regexRules}`);   // Chromium: 1,000 regex rules, 30,000 dynamic rules
+});
