@@ -151,11 +151,14 @@ Run on your real Chrome and Edge (Windows/macOS) and on Firefox release with the
 2. Open `https://tabsira-selftest.test/` → the Tabsira stop page appears. Reload it: no loop.
 3. Add `example.com` → open `https://example.com` and `https://www.example.com` → blocked; `https://example.org` → loads. Remove it afterwards.
 4. Add the phrase `tabsira test`; search it on Google/Bing/YouTube → blocked; an ordinary search → loads. Repeat with an Arabic phrase ≤ 12 letters.
-5. Add an exception for a site covered by the built-in list → it loads.
+5. With the built-in list on, add an exception for the reserved `tabsira-selftest.test` (it is covered by the list) → it loads instead of the stop page; remove the exception afterwards. (Never open a real listed site to test this.)
 6. Start a 60-minute session. Try: delete a site, switch off the list, add an exception, import a weaker file, reset → each refused with a clear message.
    Add a new site → allowed. Close and reopen the browser → session and rules persist.
 7. Enable the private-window switch; repeat steps 2–6 in a private window (Chrome/Edge show the stop page; Firefox too).
 8. Disable then re-enable the extension and restart the browser → popup shows rules installed again (nothing silently lost).
 9. In `chrome://extensions` withdraw site access ("on click") → popup/badge show the permission problem.
 10. Check the extension error page shows no errors; keyboard-only navigation of settings; Arabic RTL and German display.
-11. Change the device clock forward by an hour while a session is active → the session ends early (documented limit).
+11. Clock (documented limit): with a session active, set the clock back 30 min → remaining time grows by about 30 min; set it forward past the end → the session ends early and expired entries are cleaned at the next write operation (moving the clock back again does not revive it).
+12. Sleep/wake with a session active → settings, session and rules intact; any rules mismatch is rebuilt by the watchdog within about a minute.
+
+A step-by-step version with a results table: [`docs/OWNER-HANDOVER.md`](docs/OWNER-HANDOVER.md).

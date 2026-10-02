@@ -43,8 +43,7 @@ modification, redistribution and commercial use; the MIT condition (notice) is m
   licence (GitHub Terms of Service, section D.6). The project describes the files only as a "collection" and does not document where entries came from; the history
   shows some entries added from issues in the MIT-licensed StevenBlack/hosts project. **We have not verified, and cannot verify, the origin of each entry.**
 
-This is the extent of what can be shown from public material. If counsel decides that the unstated origin of Sinfonietta's entries is not acceptable, the fallback is
-ShadowWhisperer alone (222,623 entries before parent-domain removal): one line in `scripts/update-base-list.mjs`.
+This is the extent of what can be shown from public material. **The Owner decision stands (ShadowWhisperer ∪ Sinfonietta); no specific infringement was found, and a general possibility is not a reason to shrink the list.** Should a concrete problem with an entry or a source ever be identified, the entries concerned are removed (one line in `scripts/update-base-list.mjs`) and the packages rebuilt.
 
 ## Composition (implemented in `scripts/update-base-list.mjs`)
 

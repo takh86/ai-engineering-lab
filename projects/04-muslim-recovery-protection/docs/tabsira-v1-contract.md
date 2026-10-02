@@ -47,7 +47,7 @@ proposal** needing an Owner decision (see "Proposals needing a decision" in `chr
 ## Unresolved decisions (Owner)
 - **List licence — final decision taken** (licence-only sources). Remaining for counsel: the upstream projects do not document where individual entries came from (Sinfonietta's file has 49 contributing authors); fallback is ShadowWhisperer alone.
 - **Master SVG** of the Tabsira mark (the shipped mark is a redraw), and an approved store icon/promo design.
-- **Independent** security reviewer for the final round (this round was a self-review).
+- **Comprehensive independent audit** (optional before public release). A targeted independent verification of the late-write / late-delete / recovery fixes and of the build (86 tests on `dd0fce9`, identical SHA-256, watchdog and storage code unchanged since the earlier review) was reported by the Owner; it is not a full audit.
 - **Branded Google Chrome stable** and Windows/macOS runs (only Chrome *for Testing* on Linux was available).
 - Starter phrase list; Firefox add-on ID; hosting and contact address for the privacy policy; Arabic dialect vs MSA; who publishes and when.
 

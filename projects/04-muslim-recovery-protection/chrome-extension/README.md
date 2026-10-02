@@ -9,7 +9,7 @@ Android app and Family DNS; it is not a replacement for them and not a proven tr
 > including Firefox **private windows**. Exact counts, versions and package SHA-256 are in [`TESTING.md`](TESTING.md) and
 > [`test-evidence/SUMMARY.md`](test-evidence/SUMMARY.md). **Not verified:** branded Chrome stable, Windows/macOS, Brave, Opera, the AMO-signed
 > Firefox build, real user devices. The security review ([`../docs/tabsira-security-review.md`](../docs/tabsira-security-review.md)) is a
-> self-review, not an independent audit. Nothing was uploaded, merged or published. Browser table: [`COMPATIBILITY.md`](COMPATIBILITY.md).
+> self-review plus targeted independent verifications of the late-write / late-delete / recovery fixes (latest: 86 tests on `dd0fce9`, identical package SHA-256, watchdog and storage code unchanged since the earlier review) — **not a comprehensive audit**. Nothing was uploaded, merged or published. Browser table: [`COMPATIBILITY.md`](COMPATIBILITY.md).
 
 ## What it does
 

@@ -9,7 +9,7 @@ Nothing below has been done. No account was created, no fee paid, nothing upload
 - [ ] Provide the designer's **master SVG** of the mark (the shipped mark is a redraw of the approved reference image, `docs/brand/ASSETS.md`) and approve the generated icon, screenshots and promo images in `store/images/`.
 - [ ] Decide the Firefox add-on ID (`{6e6f9f5e-…}` is a placeholder GUID; it cannot change after the first AMO upload).
 - [ ] Publish `store/privacy-policy.html` at a stable HTTPS URL (any static host, e.g. GitHub Pages) and add the publication date and a contact address (marked in the file).
-- [ ] Legal sign-off on redistributing the list. The list is now ONLY ShadowWhisperer `Lists/Adult` (Unlicense) ∪ Sinfonietta `pornography-hosts` (MIT), as decided; see `data/base-list/README.md` for what was verified (licence covers the files, notices shipped) and what cannot be (the upstream projects do not document where individual entries came from; Sinfonietta's file has 49 contributing authors).
+- [ ] *(optional, at your discretion)* Counsel confirmation of the list. The Owner decision stands: the list is ONLY ShadowWhisperer `Lists/Adult` (Unlicense) ∪ Sinfonietta `pornography-hosts` (MIT), as decided; see `data/base-list/README.md` for what was verified (licence covers the files, notices shipped) and what cannot be (the upstream projects do not document where individual entries came from; Sinfonietta's file has 49 contributing authors).
 - [ ] Confirm the target-device manual checks in `TESTING.md` ("Manual steps") on the machines you will actually use (real Chrome/Edge/Firefox release builds, Windows/macOS).
 
 ## Chrome Web Store

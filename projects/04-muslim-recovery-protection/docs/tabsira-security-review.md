@@ -9,7 +9,12 @@ The Owner asked for an **independent** security and Red Team review. Independent
 session race (`d662632`), the **late write** (`7294cd6`, F10) and the **late delete** (`0b46c1d`, F11). The last two were in the very mechanism added to fix the one before,
 and the second time my own review had documented the problem as an "accepted residual". The rounds done by this agent are **self-reviews with real attacks against the
 built packages — not independent audits**, and they have been wrong three times. Findings below are verified; the *absence* of further findings is not evidence of absence.
-Recommended before publication: another independent review starting from this document, `tests/unit/late-writes.test.mjs`, `tests/unit/lock-cleanup.test.mjs` and S16b/S16c.
+
+**Latest independent verification (as reported by the Owner; not performed by this agent).** The independent reviewer ran the **86 unit tests on `dd0fce9`**, rebuilt both ZIPs with the
+**same SHA-256** values, and confirmed that the **watchdog (alarm) code and the storage code are unchanged since their earlier review**. Limits of that review, stated so it is not
+over-read: it is a targeted verification of the late-write / late-delete / recovery fixes and of the build, **not a comprehensive audit** — it does not cover the whole extension, Windows/macOS
+or branded Chrome behaviour, a fuzzing campaign, or the legal question of the list. A comprehensive independent audit has not been done; it is optional before a public release, at the
+Owner's discretion. Starting points for any further reviewer: this document, `tests/unit/late-writes.test.mjs`, `tests/unit/lock-cleanup.test.mjs`, `tests/unit/watchdog.test.mjs`, S16b–S16d.
 
 ## Threat model
 
