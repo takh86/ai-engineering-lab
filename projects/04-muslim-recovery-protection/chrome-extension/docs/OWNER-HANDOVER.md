@@ -9,8 +9,8 @@
 
 | الملف | الاستعمال | SHA-256 |
 |---|---|---|
-| `tabsira-chromium-1.0.0.zip` (1.3 MB) | Chrome وEdge (وأي متصفح Chromium) | `c58ecb74a6fe9e12313a7cab99eba4e080f7cd1d60b755df6f7ecfd37d4ff45b` |
-| `tabsira-firefox-1.0.0.zip` (1.3 MB) | Firefox | `c5dade24516a3ff2319a150bf35463d49fec93d605582762751f1648562babf1` |
+| `tabsira-chromium-1.0.0.zip` (1.3 MB) | Chrome وEdge (وأي متصفح Chromium) | `2e1c886f2e0318855213ec5d8b49fadb971bc2f4b79ab028bb44ab0a6ac56460` |
+| `tabsira-firefox-1.0.0.zip` (1.3 MB) | Firefox | `2a022b1529d1400a6cfa3d0b466a6c828ea2431428e0241a94c75d70818ca68e` |
 
 الحزمتان تُبنيان بنفس البصمة من أي بناء (`npm ci && npm run build`)، وتحقق من ذلك أيضًا المراجع المستقل. **تحقق من البصمة قبل التثبيت** (PowerShell):
 `Get-FileHash .\tabsira-chromium-1.0.0.zip -Algorithm SHA256` ثم قارن القيمة بالجدول. الحزمتان في `dist/` (غير مُضافتين إلى git لأنهما ناتج بناء).

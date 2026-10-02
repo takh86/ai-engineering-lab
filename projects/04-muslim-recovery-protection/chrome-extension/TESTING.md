@@ -20,8 +20,10 @@ the checks calling `testMatchOutcome`: base-list sampling S3 and match timing S1
 `live` (a copy whose manifest version is raised in place for the update test S7.11–S7.13). Evidence files record the ZIP path and SHA-256.
 
 Package under test (frozen code commit `608251e` (logic identical to `f6b0eb6`; only brand assets, icons and the image sizes in five HTML files changed); later commits change only documentation and evidence — verified by rebuilding):
-`tabsira-chromium-1.0.0.zip` SHA-256 `c58ecb74a6fe9e12313a7cab99eba4e080f7cd1d60b755df6f7ecfd37d4ff45b`,
-`tabsira-firefox-1.0.0.zip` SHA-256 `c5dade24516a3ff2319a150bf35463d49fec93d605582762751f1648562babf1`.
+`tabsira-chromium-1.0.0.zip` SHA-256 `2e1c886f2e0318855213ec5d8b49fadb971bc2f4b79ab028bb44ab0a6ac56460`,
+`tabsira-firefox-1.0.0.zip` SHA-256 `2a022b1529d1400a6cfa3d0b466a6c828ea2431428e0241a94c75d70818ca68e`.
+
+**Name change (display name «تبصرة Tabsira», commit after `969e482`).** Only the `extName` string in the three locale files changed, so the packages above are the **current** ones. The full real-browser run was repeated **for Chromium 141 only** on this package (155 PASS, 2 NOT_RUN = S7.14, S8.5 as before; `test-evidence/e2e-chromium.json`). The Chrome for Testing, Edge, Firefox and Firefox-private evidence files, and `SUMMARY.md`, still record the previous SHA-256 values (`c58ecb74…`, `c5dade24…`); they were **not** re-run for the name change.
 
 Linux x64 sandbox, headless (`--headless=new` for Chromium-family). Test sites resolve to a local server (`--host-resolver-rules` for Chromium-family, a local HTTP proxy
 for Firefox); no real website — and no listed adult domain — was ever contacted. The base list is exercised with `testMatchOutcome` (never sends a request) and the reserved safe-test domain.
