@@ -84,15 +84,15 @@ const ARABIC = 'U+0600-06FF,U+0750-077F,U+FB50-FDFF,U+FE70-FEFC,U+200C-200E';
 const LATIN = 'U+0000-00FF,U+2000-206F,U+2122';
 const fontCss = [font('cairo-arabic-700-normal.woff2', 'Cairo', 700, ARABIC), font('cairo-latin-700-normal.woff2', 'Cairo', 700, LATIN),
     font('tajawal-arabic-400-normal.woff2', 'Tajawal', 400, ARABIC), font('tajawal-latin-400-normal.woff2', 'Tajawal', 400, LATIN)].join('');
-const mark = fs.readFileSync(path.join(root, 'src', 'brand', 'mark.svg'), 'utf8').replace(/<\?xml[^>]*>/u, '').replace('<svg ', '<svg width="100%" height="100%" ');
+// The Owner-supplied vector lockup (reconstruction, see docs/brand/vector/SOURCE.md) is used as an <img> data URI, so its repeated gradient ids cannot clash.
+const lockup = `data:image/svg+xml;base64,${fs.readFileSync(path.join(root, 'docs', 'brand', 'vector', 'tabsira-logo-light.svg')).toString('base64')}`;
 const promo = (width, height, big) => `<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><style>${fontCss}
-body{margin:0;width:${width}px;height:${height}px;background:#F3F6FB;color:#0B3B8F;display:flex;align-items:center;justify-content:center;gap:${big ? 64 : 28}px;font-family:Tajawal,sans-serif;position:relative;overflow:hidden}
+body{margin:0;width:${width}px;height:${height}px;background:#F3F6FB;color:#0B3B8F;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${big ? 20 : 8}px;font-family:Tajawal,sans-serif;position:relative;overflow:hidden}
 .bar{position:absolute;inset-inline:0;bottom:0;height:${big ? 18 : 10}px;background:#B7E445}
-.mark{width:${big ? 300 : 130}px;height:${big ? 270 : 118}px}
-.name{font:700 ${big ? 120 : 56}px/1.15 Cairo,sans-serif;color:#0B3B8F}
-.line{font-size:${big ? 40 : 19}px;color:#1F3050;margin-top:${big ? 12 : 6}px}
-.en{font-size:${big ? 28 : 13}px;color:#44546F;margin-top:${big ? 10 : 5}px;direction:ltr;text-align:right}
-</style><body><div class="mark">${mark}</div><div><div class="name">تبصرة</div><div class="line">تحجب ما تختاره أنت، وتمنحك لحظة مساعدة</div><div class="en">Tabsira · block what you choose · local · no accounts</div></div><div class="bar"></div></body></html>`;
+img{width:${big ? 780 : 300}px;height:auto;display:block}
+.line{font-size:${big ? 38 : 17}px;color:#1F3050;text-align:center}
+.en{font-size:${big ? 26 : 12}px;color:#44546F;direction:ltr;text-align:center}
+</style><body><img src="${lockup}" alt=""><div class="line">تحجب ما تختاره أنت، وتمنحك لحظة مساعدة</div><div class="en">Tabsira · block what you choose · local · no accounts</div><div class="bar"></div></body></html>`;
 const browser = await launch({ executablePath, extensionDir, lang: 'ar' });
 for (const [name, w, h, big] of [['promo-small-440x280.png', 440, 280, false], ['promo-marquee-1400x560.png', 1400, 560, true]]) {
     const page = await browser.context.newPage(); await page.setViewportSize({ width: w, height: h });

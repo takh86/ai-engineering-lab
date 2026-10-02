@@ -12,7 +12,7 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM, ar
 const page = await browser.newPage();
 for (const size of [16, 32, 48, 96, 128, 300]) {
     await page.setViewportSize({ width: size, height: size });
-    await page.setContent(`<body style="margin:0;background:transparent">${svg.replace('width="128" height="128"', `width="${size}" height="${size}"`)}</body>`);
+    await page.setContent(`<body style="margin:0;background:transparent">${svg.replace('width="1024" height="1024"', `width="${size}" height="${size}"`)}</body>`);
     await page.screenshot({ path: path.join(root, 'src', 'icons', `icon-${size}.png`), omitBackground: true });
 }
 await browser.close();
