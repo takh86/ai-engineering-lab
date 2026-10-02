@@ -117,6 +117,12 @@ export function createController(api, { mutex: mutexOptions } = {}) {
                 if (!(await verify(plan))) throw new TabsiraError('verify_failed');
             }
             if (persist && !sameJson((await api.storage.get('config')).config, config)) throw new TabsiraError('stale');
+            if (!persist) {
+                // A repair writes rules only. If this worker was paused past its lease, another instance may have saved a newer
+                // configuration meanwhile: then these rules are stale. 'busy' (lease lost) makes handle() reconcile again; 'stale' rebuilds below.
+                await mutex.assertOwner();
+                if (!(await storedMatches(expected))) throw new TabsiraError('stale');
+            }
             return plan;
         } catch (error) {
             // Lease lost (this worker was paused past its lease and another instance may have written): do nothing

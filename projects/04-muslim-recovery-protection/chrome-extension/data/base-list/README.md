@@ -1,41 +1,76 @@
-# Built-in adult-sites list — source evaluation and provenance
+# Built-in adult-sites list — sources, licences and composition
 
-**Decision status:** proposed by the engineer, **needs Owner/legal confirmation** (see "Open questions").
+**Status:** Owner decision (2026-10-02): keep the current list, but verify source/licence/notices, pin versions, replace what
+cannot be documented, keep the compressed snapshot in the repository, add other lists only if they prove extra coverage,
+no remote updates, no browsing data sent. This file records what was done. Residual legal risk is listed at the end.
 
 ## What is shipped
 
-A single snapshot of **The Block List Project — `porn.txt`** (hosts format), normalized to one domain per line
-(`adult-domains.txt.gz`, 936,979 domains). At build time it becomes one static declarativeNetRequest ruleset
-(`rulesets/base_adult.json`): one redirect rule whose `requestDomains` holds the whole list (a list counts as **one**
-rule, so it is far below the 330,000-rule global limit; measured on real Chromium, see `TESTING.md`).
-The extension never fetches lists remotely; the list changes only when a new extension version is released.
+`adult-domains.txt.gz` — a gzip of **714,093** sorted domain names, one per line (SHA-256 of the normalised text:
+`ebeda727…ff44`, re-checked on every build). At build time it becomes one static declarativeNetRequest ruleset
+(`rulesets/base_adult.json`): a single redirect rule whose `requestDomains` holds the whole list (a list counts as **one** rule;
+measured in real browsers, see `TESTING.md`). The extension never fetches a list; the list changes only with a new extension version.
+The package also contains `THIRD_PARTY_NOTICES.txt` (this directory's `THIRD_PARTY_NOTICES.md`) with the full licence texts.
 
-## Why this source
+## Which of the "14 upstream sources" feed the adult list
 
-| Criterion | Finding |
+The Block List Project (BLP) states that it syncs 14 upstream lists across 8 categories. Its own `config/lists.yml` shows that the
+**`porn` category has exactly three upstream sources** (the other eleven feed other categories and play no part here):
+
+| Upstream feeding BLP `porn` | Licence (verified from the upstream `LICENSE` file) | Used here |
+|---|---|---|
+| ShadowWhisperer BlockLists — `Lists/Adult` (222,623 domains) | The Unlicense | **Yes — included in full** (4,262 domains that BLP does not list were added) |
+| HaGeZi `dns-blocklists` — `nsfw` (83,972 domains) | **GNU GPL-3.0** (copyleft) | **No** — used only to *trace*; entries that exist only there were removed |
+| zachlagden `Pi-hole-Optimized-Blocklists` — `nsfw` (555,840 domains) | **none found** (no licence file) | **No** — used only to *trace*; entries that exist only there were removed |
+
+Additional lists examined: Sinfonietta `pornography-hosts` (MIT, LICENSE verified, 61,154 domains) — used for attribution of
+entries BLP also lists, its 33,778 *Sinfonietta-only* entries were **not** added (no evidence that they are current, and no
+measured gain); Clefspeare13 `pornhosts` (header says MIT, the upstream licence file could not be retrieved; reachable only through
+a StevenBlack copy dated 2021) — trace only.
+
+## Composition rule (implemented in `scripts/update-base-list.mjs`)
+
+| Rule | Entries (2026-10-02 inputs) |
 |---|---|
-| Redistributable | Repository `LICENSE` is **The Unlicense** (public-domain dedication; copy in `LICENSE-blocklistproject.txt`). The file header of `porn.txt` says `# License: MIT`. Both permit redistribution; the discrepancy is recorded rather than ignored. |
-| Compatible with an open-source project | Yes for both licences. No copyleft/share-alike obligation. (Rejected alternative: UT1/Toulouse blacklist is CC BY-SA — share-alike would constrain the project.) |
-| Freshness | Upstream header: last modified 2026-07-18; retrieved 2026-10-02. |
-| Provenance | Community-maintained; upstream README says it syncs 14 upstream lists and runs automated dead-domain scans. **Upstream commit not pinned** (GitHub API for that repository was not reachable in the build session); the file is identified by SHA-256 in `PROVENANCE.json`. |
-| Format | Plain hostnames — no scripts or code; trivially validated. |
-| Classification quality | **Automated and unverified.** A 60-name random sample (names only; no listed site was visited) contained at least one name that looks like a non-adult site (a religious-studies-sounding domain), i.e. false positives exist. This is why Exceptions exist, why the list is opt-in at onboarding, and why the stop page links to the Exceptions workflow. |
-| Not scraped | Only the published list file was downloaded. No listed domain was ever contacted. Tests use reserved `.test` names and DNR `testMatchOutcome` (which never makes a request). |
+| KEEP every ShadowWhisperer Adult entry (Unlicense) | all, incl. 4,262 not in BLP |
+| KEEP BLP entries that ShadowWhisperer or Sinfonietta also list (both permissive) | 226,345 |
+| KEEP BLP entries found in **no** other source we could trace (BLP's own curation, Unlicense by the maintainers' declaration) | 492,511 |
+| **DROP** BLP entries traceable only to HaGeZi (GPL-3.0), zachlagden (no licence) or Clefspeare13 (unverifiable) | **234,341 removed** |
+| Remove entries covered by a listed parent domain | 9,025 |
 
-## Processing (`scripts/update-base-list.mjs`)
+The previous snapshot had 936,979 entries; about a quarter of that could not be documented and was removed. Result: 714,093.
+Before writing, the script refuses to proceed if any of the 140 known-benign canary sites (`known-benign-canaries.txt`) is covered.
 
-lowercase → keep only valid hostnames (196 entries dropped) → drop entries already covered by a listed parent
-(16,218) → sort → **refuse to write if any of 140 known-benign canary sites** (`known-benign-canaries.txt`) is covered.
-Result: 936,979 domains; SHA-256 of the normalized text is recorded and re-checked on every build.
+## Pinned inputs (`PROVENANCE.json`)
 
-## Open questions for the Owner
+Every input is identified by exact bytes (SHA-256), byte size, URL, retrieval date (2026-10-02) and the header lines the file carries
+(for example `Last modified: 2026-07-18` for BLP, `Updated: 9/24/2026` for ShadowWhisperer). **Git commit hashes could not be pinned**:
+`api.github.com` and `github.com` were not reachable from the build environment, only `raw.githubusercontent.com`. The inputs
+themselves are not committed (`.base-list-inputs/` is git-ignored); re-download with `scripts/fetch-base-list-sources.mjs` and compare the hashes.
+`provenance-samples.json` lists name-only samples used by the real-browser tests (domains removed for unclear licence must **not** match;
+ShadowWhisperer-only domains must match). No listed domain was ever contacted; tests use `testMatchOutcome`, which sends nothing.
 
-1. Is the "Unlicense (repository) + MIT (file header)" position acceptable, and do you want a legal check of the
-   **14 upstream lists** the project aggregates (their individual licences are not independently verified)?
-2. Repository size: the snapshot is 4.8 MB gzip (≈ 20 MB text). Keep it in git, or store it as a release asset and
-   fetch it at build time (build would then need network and a pinned hash)?
-3. Do you accept an opt-in list with known false positives, or want a smaller curated subset?
-4. Pin an upstream commit at the next refresh (needs GitHub access to the upstream repository).
+## Licences and notices
+
+`licenses/` holds the verbatim licence files of the three sources that contribute; `THIRD_PARTY_NOTICES.md` is copied into the
+package as `THIRD_PARTY_NOTICES.txt` and linked from the settings page. HaGeZi (GPL-3.0), zachlagden and Clefspeare13 are named there
+as examined-and-excluded, so nobody reads the notice as a licence grant for them.
+
+## Quality
+
+Classification is automated and community-made: **false positives exist** (an earlier 60-name sample contained a name that looked
+non-adult). This is why Exceptions exist, why the list is opt-in, and why the stop page points to the Exceptions workflow.
+No additional list was added: none was shown to add coverage that survives de-duplication, the false-positive canary check and the
+performance measurement. Adding one later needs that evidence plus a licence check.
+
+## Residual risk — Owner/legal decision
+
+1. **The 492,511 "BLP-own" entries.** They are in no source we could trace, so we treat them as the BLP maintainers' own work, which they
+   declare Unlicense (the file header says MIT; both are permissive and the discrepancy is recorded). We cannot prove that none of them
+   came from an earlier, untraced upstream. *Strict alternative:* ShadowWhisperer ∪ Sinfonietta only (≈ 276 k domains, every entry
+   attributable to a verified permissive licence) at the price of ≈ 60 % less coverage. Say if you want it; it is a one-line rule change.
+2. **Pinned commits:** hashes and dates identify the inputs; commit hashes need GitHub access at the next refresh.
+3. **Repository size:** the snapshot is 3.7 MB gzip (was 4.8 MB), kept in git as decided.
 
 ## Update
 

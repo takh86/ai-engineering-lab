@@ -25,7 +25,7 @@ export async function startGecko({ geckodriver, firefox, profileDir, prefs, args
     const driver = {
         base, sid: id,
         capabilities: created.capabilities,
-        installAddon: path => call('POST', `${s}/moz/addon/install`, { path, temporary: true }),
+        installAddon: (path, { allowPrivateBrowsing = false } = {}) => call('POST', `${s}/moz/addon/install`, { path, temporary: true, allowPrivateBrowsing }),
         url: () => call('GET', `${s}/url`),
         title: () => call('GET', `${s}/title`),
         goto: url => call('POST', `${s}/url`, { url }),
@@ -37,6 +37,12 @@ export async function startGecko({ geckodriver, firefox, profileDir, prefs, args
             await sleep(1500);
             const handles = await call('GET', `${s}/window/handles`);
             await call('POST', `${s}/window`, { handle: handles[handles.length - 1] });
+        },
+        // Runs async code in the BROWSER (chrome) context, then returns to the page context.
+        chromeRun: async (code, ...args) => {
+            await call('POST', `${s}/moz/context`, { context: 'chrome' });
+            try { return await call('POST', `${s}/execute/async`, { script: `const done = arguments[arguments.length - 1]; (async () => { ${code} })().then(done, error => done({ __error: String(error && error.message || error) }));`, args }); }
+            finally { await call('POST', `${s}/moz/context`, { context: 'content' }); }
         },
         handles: () => call('GET', `${s}/window/handles`),
         current: () => call('GET', `${s}/window`),

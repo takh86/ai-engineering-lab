@@ -4,3 +4,4 @@ dist-test/
 dist-test-optional/
 .e2e-profile*/
 .base-list-inputs/
+.pkg-under-test/

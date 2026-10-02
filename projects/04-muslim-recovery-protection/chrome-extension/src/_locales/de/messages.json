@@ -335,6 +335,9 @@
   "opt_import": {
     "message": "Einstellungen importieren"
   },
+  "opt_export_hint": {
+    "message": "Die Exportdatei enthält die gewählten Websites und Begriffe als unverschlüsselten Klartext. Bewahre sie privat auf."
+  },
   "opt_imported": {
     "message": "Importierte Einstellungen wurden zusammengeführt."
   },

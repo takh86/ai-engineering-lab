@@ -1,7 +1,7 @@
 // Builds browser packages into dist/. No dependencies; output is deterministic.
-//   node scripts/build.mjs                  -> dist/chromium, dist/firefox + ZIPs (release)
-//   node scripts/build.mjs --test           -> dist-test/... with declarativeNetRequestFeedback (test only)
-//   node scripts/build.mjs --test --optional-hosts   host access requested at runtime (tests the "permission missing" state)
+//   node scripts/build.mjs   -> dist/chromium, dist/firefox + the store ZIPs (byte-reproducible)
+// There is no separate "test build": the real-browser tests extract these very ZIPs (tests/e2e/package.mjs) and, for the few
+// checks that need it, patch manifest.json only (extra permission / optional host access / higher version).
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
@@ -11,10 +11,7 @@ import { zipDirectory } from './zip.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-if (process.env.TABSIRA_VERSION) pkg.version = process.env.TABSIRA_VERSION; // tests only: simulate an extension update
-const flag = name => process.argv.includes(`--${name}`);
-const TEST = flag('test'); const OPTIONAL_HOSTS = flag('optional-hosts');
-const outRoot = process.env.TABSIRA_OUT ? path.resolve(process.env.TABSIRA_OUT) : path.join(root, TEST ? (OPTIONAL_HOSTS ? 'dist-test-optional' : 'dist-test') : 'dist');
+const outRoot = process.env.TABSIRA_OUT ? path.resolve(process.env.TABSIRA_OUT) : path.join(root, 'dist');   // TABSIRA_OUT: unit tests build into a temp dir
 const SELFTEST_DOMAIN = 'tabsira-selftest.test';
 const HOSTS = ['http://*/*', 'https://*/*'];
 
@@ -27,14 +24,14 @@ const copyDir = (from, to) => {
 };
 
 function baseManifest() {
-    const permissions = ['storage', 'declarativeNetRequest', ...(TEST ? ['declarativeNetRequestFeedback'] : [])];
+    const permissions = ['storage', 'declarativeNetRequest'];
     return {
         manifest_version: 3,
         name: '__MSG_extName__', short_name: '__MSG_extShortName__', description: '__MSG_extDescription__',
         version: pkg.version, default_locale: 'ar',
         icons: { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png', 48: 'icons/icon-48.png', 96: 'icons/icon-96.png', 128: 'icons/icon-128.png' },
         permissions,
-        ...(OPTIONAL_HOSTS ? { optional_host_permissions: HOSTS } : { host_permissions: HOSTS }),
+        host_permissions: HOSTS,
         action: { default_popup: 'popup.html', default_title: '__MSG_extShortName__', default_icon: { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png' } },
         options_ui: { page: 'options.html', open_in_tab: true },
         declarative_net_request: { rule_resources: [{ id: 'base_adult', enabled: false, path: 'rulesets/base_adult.json' }] },
@@ -96,10 +93,8 @@ const baseList = buildBaseList();
 fs.mkdirSync(outRoot, { recursive: true });
 for (const target of Object.keys(MANIFESTS)) {
     const dir = buildTarget(target, baseList);
-    if (!TEST) {
-        const zip = path.join(outRoot, `tabsira-${target}-${pkg.version}.zip`);
-        zipDirectory(dir, zip);
-        const sha = crypto.createHash('sha256').update(fs.readFileSync(zip)).digest('hex');
-        process.stdout.write(`${path.relative(root, zip)}  ${fs.statSync(zip).size} bytes  sha256 ${sha}\n`);
-    } else process.stdout.write(`${path.relative(root, dir)}\n`);
+    const zip = path.join(outRoot, `tabsira-${target}-${pkg.version}.zip`);
+    zipDirectory(dir, zip);
+    const sha = crypto.createHash('sha256').update(fs.readFileSync(zip)).digest('hex');
+    process.stdout.write(`${path.relative(root, zip)}  ${fs.statSync(zip).size} bytes  sha256 ${sha}\n`);
 }

@@ -13,11 +13,14 @@ const canaries = () => fs.readFileSync(path.join(root, 'data/base-list/known-ben
 const NO_LIST = { baseList: false, starterTerms: false, domains: [], allow: [], words: [], contains: [] };
 const encode = text => encodeURIComponent(text);
 
-export async function runSuite({ browserName, executablePath, report }) {
+export async function runSuite({ browserName, executablePath, report, pkg }) {
     const { check, skip, note } = report;
     const site = await startSite();
-    const testDir = path.join(root, 'dist-test/chromium');
-    const optionalDir = path.join(root, 'dist-test-optional/chromium');
+    // Packages under test (extracted release ZIP; see package.mjs). Most sections run on the unmodified release package.
+    const testDir = pkg.dirs.release;       // exactly what the store receives
+    const feedbackDir = pkg.dirs.test;      // + declarativeNetRequestFeedback, only for sections that call testMatchOutcome
+    const optionalDir = pkg.dirs.optional;
+    const liveDir = pkg.dirs.live;
     const open = (extra = {}) => launch({ executablePath, extensionDir: testDir, ...extra });
     const only = (process.env.ONLY ?? '').split(',').filter(Boolean);
     const want = id => !only.length || only.includes(id);
@@ -89,7 +92,7 @@ export async function runSuite({ browserName, executablePath, report }) {
 
     // ================= S3: base list against real DNR =================
     if (want('S3')) {
-        const b = await open();
+        const b = await open({ extensionDir: feedbackDir });
         const options = await openExtPage(b.context, b.extensionId, 'options.html');
         await onboard(options, true, false);
         const worker = b.getWorker();
@@ -222,7 +225,8 @@ export async function runSuite({ browserName, executablePath, report }) {
     // ================= S7: commitment, persistence, restarts =================
     if (want('S7')) {
         const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'tabsira-e2e-lock-'));
-        let b = await open({ profileDir: profile });
+        pkg.resetLive();
+        let b = await open({ profileDir: profile, extensionDir: liveDir });
         let options = await openExtPage(b.context, b.extensionId, 'options.html');
         await onboard(options, true, false);
         await save(options, { baseList: true, domains: ['lock-site.test'], words: ['lock phrase'] });
@@ -274,7 +278,7 @@ export async function runSuite({ browserName, executablePath, report }) {
         check('S7.8 session survives a real service-worker stop/restart (old instance destroyed; new one recovers state from storage; no timer)', !oldAlive && s.lock.active && s.lock.until === untilBefore && s.state === 'active', JSON.stringify({ oldInstanceAlive: oldAlive, state: s.state, lockActive: s.lock.active, sameUntil: s.lock.until === untilBefore }));
         await finish(b);
         // Browser restart with the same profile
-        b = await open({ profileDir: profile });
+        b = await open({ profileDir: profile, extensionDir: liveDir });
         await sleep(1500);
         options = await openExtPage(b.context, b.extensionId, 'options.html');
         s = await status(options);
@@ -282,9 +286,9 @@ export async function runSuite({ browserName, executablePath, report }) {
         check('S7.10 after browser restart: navigation is still blocked', (await visit(b.context, url('extra-lock.test'))).blocked && (await visit(b.context, url('www.google.com', `/search?q=${encode('lock phrase')}`))).blocked);
         await finish(b);
         // Extension update: same unpacked path, higher version, same profile (Chrome fires onInstalled "update").
-        const rebuild = version => execFileSync('node', ['scripts/build.mjs', '--test'], { cwd: root, env: { ...process.env, ...(version ? { TABSIRA_VERSION: version } : {}) }, stdio: 'pipe' });
-        rebuild('1.0.1');
-        b = await open({ profileDir: profile });
+        // The manifest version of the SAME extracted package is raised in place (path, hence extension ID, stays the same).
+        pkg.bumpLive('1.0.1');
+        b = await open({ profileDir: profile, extensionDir: liveDir });
         await sleep(2500);
         options = await openExtPage(b.context, b.extensionId, 'options.html');
         s = await status(options);
@@ -296,7 +300,7 @@ export async function runSuite({ browserName, executablePath, report }) {
         const healed = await status(options);
         check('S7.13 rules removed behind our back are detected and restored', healed.state === 'active' && healed.base.enabled && (await visit(b.context, url('extra-lock.test'))).blocked, JSON.stringify({ state: healed.state, reasons: healed.reasons }));
         await finish(b);
-        rebuild();   // restore the normal test build for the scenarios that follow
+        pkg.resetLive();
         // Clock moved: session end is an absolute timestamp
         note('S7.14', 'Clock change: the end time is stored as an absolute timestamp. Not automated (cannot change the OS clock in this sandbox); behaviour documented in README.');
         skip('S7.14 device-clock change effect', 'cannot change the OS clock safely here; documented limitation');
@@ -401,7 +405,7 @@ export async function runSuite({ browserName, executablePath, report }) {
         const median = a => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
         const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'tabsira-e2e-perf-'));
         const t0 = Date.now();
-        const b = await open({ profileDir: profile });
+        const b = await open({ profileDir: profile, extensionDir: feedbackDir });
         const startMs = Date.now() - t0;
         const options = await openExtPage(b.context, b.extensionId, 'options.html');
         await onboard(options, false, false);
@@ -548,6 +552,235 @@ export async function runSuite({ browserName, executablePath, report }) {
         check('S14.4 a non-Tabsira file is refused', (await options.textContent('#message')).length > 5);
         fs.unlinkSync(file);
         await finish(b);
+    }
+
+    // ================= S15: approved identity, fonts, layout, zoom, states (all five pages, ar/de/en, light/dark) =================
+    if (want('S15')) {
+        const PAGES = ['popup', 'options', 'onboarding', 'blocked', 'help'];
+        const LIME = 'rgb(183, 228, 69)';
+        const lum = rgb => { const [r, g, b] = rgb.match(/\d+(?:\.\d+)?/gu).slice(0, 3).map(Number).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+        const ratio = (a, c) => { const [x, y] = [lum(a), lum(c)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
+        const layout = () => page => page.evaluate(() => {
+            const width = document.documentElement.clientWidth; const out = [];
+            const scrollers = el => { for (let e = el.parentElement; e; e = e.parentElement) { const o = getComputedStyle(e).overflowX; if (o === 'auto' || o === 'scroll') return true; } return false; };
+            for (const el of document.body.querySelectorAll('*')) {
+                const style = getComputedStyle(el); if (style.display === 'none' || style.visibility === 'hidden' || el.closest('[hidden]')) continue;
+                const box = el.getBoundingClientRect(); if (!box.width || !box.height) continue;
+                if ((box.right > width + 1 || box.left < -1) && !scrollers(el) && !el.closest('svg')) out.push(`outside:${el.tagName}.${el.className || el.id}`);
+                if ((style.overflowX === 'hidden' || style.overflowX === 'clip') && el.scrollWidth > el.clientWidth + 1 && el.clientWidth > 0) out.push(`clipped:${el.tagName}.${el.className || el.id}`);
+            }
+            return { hscroll: document.documentElement.scrollWidth > width + 1, offenders: [...new Set(out)].slice(0, 4) };
+        });
+        const measure = layout();
+        const fontsOf = page => page.evaluate(async () => {
+            await document.fonts.ready;
+            const faces = [...document.fonts].filter(f => f.status === 'loaded').map(f => f.family.replace(/"/gu, ''));
+            const first = el => getComputedStyle(el).fontFamily.split(',')[0].replace(/["']/gu, '').trim();
+            return { loaded: [...new Set(faces)], heading: first(document.querySelector('h1, .wordmark')), body: first(document.querySelector('p, .hint, body')) };
+        });
+        const claims = /fully protected|100 ?% (safe|protected)|completely safe|you are safe|vollst(ä|ae)ndig gesch(ü|ue)tzt|v(ö|oe)llig sicher|محمي بالكامل|محمية بالكامل|آمن تماما|آمن تمامًا/iu;
+        const forbiddenAction = /stop protection|disable protection|schutz (beenden|deaktivieren)|إيقاف الحماية|إلغاء الحماية/iu;
+        const problems = [];
+        for (const lang of ['ar', 'de', 'en']) {
+            const b = await launch({ executablePath, extensionDir: testDir, lang });
+            const options = await openExtPage(b.context, b.extensionId, 'options.html');
+            // fresh install state first (popup), then configure so every page shows its normal state
+            const fresh = await openExtPage(b.context, b.extensionId, 'popup.html');
+            await fresh.waitForFunction(() => document.querySelector('#status').dataset.state !== 'unknown', null, { timeout: 8000 }).catch(() => {});
+            const freshIcon = await fresh.evaluate(() => ({ glyph: document.querySelector('.state-icon')?.children.length ?? 0, text: document.querySelector('.state-text')?.textContent.trim().length ?? 0, state: document.querySelector('#status').dataset.state }));
+            check(`S15.1 [${lang}] popup in the not-configured state conveys it by text + icon + state attribute (not colour alone)`, freshIcon.glyph > 0 && freshIcon.text > 3 && freshIcon.state === 'not_configured', JSON.stringify(freshIcon));
+            await fresh.close();
+            await onboard(options, true, true);
+            const active = await openExtPage(b.context, b.extensionId, 'popup.html');
+            await active.waitForFunction(() => document.querySelector('#status').dataset.state !== 'unknown', null, { timeout: 8000 }).catch(() => {});
+            const activeIcon = await active.evaluate(() => ({ glyph: document.querySelector('.state-icon')?.children.length ?? 0, text: document.querySelector('.state-text')?.textContent.trim().length ?? 0, state: document.querySelector('#status').dataset.state }));
+            check(`S15.2 [${lang}] popup in the active state conveys it by text + icon (a different glyph from the not-configured one)`, activeIcon.glyph > 0 && activeIcon.text > 3 && activeIcon.state === 'active', JSON.stringify(activeIcon));
+            await active.close();
+            for (const scheme of ['light', 'dark']) {
+                for (const name of PAGES) {
+                    const page = await openExtPage(b.context, b.extensionId, `${name}.html`);
+                    await page.emulateMedia({ colorScheme: scheme });
+                    const width = name === 'popup' ? 360 : 1100;
+                    await page.setViewportSize({ width, height: 900 });
+                    await sleep(250);
+                    const tag = `[${lang}/${scheme}/${name}]`;
+                    // 1 fonts
+                    const f = await fontsOf(page);
+                    const expectLoaded = f.loaded.includes('Cairo') && f.loaded.includes('Tajawal');
+                    if (!(f.heading === 'Cairo' && f.body === 'Tajawal' && expectLoaded)) problems.push(`${tag} fonts ${JSON.stringify(f)}`);
+                    // 2 brand colours on the primary action and the heading
+                    const brand = await page.evaluate(() => {
+                        const primary = document.querySelector('a.button:not(.secondary), button:not(.secondary):not(.danger)');
+                        const h = getComputedStyle(document.querySelector('h1, .wordmark'));
+                        return { bg: primary ? getComputedStyle(primary).backgroundColor : null, ink: primary ? getComputedStyle(primary).color : null, h1: h.color, radiusDir: document.documentElement.dir };
+                    });
+                    const hExpected = scheme === 'light' ? 'rgb(11, 59, 143)' : 'rgb(255, 255, 255)';
+                    if (brand.bg !== LIME) problems.push(`${tag} primary background ${brand.bg}`);
+                    if (brand.ink && ratio(brand.ink, brand.bg) < 4.5) problems.push(`${tag} primary contrast ${ratio(brand.ink, brand.bg).toFixed(2)}`);
+                    if (scheme === 'light' && brand.ink !== 'rgb(11, 59, 143)') problems.push(`${tag} primary text ${brand.ink}`);
+                    if (brand.h1 !== hExpected) problems.push(`${tag} heading colour ${brand.h1}`);
+                    if (lang === 'ar' && brand.radiusDir !== 'rtl') problems.push(`${tag} dir ${brand.radiusDir}`);
+                    // 3 mark present and loaded
+                    const mark = await page.evaluate(() => { const i = document.querySelector('img.mark'); return !!i && i.complete && i.naturalWidth > 0; });
+                    if (!mark) problems.push(`${tag} mark image not loaded`);
+                    // 4 wording: no unverifiable safety claims, no "stop protection" as an action
+                    const text = await page.evaluate(() => document.body.innerText);
+                    if (claims.test(text)) problems.push(`${tag} unverifiable safety claim`);
+                    if (forbiddenAction.test(text)) problems.push(`${tag} stop-protection wording`);
+                    // 5 layout at normal size, 200% text, and a 320 px viewport (= 400% page zoom)
+                    for (const variant of ['normal', 'text200', 'narrow320']) {
+                        if (variant === 'text200') await page.evaluate(() => document.documentElement.style.setProperty('font-size', '200%', 'important'));   // CSSOM; the CSP forbids injected <style>
+                        if (variant === 'narrow320') { await page.setViewportSize({ width: 320, height: 800 }); }
+                        await sleep(120);
+                        const m = await measure(page);
+                        if (m.hscroll || m.offenders.length) problems.push(`${tag} ${variant}: ${m.hscroll ? 'horizontal scroll ' : ''}${m.offenders.join(',')}`);
+                    }
+                    await page.close();
+                }
+            }
+            await finish(b);
+        }
+        check('S15.3 all 5 pages × ar/de/en × light/dark: Cairo headings + Tajawal text loaded and applied; lime primary action with dark text (contrast ≥ 4.5); navy/white headings; mark loaded; no unverifiable safety claim; no "stop protection" action', problems.length === 0, problems.slice(0, 4).join(' | '));
+        check('S15.4 all 5 pages × ar/de/en × light/dark: no horizontal scrolling, no clipped or off-screen element at normal size, 200% text size and 320 px width (400% zoom)', !problems.some(p => /normal:|text200:|narrow320:/u.test(p)), problems.filter(p => /normal:|text200:|narrow320:/u.test(p)).slice(0, 4).join(' | '));
+        note('S15', `${3 * 2 * PAGES.length} page renderings × 3 sizes checked; ${problems.length} problem(s) listed in the failing checks`);
+    }
+
+    // ================= S16: concurrent normal + private-window instances against REAL storage (the reviewed race) =================
+    // The race: a settings save has passed its "unchanged?" check and is paused before its storage write; a commitment session is
+    // started from the other instance; the paused write then resumes. Before the fix it reset the session end time to 0.
+    // Here the real normal-window worker is paused at that exact point (its chrome.storage.local.set is held) while the real
+    // private-window instance sends START_SESSION, then the write is released.
+    if (want('S16')) {
+        const { chromium } = await import('playwright-core');
+        const net = await import('node:net');
+        const freePort = () => new Promise(resolve => { const srv = net.createServer(); srv.listen(0, '127.0.0.1', () => { const { port: p } = srv.address(); srv.close(() => resolve(p)); }); });
+        const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'tabsira-e2e-race-'));
+        let b = await open({ profileDir: profile });
+        let options = await openExtPage(b.context, b.extensionId, 'options.html');
+        await onboard(options); await save(options, { domains: ['race-site.test'] });
+        const extId = b.extensionId;
+        await finish(b); await sleep(1200);
+        const prefsFile = path.join(profile, 'Default', 'Preferences');
+        const prefs = JSON.parse(fs.readFileSync(prefsFile, 'utf8')); prefs.extensions.settings[extId].incognito = true; fs.writeFileSync(prefsFile, JSON.stringify(prefs));
+        const port = await freePort();
+        b = await open({ profileDir: profile, extraArgs: [`--remote-debugging-port=${port}`] });
+        await sleep(1500);
+        options = await openExtPage(b.context, b.extensionId, 'options.html');
+        const normalWorker = b.getWorker();     // captured BEFORE the private window exists: the private instance has its own worker
+        const cdp = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
+        const seen = new Set(cdp.contexts().flatMap(c => c.pages()));
+        await options.evaluate(u => chrome.windows.create({ url: u, incognito: true }), `chrome-extension://${b.extensionId}/options.html`).catch(() => {});
+        await sleep(2800);
+        let priv = null; for (const ctx of cdp.contexts()) for (const p of ctx.pages()) if (!seen.has(p) && p.url().startsWith('chrome-extension://')) priv = p;
+        if (!priv) { skip('S16.* concurrent normal + private instances', 'a private-window settings page was not observable in this browser'); await cdp.close().catch(() => {}); await finish(b); }
+        else {
+            const worker = normalWorker;
+            const hold = () => worker.evaluate(() => {
+                const original = chrome.storage.local.set.bind(chrome.storage.local);
+                globalThis.__gate = { hit: false, release: null, restore: () => { chrome.storage.local.set = original; } };
+                chrome.storage.local.set = items => {
+                    if (items && items.config && !globalThis.__gate.hit) { globalThis.__gate.hit = true; return new Promise(resolve => { globalThis.__gate.release = () => resolve(original(items)); }); }
+                    return original(items);
+                };
+            });
+            const waitHit = async () => { for (let i = 0; i < 100; i++) { if (await worker.evaluate(() => globalThis.__gate.hit)) return true; await sleep(50); } return false; };
+            const release = () => worker.evaluate(() => { globalThis.__gate.release(); globalThis.__gate.restore(); });
+            const settingsWith = extra => ({ ...NO_LIST, domains: ['race-site.test', ...extra] });
+            const startFromPrivate = () => priv.evaluate(() => chrome.runtime.sendMessage({ type: 'START_SESSION', minutes: 60 }));
+            const statusFromPrivate = () => priv.evaluate(async () => (await chrome.runtime.sendMessage({ type: 'GET_STATUS' })).status);
+
+            // ---- S16.1 short pause: the private instance's START_SESSION is serialised behind the paused save
+            await hold();
+            const rev1 = (await status(options)).revision;
+            const saving = send(options, { type: 'SAVE_SETTINGS', baseRevision: rev1, settings: settingsWith(['race-a.test']) });
+            const paused = await waitHit();
+            const starting = startFromPrivate();
+            await sleep(1500);
+            const midway = await Promise.race([starting.then(() => 'done'), sleep(50).then(() => 'waiting')]);
+            await release();
+            const [savedA, startedA] = await Promise.all([saving, starting]);
+            const afterA = await status(options);
+            const untilA = afterA.lock.until;
+            check('S16.1 paused save in the normal window + START_SESSION from the private window: the session start waits for the write, both succeed, and the session is intact afterwards', paused && midway === 'waiting' && savedA.ok && startedA.ok && afterA.lock.active && untilA - Date.now() > 59 * 60000, JSON.stringify({ paused, midway, saved: savedA.ok, started: startedA.ok, active: afterA.lock.active }));
+            check('S16.2 the saved site is enforced and the private instance reports the identical session end', (await visit(b.context, url('race-a.test'))).blocked && (await statusFromPrivate()).lock.until === untilA);
+
+            // ---- S16.3 long pause beyond the 20 s lease: the private instance proceeds; the late write must not shorten or erase the session
+            await sleep(100);
+            await hold();
+            const rev2 = (await status(options)).revision;
+            const saving2 = send(options, { type: 'SAVE_SETTINGS', baseRevision: rev2, settings: settingsWith(['race-a.test', 'race-b.test']) });
+            const paused2 = await waitHit();
+            const t0 = Date.now();
+            // While the frozen holder's lease (20 s) is valid, the other instance waits up to 15 s and then fails CLOSED with "busy".
+            const first = await priv.evaluate(() => chrome.runtime.sendMessage({ type: 'START_SESSION', minutes: 120 }));
+            const firstMs = Date.now() - t0;
+            await sleep(Math.max(0, 21500 - (Date.now() - t0)));       // the frozen holder's lease is now over
+            const extended = await priv.evaluate(() => chrome.runtime.sendMessage({ type: 'START_SESSION', minutes: 120 }));
+            await release();                                            // the frozen write now resumes
+            const savedB = await saving2;
+            const afterB = await status(options);
+            check('S16.3a while a frozen holder\'s lease is valid, the other instance fails closed ("busy") instead of writing blindly', paused2 && !first.ok && first.error.code === 'busy' && firstMs >= 14000, JSON.stringify({ paused2, first: first.ok ? 'ok' : first.error?.code, waitedMs: firstMs }));
+            check('S16.3b after the lease expired the other instance extends the session to 120 min; when the frozen write then resumes the session is NOT shortened or erased', extended.ok && afterB.lock.active && afterB.lock.until >= untilA && afterB.lock.until - Date.now() > 119 * 60000, JSON.stringify({ extended: extended.ok, savedB: savedB.ok ? 'ok' : savedB.error?.code, remainingMin: Math.round((afterB.lock.until - Date.now()) / 60000) }));
+            note('S16.3', `the frozen save finished as ${savedB.ok ? 'ok' : savedB.error?.code}`);
+            // state follows storage afterwards: browser rules == stored settings
+            const healed = await status(options);
+            check('S16.4 afterwards the browser rules match the stored settings (no half-applied state) and weakening is still refused', healed.state === 'active' && !healed.reasons.includes('rules_mismatch') && (await send(options, { type: 'SAVE_SETTINGS', baseRevision: healed.revision, settings: NO_LIST })).error?.code === 'locked_weakening');
+            await cdp.close().catch(() => {}); await finish(b);
+        }
+    }
+
+    // ================= S17: hostile web page + data leakage (red-team checks against the real package) =================
+    if (want('S17')) {
+        const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'tabsira-e2e-leak-'));
+        const b = await open({ profileDir: profile });
+        const options = await openExtPage(b.context, b.extensionId, 'options.html');
+        await onboard(options, false, false);
+        const probeHost = 'leak-probe-7431.test'; const secretPath = '/private-path-9XQ7/inner'; const secretQuery = 'token=ZK93-visit&q=tabsira+word';
+        await save(options, { domains: [probeHost], words: ['tabsira word'] });
+        // --- hostile page tries to reach extension pages / resources
+        const attacker = await b.context.newPage();
+        await attacker.goto(url('attacker.test'));
+        const existing = new Set(b.context.pages());
+        const reach = await attacker.evaluate(async id => {
+            const out = {};
+            const frame = document.createElement('iframe'); frame.src = `chrome-extension://${id}/options.html`; document.body.append(frame);
+            out.frameLoaded = await new Promise(resolve => { frame.onload = () => { try { resolve(!!frame.contentDocument); } catch { resolve(false); } }; setTimeout(() => resolve('timeout'), 3000); });
+            const img = new Image(); img.src = `chrome-extension://${id}/brand/mark.svg`;
+            out.image = await new Promise(resolve => { img.onload = () => resolve('loaded'); img.onerror = () => resolve('blocked'); setTimeout(() => resolve('timeout'), 3000); });
+            const script = document.createElement('script'); script.src = `chrome-extension://${id}/core/lock.js`;
+            out.script = await new Promise(resolve => { script.onload = () => resolve('loaded'); script.onerror = () => resolve('blocked'); document.head.append(script); setTimeout(() => resolve('timeout'), 3000); });
+            out.fetch = await fetch(`chrome-extension://${id}/manifest.json`).then(() => 'reachable', () => 'blocked');
+            window.open(`chrome-extension://${id}/options.html`, '_blank');
+            return out;
+        }, b.extensionId);
+        await sleep(1200);
+        const extPages = []; for (const p of b.context.pages()) { if (!existing.has(p)) extPages.push(p.url()); }      // only pages opened by the hostile script
+        const frameUrls = attacker.frames().map(f => f.url()).filter(u => u.startsWith('chrome-extension://'));
+        check('S17.1 a hostile web page cannot embed, load, script, fetch or open any extension page or file', reach.frameLoaded !== true && frameUrls.length === 0 && reach.image === 'blocked' && reach.script === 'blocked' && reach.fetch === 'blocked' && !extPages.some(u => u.startsWith('chrome-extension://')), JSON.stringify({ reach, frameUrls, extPages }));
+        const sendFromWeb = await attacker.evaluate(async id => { try { if (!globalThis.chrome?.runtime?.sendMessage) return 'no-api'; const r = await chrome.runtime.sendMessage(id, { type: 'START_SESSION', minutes: 60 }); return r ? 'REACHED' : 'no-reply'; } catch (e) { return `refused: ${String(e.message).slice(0, 40)}`; } }, b.extensionId);
+        check('S17.2 a hostile page cannot start a session or change settings by messaging the extension', sendFromWeb !== 'REACHED' && !(await status(options)).lock.active, sendFromWeb);
+        // --- what is left behind after blocked visits
+        const visited = [url(probeHost, secretPath + '?' + secretQuery), url('sub.' + probeHost, '/x?y=ZK93-visit'), url('www.google.com', '/search?q=tabsira+word+private-ZK93')];
+        for (const v of visited) await visit(b.context, v);
+        check('S17.3 the three blocked visits were stopped (precondition for the leak scan)', (await visit(b.context, visited[0])).blocked && (await visit(b.context, visited[2])).blocked);
+        const id = b.extensionId; await finish(b); await sleep(800);
+        // The scan: Tabsira's own storage must hold none of the visited URL parts or search text. (The user's configured rules are stored by design.)
+        const needles = ['private-path-9XQ7', 'ZK93', 'inner', 'private-ZK93'];
+        const hits = [];
+        const scan = dir => { if (!fs.existsSync(dir)) return; for (const entry of fs.readdirSync(dir, { withFileTypes: true })) { const full = path.join(dir, entry.name); if (entry.isDirectory()) scan(full); else { const data = fs.readFileSync(full); for (const n of needles) if (data.includes(Buffer.from(n))) hits.push(`${path.relative(profile, full)}:${n}`); } } };
+        for (const sub of [`Default/Local Extension Settings/${id}`, `Default/Extension State`, `Default/IndexedDB`, `Default/Local Storage`, `Default/Session Storage`, `Default/Sync Extension Settings/${id}`]) scan(path.join(profile, sub));
+        check("S17.4 after blocked visits, Tabsira's storage (extension settings, state, IndexedDB, local/session storage) contains no visited URL part or search text", hits.length === 0, hits.slice(0, 3).join(' | '));
+        // Informational: what the BROWSER keeps in its own history (not under the extension's control; the extension has no history permission).
+        let historyNote = 'not inspected';
+        try {
+            const { DatabaseSync } = await import('node:sqlite');
+            const copy = path.join(os.tmpdir(), `tabsira-history-${Date.now()}.db`); fs.copyFileSync(path.join(profile, 'Default', 'History'), copy);
+            const db = new DatabaseSync(copy, { readOnly: true });
+            const rows = db.prepare('select url from urls').all().map(r => r.url);
+            historyNote = JSON.stringify({ urls: rows.length, containsBlockedOriginalUrl: rows.some(u => u.includes('private-path-9XQ7') || u.includes('ZK93')), containsStopPage: rows.some(u => u.endsWith('/blocked.html')) });
+            db.close(); fs.unlinkSync(copy);
+        } catch (error) { historyNote = `could not read the browser history database: ${String(error.message).slice(0, 80)}`; }
+        note('S17-history', `Chromium's own history after blocked visits (the browser's behaviour, not the extension's): ${historyNote}`);
     }
 
     // ================= S10: no sensitive logging =================

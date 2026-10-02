@@ -1,4 +1,4 @@
-// node tests/e2e/firefox-run.mjs   (FIREFOX=/path/to/firefox GECKODRIVER=/path/to/geckodriver; build with: node scripts/build.mjs --test)
+// node tests/e2e/firefox-run.mjs   (FIREFOX=/path/to/firefox GECKODRIVER=/path/to/geckodriver; build with: node scripts/build.mjs - the release ZIP is extracted and installed)
 // Real Firefox, driven by geckodriver. The add-on is installed as a TEMPORARY add-on (stock Firefox only accepts
 // signed add-ons permanently), so "restart" tests reinstall it into the same profile.
 import fs from 'node:fs';
@@ -9,18 +9,20 @@ import { execFileSync } from 'node:child_process';
 import { startGecko } from './webdriver.mjs';
 import { createReport } from './report.mjs';
 import { root, sleep } from './lib.mjs';
+import { preparePackage } from './package.mjs';
 
 const FIREFOX = process.env.FIREFOX; const GECKODRIVER = process.env.GECKODRIVER;
 if (!FIREFOX || !GECKODRIVER) { process.stderr.write('set FIREFOX and GECKODRIVER\n'); process.exit(2); }
 const version = execFileSync(FIREFOX, ['--version']).toString().trim();
-const report = createReport({ browserName: 'firefox', version, extra: { addonInstall: 'temporary (geckodriver moz/addon/install)', note: 'Firefox build is the conda-forge repackaging of the Mozilla release, not a mozilla.org download' } });
+const pkg = preparePackage('firefox');
+const report = createReport({ browserName: 'firefox', version, extra: { package: pkg.info, addonInstall: 'temporary (geckodriver moz/addon/install)', note: 'Firefox build is the conda-forge repackaging of the Mozilla release, not a mozilla.org download' } });
 const { check, skip } = report;
 process.stdout.write(`# ${version} on ${report.meta.os}\n`);
 
 const ADDON_ID = '{6e6f9f5e-6c45-4f0a-9d8a-5b1f0f6a7c11}';
 const UUID = '2f6f2d3e-0a4b-4d6e-8f10-6f3a1c2b9a77';
 const EXT = `moz-extension://${UUID}`;
-const addonDir = path.join(root, 'dist-test/firefox');
+const addonDir = pkg.dirs.release;   // the extracted release ZIP, unmodified
 
 // Local server doubling as an HTTP proxy: every http:// request, whatever the host, gets the marker page.
 const hits = [];

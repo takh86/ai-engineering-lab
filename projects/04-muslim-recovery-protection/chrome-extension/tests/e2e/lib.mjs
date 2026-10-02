@@ -77,5 +77,6 @@ export async function openExtPage(context, extensionId, name) {
 
 export const executableFor = name => ({
     chromium: process.env.CHROMIUM ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
-    edge: process.env.EDGE
+    edge: process.env.EDGE,
+    chrome: process.env.CHROME   // official Google build (Chrome for Testing or branded Chrome) - never labelled as Chromium
 }[name]);

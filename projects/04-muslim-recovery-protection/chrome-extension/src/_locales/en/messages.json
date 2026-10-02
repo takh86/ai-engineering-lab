@@ -335,6 +335,9 @@
   "opt_import": {
     "message": "Import settings"
   },
+  "opt_export_hint": {
+    "message": "The export file lists the sites and phrases you chose as plain, unencrypted text. Keep it private."
+  },
   "opt_imported": {
     "message": "Imported settings were merged."
   },

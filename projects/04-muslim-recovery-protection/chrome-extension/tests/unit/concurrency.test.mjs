@@ -181,3 +181,26 @@ test('reconciliation of a damaged browser state while another instance saves is 
     assert.equal(status.state, 'active');
     assert.deepEqual([...t.state.rules[0].condition.requestDomains].sort(), ['example.com', 'new.org']);
 });
+
+test('a repair paused BEFORE its rule write, past its lease, cannot leave stale rules behind a newer save (state follows storage)', async () => {
+    const t = pair(); await configured(t);
+    const rev = (await statusOf(t)).revision;
+    t.state.rules = [];                                         // rules wiped (after the status call, which would auto-repair): A will repair from the stored configuration
+    const hold = gate(); let paused = false; const realGet = t.api.dnr.getEnabledRulesets;
+    t.api.dnr.getEnabledRulesets = async () => { const value = await realGet(); if (!paused) { paused = true; await hold.promise; } return value; };
+    const repair = t.send(t.a, { type: 'REPAIR' });
+    for (let i = 0; i < 200 && !paused; i++) await tick(1);
+    assert.ok(paused, 'A is paused before it wrote any rule');
+    t.state.clockSkew += 60_000;                                // its lease expires while it is paused
+    t.api.dnr.getEnabledRulesets = realGet;
+    const save = await t.send(t.b, { type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...noList, domains: ['example.com', 'newer.org'] } });
+    assert.ok(save.ok, JSON.stringify(save.error));
+    hold.open();                                                // A resumes with a plan built from the OLD configuration
+    await repair;
+    // Checked BEFORE any status call (a status call would auto-repair): the late worker itself must have left the rules consistent.
+    assert.deepEqual([...t.state.rules[0].condition.requestDomains].sort(), ['example.com', 'newer.org'], 'rules follow storage immediately');
+    const status = await statusOf(t, t.b);
+    assert.deepEqual([...status.settings.domains].sort(), ['example.com', 'newer.org']);
+    assert.equal(status.state, 'active', JSON.stringify(status.reasons));
+    assert.deepEqual([...t.state.rules[0].condition.requestDomains].sort(), ['example.com', 'newer.org']);
+});
