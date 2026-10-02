@@ -22,10 +22,15 @@ const exactKeys = (object, keys) => object && typeof object === 'object' && !Arr
 export function parseSettings(raw) {
     if (!exactKeys(raw, USER_KEYS)) throw new TabsiraError('config_invalid');
     if (typeof raw.baseList !== 'boolean' || typeof raw.starterTerms !== 'boolean') throw new TabsiraError('config_invalid');
-    const domains = normalizeDomainList(raw.domains, { max: LIMITS.domains });
-    const allow = normalizeDomainList(raw.allow, { max: LIMITS.allow, errorCode: 'allow_invalid' });
-    const words = normalizePhraseList(raw.words, { max: LIMITS.words });
-    const contains = normalizePhraseList(raw.contains, { max: LIMITS.contains });
+    // Errors name the list they came from (not the text), so the UI can focus the right field.
+    const inList = (list, fn) => {
+        try { return fn(); }
+        catch (error) { throw error instanceof TabsiraError ? new TabsiraError(error.code, { ...error.params, list }) : error; }
+    };
+    const domains = inList('domains', () => normalizeDomainList(raw.domains, { max: LIMITS.domains }));
+    const allow = inList('allow', () => normalizeDomainList(raw.allow, { max: LIMITS.allow, errorCode: 'allow_invalid' }));
+    const words = inList('words', () => normalizePhraseList(raw.words, { max: LIMITS.words }));
+    const contains = inList('contains', () => normalizePhraseList(raw.contains, { max: LIMITS.contains }));
     for (const blocked of domains) {
         if (allow.some(exception => isSameOrSubdomain(blocked, exception))) throw new TabsiraError('conflict_domain_allow');
     }

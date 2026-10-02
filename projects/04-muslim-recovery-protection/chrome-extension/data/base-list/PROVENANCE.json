@@ -1,0 +1,39 @@
+{
+  "name": "The Block List Project — Porn list (porn.txt)",
+  "sourceUrl": "https://raw.githubusercontent.com/blocklistproject/Lists/master/porn.txt",
+  "homepage": "https://github.com/blocklistproject/Lists",
+  "licenseOfRepository": "The Unlicense (public-domain dedication), per LICENSE in the repository root",
+  "licenseDeclaredInFileHeader": "MIT (header line \"# License: MIT\" inside porn.txt)",
+  "licenseNote": "Both are permissive and allow redistribution. The upstream README states the list is synced from 14 upstream blocklists; their individual licences are not independently verified here. Owner/legal review is listed as an open decision.",
+  "upstreamLastModified": "2026-07-18 01:36:50 UTC",
+  "retrievedAt": "2026-10-02",
+  "upstreamCommit": null,
+  "upstreamCommitNote": "Not pinned: GitHub API access to the upstream repository was not available in the build session. Upstream content is identified by SHA-256 below.",
+  "upstreamFileSha256": "425590c37e3ea624fdf646b14ba661f8b8f38391686adcf02b73f8b2d74b0db1",
+  "upstreamEntries": 953393,
+  "rejectedEntries": 196,
+  "snapshotEntries": 936979,
+  "removedAsCoveredByParent": 16218,
+  "snapshotSha256": "db4ad189bd790d6c25431b4b0e779c1da25c00b7363844dc6d8448b022166e78",
+  "snapshotFile": "adult-domains.txt.gz (gzip of sorted, one domain per line)",
+  "topTlds": {
+    "com": 622682,
+    "net": 46147,
+    "nl": 23383,
+    "top": 18679,
+    "de": 17927,
+    "org": 16641,
+    "dev": 11336,
+    "xyz": 11205,
+    "fr": 9106,
+    "info": 8496
+  },
+  "benignCanariesChecked": 140,
+  "transform": [
+    "lowercase",
+    "drop entries that are not valid hostnames",
+    "drop entries covered by a listed parent domain (requestDomains already matches subdomains)",
+    "sort",
+    "refuse to write if any known-benign canary is covered"
+  ]
+}

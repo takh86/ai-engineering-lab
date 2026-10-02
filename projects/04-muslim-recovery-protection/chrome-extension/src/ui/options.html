@@ -1,1 +1,110 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>إعداد تبصرة</title><link rel="stylesheet" href="style.css"></head><body><main><span class="tag">تبصرة · حجب تختاره أنت</span><h1>اضبط حدودك</h1><p>القواعد تعمل محليًا في كروم على الكمبيوتر، بجانب طبقات الحماية الأخرى.</p><p id="status" role="status">جاري التحقق…</p><section><h2>قائمة الحجب</h2><form id="form"><label for="domains">مواقع — موقع واحد في كل سطر</label><textarea id="domains" dir="ltr" spellcheck="false" placeholder="example.com"></textarea><small>يحجب فتح الموقع ونطاقاته الفرعية. اكتب النطاق فقط، بدون مسار صفحة.</small><label for="keywords">عبارات بحث — عبارة واحدة في كل سطر</label><textarea id="keywords" spellcheck="false"></textarea><small>مطابقة جزئية لعبارة داخل معاملات البحث q / p / search_query في Google (.com/.de/.com.eg)، Bing، DuckDuckGo، Yahoo وYouTube. لا يشمل البحث الداخلي الذي لا ينتقل لصفحة جديدة، ولا كل طرق ترميز الكلمات.</small><div class="actions"><button type="submit">حفظ القواعد</button><button type="button" class="secondary" id="test">أضف example.com للاختبار الآمن</button></div></form><p id="message" role="status"></p></section><section><h2>أنا محتاج حدودًا أقوى دلوقتي</h2><p>جلسة الالتزام تمنع حذف القواعد من داخل الإضافة. تقدر تضيف قواعد جديدة.</p><p id="lock"></p><div class="actions"><button data-minutes="60">٦٠ دقيقة</button><button data-minutes="90">٩٠ دقيقة</button><button data-minutes="120">١٢٠ دقيقة</button></div><a class="button secondary" href="help.html" target="_blank">ساعدني الآن</a></section><section><h2>الخصوصية والحدود</h2><p>لا حساب ولا سيرفر ولا تحليلات. نحفظ قائمة الحجب وموعد انتهاء الالتزام في هذا الجهاز فقط. الإعدادات غير مشفّرة، ولا نحفظ سجل محاولاتك أو كلمات بحثك.</p><p>كروم يطلب صلاحية المواقع لإعادة توجيه الصفحات المحجوبة. لا نستخدم قراءة محتوى الصفحات.</p><p>الإضافة لا تمنع حذفها أو تعطيلها، ولا تعمل في متصفحات أخرى أو الملفات المحلية. التصفح الخفي يحتاج تفعيل «السماح في وضع التصفح المتخفي» يدويًا. تغيير ساعة الجهاز قد يؤثر على مهلة الالتزام. لا توجد قائمة تصنيف تلقائية للمواقع في هذه النسخة.</p></section></main><script type="module" src="options.js"></script></body></html>
+<!doctype html>
+<html lang="ar" dir="rtl" data-title="opt_title">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tabsira</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <span class="tag" data-i18n="extShortName"></span>
+  <h1 data-i18n="opt_title"></h1>
+
+  <section aria-labelledby="h-status">
+    <h2 id="h-status" data-i18n="opt_status"></h2>
+    <div class="status" id="status" role="status" aria-live="polite" data-state="unknown">
+      <span class="state-text" data-i18n="common_loading"></span>
+      <ul class="reasons" id="reasons" hidden></ul>
+    </div>
+    <p id="lock" class="muted"></p>
+    <p id="incognito" class="muted"></p>
+    <div class="actions">
+      <button id="repair" class="secondary" type="button" hidden data-i18n="common_repair"></button>
+      <a class="button secondary" id="selftest" href="https://tabsira-selftest.test/" target="_blank" rel="noopener" data-i18n="safe_test"></a>
+    </div>
+    <p class="hint" data-i18n="safe_test_hint"></p>
+  </section>
+
+  <form id="form" novalidate>
+    <section aria-labelledby="h-base">
+      <h2 id="h-base" data-i18n="opt_base_title"></h2>
+      <label class="inline"><input type="checkbox" id="baseList"><span data-i18n="opt_base_label"></span></label>
+      <small id="baseInfo"></small>
+      <label class="inline"><input type="checkbox" id="starterTerms"><span data-i18n="opt_starter_label"></span></label>
+      <details>
+        <summary data-i18n="opt_starter_show"></summary>
+        <ul class="terms" id="starterList" dir="auto"></ul>
+      </details>
+    </section>
+
+    <section aria-labelledby="h-sites">
+      <h2 id="h-sites" data-i18n="opt_sites_title"></h2>
+      <label for="domains" data-i18n="opt_sites_label"></label>
+      <textarea id="domains" dir="ltr" spellcheck="false" autocomplete="off" aria-describedby="domains-hint domains-err"></textarea>
+      <small id="domains-hint" data-i18n="opt_sites_hint"></small>
+      <p class="msg error" id="domains-err" role="alert"></p>
+    </section>
+
+    <section aria-labelledby="h-phrases">
+      <h2 id="h-phrases" data-i18n="opt_phrases_title"></h2>
+      <label for="words" data-i18n="opt_words_label"></label>
+      <textarea id="words" dir="auto" spellcheck="false" autocomplete="off" aria-describedby="phrases-hint words-err"></textarea>
+      <p class="msg error" id="words-err" role="alert"></p>
+      <label for="contains" data-i18n="opt_contains_label"></label>
+      <textarea id="contains" dir="auto" spellcheck="false" autocomplete="off" aria-describedby="phrases-hint contains-err"></textarea>
+      <p class="msg error" id="contains-err" role="alert"></p>
+      <small id="phrases-hint" data-i18n="opt_phrases_hint"></small>
+    </section>
+
+    <section aria-labelledby="h-allow">
+      <h2 id="h-allow" data-i18n="opt_allow_title"></h2>
+      <label for="allow" data-i18n="opt_allow_label"></label>
+      <textarea id="allow" dir="ltr" spellcheck="false" autocomplete="off" aria-describedby="allow-hint allow-err"></textarea>
+      <small id="allow-hint" data-i18n="opt_allow_hint"></small>
+      <p class="msg error" id="allow-err" role="alert"></p>
+    </section>
+
+    <button type="submit" data-i18n="opt_save"></button>
+    <p id="message" class="msg" role="status" aria-live="polite"></p>
+  </form>
+
+  <section aria-labelledby="h-session">
+    <h2 id="h-session" data-i18n="opt_session_title"></h2>
+    <p data-i18n="opt_session_body"></p>
+    <div class="actions" id="sessionButtons"></div>
+    <div class="confirm" id="sessionConfirm" role="alertdialog" aria-labelledby="sessionConfirmText" hidden>
+      <p id="sessionConfirmText"></p>
+      <button type="button" id="sessionYes" data-i18n="common_confirm"></button>
+      <button type="button" id="sessionNo" class="secondary" data-i18n="common_cancel"></button>
+    </div>
+    <a class="button secondary" href="help.html" data-i18n="common_help_now"></a>
+  </section>
+
+  <section aria-labelledby="h-backup">
+    <h2 id="h-backup" data-i18n="opt_backup_title"></h2>
+    <p data-i18n="opt_backup_body"></p>
+    <div class="actions">
+      <button type="button" id="export" class="secondary" data-i18n="opt_export"></button>
+      <button type="button" id="importButton" class="secondary" data-i18n="opt_import"></button>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </div>
+    <h2 data-i18n="opt_reset_title"></h2>
+    <button type="button" id="reset" class="danger" data-i18n="opt_reset"></button>
+    <div class="confirm" id="resetConfirm" role="alertdialog" aria-labelledby="resetConfirmText" hidden>
+      <p id="resetConfirmText" data-i18n="opt_reset_confirm"></p>
+      <button type="button" id="resetYes" class="danger" data-i18n="common_confirm"></button>
+      <button type="button" id="resetNo" class="secondary" data-i18n="common_cancel"></button>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-privacy">
+    <h2 id="h-privacy" data-i18n="opt_privacy_title"></h2>
+    <p data-i18n="opt_privacy_body"></p>
+    <p data-i18n="opt_limits_body"></p>
+    <p class="muted" id="version"></p>
+  </section>
+</main>
+<script type="module" src="options.js"></script>
+</body>
+</html>

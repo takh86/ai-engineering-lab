@@ -1,1 +1,27 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>تبصرة</title><link rel="stylesheet" href="style.css"></head><body><main class="popup"><span class="tag">تبصرة · نسخة شخصية ٠.١</span><h1>مساحة تختار فيها</h1><p id="status" role="status">جاري التحقق من القواعد…</p><p id="lock"></p><div class="actions"><a class="button" href="help.html" target="_blank">ساعدني الآن</a><button class="secondary" id="settings">إعداد الحجب</button></div><p class="muted">الحجب للقواعد التي تضيفها فقط. لا يفحص الصور ولا محتوى الصفحات.</p></main><script type="module" src="popup.js"></script></body></html>
+<!doctype html>
+<html lang="ar" dir="rtl" data-title="extShortName">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tabsira</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="popup">
+  <span class="tag" data-i18n="popup_tagline"></span>
+  <h1 data-i18n="extShortName"></h1>
+  <div class="status" id="status" role="status" aria-live="polite" data-state="unknown">
+    <span class="state-text" data-i18n="common_loading"></span>
+    <ul class="reasons" id="reasons" hidden></ul>
+  </div>
+  <p id="lock" class="muted"></p>
+  <div class="actions">
+    <a class="button" id="help" href="help.html" target="_blank" rel="noopener" data-i18n="common_help_now"></a>
+    <button class="secondary" id="settings" type="button" data-i18n="common_settings"></button>
+    <button class="secondary" id="repair" type="button" hidden data-i18n="common_repair"></button>
+  </div>
+  <p class="hint" data-i18n="popup_limits"></p>
+</main>
+<script type="module" src="popup.js"></script>
+</body>
+</html>

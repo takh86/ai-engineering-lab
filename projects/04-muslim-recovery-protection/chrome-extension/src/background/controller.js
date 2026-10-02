@@ -40,13 +40,14 @@ export function createController(api) {
         let stored;
         try { stored = await api.storage.get(['config', 'lock']); }
         catch { return { kind: 'error', reason: 'storage_error' }; }
+        const raw = { config: stored.config, lock: stored.lock };   // exactly what is stored, for compare-and-set / restore
         let lock = stored.lock === undefined ? emptyLock() : stored.lock;
         if (!isLockValid(lock)) lock = null;
         try {
             const result = migrate(stored.config, lock ?? undefined);
-            if (!result.fresh && !isLockValid(result.lock)) return { kind: 'corrupt', reason: 'config_corrupt', lock: null };
-            return { kind: result.fresh ? 'fresh' : 'ok', config: result.config, lock: result.lock, migrated: result.migrated };
-        } catch { return { kind: 'corrupt', reason: 'config_corrupt', lock }; }
+            if (!result.fresh && !isLockValid(result.lock)) return { kind: 'corrupt', reason: 'config_corrupt', lock: null, raw };
+            return { kind: result.fresh ? 'fresh' : 'ok', config: result.config, lock: result.lock, migrated: result.migrated, raw };
+        } catch { return { kind: 'corrupt', reason: 'config_corrupt', lock, raw }; }
     }
 
     const activeSettings = config => (config.onboarded ? config : { ...config, ...EMPTY_SETTINGS });
@@ -72,29 +73,72 @@ export function createController(api) {
         return rulesMatch(rules, plan.rules) && baseEnabled === plan.baseListEnabled;
     }
 
+    // chrome.storage hands objects back with sorted keys, so compare structurally (real-browser finding).
+    const stable = value => JSON.stringify(value, (_, item) => (item && typeof item === 'object' && !Array.isArray(item)
+        ? Object.fromEntries(Object.keys(item).sort().map(key => [key, item[key]])) : item));
+    const sameJson = (a, b) => stable(a) === stable(b);
+    async function storedMatches(expected) {
+        const now = await api.storage.get(['config', 'lock']);
+        return sameJson(now.config, expected.config) && sameJson(now.lock, expected.lock);
+    }
+
     /**
      * Applies `config` to the browser and (when `persist`) storage, atomically from the caller's view.
-     * `previous` is the state to restore on failure: { config, lock } or null for a fresh install.
+     * `expected` is the exact raw storage content ({ config, lock }, possibly undefined values) the change is based on:
+     * it is compared right before writing and restored on failure.
      */
-    async function commit({ config, lock, previous, persist }) {
+    async function commit({ config, lock, expected, persist }) {
         const plan = await planRules(activeSettings(config), supports);
         const before = await snapshot();
         let touchedStorage = false;
         try {
             await setDynamicRules(plan.rules);
             await setBaseEnabled(plan.baseListEnabled);
-            if (persist) { touchedStorage = true; await api.storage.set({ config, lock }); }
-            if (!(await verify(plan))) throw new TabsiraError('verify_failed');
+            if (persist) {
+                // A normal and a private-window instance of this worker can both write (Chromium "split" mode).
+                // Re-check right before writing, and again after, so an interleaved write is reported, not lost silently.
+                if (!(await storedMatches(expected))) throw new TabsiraError('stale');
+                touchedStorage = true;
+                await api.storage.set({ config, lock });
+            }
+            if (!(await verify(plan))) {
+                // The browser may momentarily hold another instance's rules (private window saving at the same instant).
+                // If storage holds OUR configuration, re-apply our rules once; otherwise it is a real failure.
+                const stored = persist ? (await api.storage.get('config')).config : undefined;
+                if (persist && sameJson(stored, config)) { await setDynamicRules(plan.rules); await setBaseEnabled(plan.baseListEnabled); }
+                if (!(await verify(plan))) throw new TabsiraError('verify_failed');
+            }
+            if (persist && !sameJson((await api.storage.get('config')).config, config)) throw new TabsiraError('stale');
             return plan;
         } catch (error) {
             let restored = true;
             const attempt = async step => { try { await step(); } catch { restored = false; } };
-            await attempt(() => setDynamicRules(before.rules));
-            await attempt(() => setBaseEnabled(before.baseEnabled));
+            // If another worker instance (private window) wrote the configuration after we did, its write is the
+            // newer truth: keep it and make the browser rules follow it instead of restoring our snapshot.
+            let supersededByOther = false;
             if (touchedStorage) {
-                await attempt(() => (previous ? api.storage.set({ config: previous.config, lock: previous.lock }) : api.storage.remove(['config', 'lock'])));
+                try {
+                    const stored = (await api.storage.get('config')).config;
+                    supersededByOther = !sameJson(stored, config) && !sameJson(stored, expected.config);
+                } catch { restored = false; }
             }
-            throw new TabsiraError(restored ? 'apply_failed' : 'apply_failed_rollback_failed', { cause: error instanceof TabsiraError ? error.code : 'api' });
+            if (supersededByOther) {
+                await attempt(async () => {
+                    const current = await readState();
+                    if (current.kind !== 'ok') return;
+                    const plan = await planRules(activeSettings(current.config), supports);
+                    await setDynamicRules(plan.rules);
+                    await setBaseEnabled(plan.baseListEnabled);
+                });
+            } else {
+                await attempt(() => setDynamicRules(before.rules));
+                await attempt(() => setBaseEnabled(before.baseEnabled));
+                if (touchedStorage) {
+                    await attempt(() => (expected.config === undefined ? api.storage.remove(['config', 'lock']) : api.storage.set({ config: expected.config, ...(expected.lock !== undefined ? { lock: expected.lock } : {}) })));
+                }
+            }
+            const code = supersededByOther && restored ? 'stale' : restored ? (error instanceof TabsiraError && error.code === 'stale' ? 'stale' : 'apply_failed') : 'apply_failed_rollback_failed';
+            throw new TabsiraError(code, { cause: error instanceof TabsiraError ? error.code : 'api' });
         }
     }
 
@@ -164,7 +208,7 @@ export function createController(api) {
             const actual = await snapshot();
             const matches = rulesMatch(actual.rules, plan.rules) && actual.baseEnabled === plan.baseListEnabled;
             if (!matches || state.migrated) {
-                await commit({ config: state.config, lock: state.lock, previous: null, persist: !!state.migrated });
+                await commit({ config: state.config, lock: state.lock, expected: state.raw, persist: !!state.migrated });
             }
         }
         // 'fresh' with leftover rules, 'corrupt' and 'error': never delete protection because of a read problem.
@@ -187,10 +231,10 @@ export function createController(api) {
             if (reasons.length) throw new TabsiraError('locked_weakening', { reasons });
         }
         for (const mode of ['words', 'contains']) {
-            const bad = await findUnsupported(settings[mode], mode === 'words' ? 'word' : 'contains', supports);
+            const bad = await findUnsupported(settings[mode], mode === 'words' ? 'word' : 'contains', supports, 'q');
             if (bad.length) throw new TabsiraError('phrase_too_complex', { line: bad[0], list: mode });
         }
-        await commit({ config: next, lock: state.lock, previous: state.kind === 'fresh' ? null : { config: state.config, lock: state.lock }, persist: true });
+        await commit({ config: next, lock: state.lock, expected: state.raw, persist: true });
     }
 
     const checkRevision = (state, baseRevision) => {
@@ -272,7 +316,7 @@ export function createController(api) {
     // (its end time is stored separately) still blocks it.
     async function resetCorruptTask(state) {
         if (state.lock && isActive(state.lock, api.now())) throw new TabsiraError('locked_weakening', { reasons: ['reset'] });
-        await commit({ config: { ...defaultConfig(), onboarded: true, baseList: false, starterTerms: false, revision: 1 }, lock: emptyLock(), previous: null, persist: true });
+        await commit({ config: { ...defaultConfig(), onboarded: true, baseList: false, starterTerms: false, revision: 1 }, lock: emptyLock(), expected: state.raw, persist: true });
         return { status: await statusNow() };
     }
 

@@ -26,7 +26,10 @@ export function createFakeBrowser({ regexLimit = 400, hosts = true, incognito = 
             get: async keys => {
                 failOnce('storage.get'); state.calls.push('storage.get');
                 const list = Array.isArray(keys) ? keys : [keys];
-                return Object.fromEntries(list.filter(k => k in state.storage).map(k => [k, structuredClone(state.storage[k])]));
+                const sorted = value => (value && typeof value === 'object' && !Array.isArray(value)
+                    ? Object.fromEntries(Object.keys(value).sort().map(key => [key, sorted(value[key])])) : Array.isArray(value) ? value.map(sorted) : value);
+                // Real chrome.storage returns objects with sorted keys; the fake does too.
+                return Object.fromEntries(list.filter(k => k in state.storage).map(k => [k, sorted(structuredClone(state.storage[k]))]));
             },
             set: async items => { failOnce('storage.set'); state.calls.push('storage.set'); for (const [k, v] of Object.entries(items)) state.storage[k] = structuredClone(v); },
             remove: async keys => { failOnce('storage.remove'); for (const k of keys) delete state.storage[k]; }

@@ -1,15 +1,22 @@
+import { initPage, t } from './common.js';
+
+initPage();
 const start = document.querySelector('#start');
-if (start) start.addEventListener('click', () => {
+const timer = document.querySelector('#timer');
+const step = document.querySelector('#step');
+const SECONDS = 60;
+// UI-only countdown. It never touches blocking, never opens a site and stores nothing.
+start.addEventListener('click', () => {
     start.disabled = true;
-    const end = Date.now() + 60000;
-    const interval = setInterval(() => {
+    const end = Date.now() + SECONDS * 1000;
+    const tick = setInterval(() => {
         const left = Math.max(0, Math.ceil((end - Date.now()) / 1000));
-        document.querySelector('#timer').textContent = left.toLocaleString('ar');
+        timer.textContent = left.toLocaleString(document.documentElement.lang);
         if (left === 0) {
-            clearInterval(interval);
-            document.querySelector('#step').textContent = 'دلوقتي اختار خطوة واحدة: ابعد الجهاز، غيّر مكانك، أو كلم شخصًا تثق فيه.';
+            clearInterval(tick);
+            step.textContent = t('help_after');
+            start.textContent = t('help_again');
             start.disabled = false;
-            start.textContent = 'دقيقة أخرى';
         }
     }, 250);
 });

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Temporary Tabsira mark (insight / open eye). NOT the final brand identity. -->
+  <rect width="128" height="128" rx="28" fill="#2b6650"/>
+  <path d="M16 64C30 40 48 30 64 30s34 10 48 34c-14 24-32 34-48 34S30 88 16 64Z" fill="#f6f5ee"/>
+  <circle cx="64" cy="64" r="19" fill="#2b6650"/>
+  <circle cx="71" cy="57" r="6" fill="#f6f5ee"/>
+</svg>

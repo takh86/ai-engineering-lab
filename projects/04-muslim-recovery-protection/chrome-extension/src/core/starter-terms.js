@@ -7,6 +7,6 @@ export const STARTER_TERMS = Object.freeze([
     'hentai', 'xvideos', 'xnxx', 'pornhub', 'redtube',
     'free porn', 'porn videos', 'porn movies', 'sex videos', 'sex tube',
     'nude videos', 'naked girls', 'onlyfans leaks', 'erotic videos',
-    'سكس', 'بورن', 'افلام سكس', 'افلام اباحية', 'افلام جنسية',
-    'مقاطع جنسية', 'فيديوهات اباحية', 'صور عارية', 'قصص جنسية'
+    'سكس', 'بورن', 'افلام سكس', 'افلام اباحية', 'افلام اباحيه', 'افلام جنسية',
+    'مقاطع جنسية', 'صور عارية', 'قصص جنسية', 'سكس مترجم', 'سكس عربي'
 ]);

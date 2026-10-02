@@ -34,7 +34,8 @@ export function effectivePhrases(config) {
 /**
  * Computes the rules the browser should hold for `config`.
  * `supports(regex)` is the browser's isRegexSupported; results depend on the browser's regex memory.
- * Returns { rules, baseListEnabled, unsupported: string[] } (unsupported = phrases the browser rejects).
+ * Returns { rules, baseListEnabled, unsupported: string[] } (unsupported = phrases the browser rejects for
+ * at least one search-engine parameter group).
  */
 export async function planRules(config, supports) {
     const rules = [];
@@ -47,13 +48,14 @@ export async function planRules(config, supports) {
             condition: { requestDomains: [...config.allow].sort(), resourceTypes: MAIN_FRAME } });
     }
     const phrases = effectivePhrases(config);
-    const unsupported = [];
+    const unsupported = new Set();
     let id = RULE_ID.PHRASE_FIRST;
     for (const mode of ['word', 'contains']) {
         const list = mode === 'word' ? phrases.words : phrases.contains;
-        const { chunks, unsupported: rejected } = await packPhrases(list, mode, supports);
-        unsupported.push(...rejected);
         for (const group of PARAM_GROUPS) {
+            // Packed per parameter: a longer parameter name leaves less regex memory for the phrases.
+            const { chunks, unsupported: rejected } = await packPhrases(list, mode, supports, group.param);
+            rejected.forEach(phrase => unsupported.add(phrase));
             for (const chunk of chunks) {
                 rules.push({ id: id++, priority: PRIORITY.USER, action: redirect(), condition: {
                     requestDomains: group.domains, resourceTypes: MAIN_FRAME, isUrlFilterCaseSensitive: false,
@@ -62,7 +64,7 @@ export async function planRules(config, supports) {
             }
         }
     }
-    return { rules, baseListEnabled: config.baseList, unsupported };
+    return { rules, baseListEnabled: config.baseList, unsupported: [...unsupported] };
 }
 
 // ---- canonical comparison with what the browser reports back ----

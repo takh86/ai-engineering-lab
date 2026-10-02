@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-title="ob_title">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tabsira</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <span class="tag" data-i18n="extShortName"></span>
+  <h1 data-i18n="ob_title"></h1>
+  <ol class="steps" id="dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li></ol>
+  <p class="tag" id="progress" role="status" aria-live="polite"></p>
+
+  <section data-step="1"><h2 data-i18n="ob1_title"></h2><p data-i18n="ob1_body"></p></section>
+  <section data-step="2" hidden><h2 data-i18n="ob2_title"></h2><p data-i18n="ob2_body"></p></section>
+  <section data-step="3" hidden><h2 data-i18n="ob3_title"></h2><p data-i18n="ob3_body"></p></section>
+  <section data-step="4" hidden><h2 data-i18n="ob4_title"></h2><p data-i18n="ob4_body"></p></section>
+  <section data-step="5" hidden>
+    <h2 data-i18n="ob5_title"></h2>
+    <label class="inline"><input type="checkbox" id="baseList" checked><span data-i18n="ob5_base"></span></label>
+    <label class="inline"><input type="checkbox" id="starterTerms" checked><span data-i18n="ob5_starter"></span></label>
+    <p id="permission" role="status" aria-live="polite"></p>
+    <button type="button" id="grant" class="secondary" hidden data-i18n="ob5_grant"></button>
+    <p class="msg" id="message" role="status" aria-live="polite"></p>
+    <div class="actions">
+      <button type="button" id="finish" data-i18n="ob5_start"></button>
+      <a class="button secondary" id="selftest" href="https://tabsira-selftest.test/" target="_blank" rel="noopener" hidden data-i18n="safe_test"></a>
+      <a class="button secondary" id="toSettings" href="options.html" hidden data-i18n="common_settings"></a>
+    </div>
+    <p class="hint" data-i18n="safe_test_hint"></p>
+  </section>
+
+  <div class="actions">
+    <button type="button" id="back" class="secondary" data-i18n="common_back"></button>
+    <button type="button" id="next" data-i18n="common_next"></button>
+  </div>
+</main>
+<script type="module" src="onboarding.js"></script>
+</body>
+</html>

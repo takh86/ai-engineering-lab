@@ -227,6 +227,37 @@ test('import merges into settings and is refused when it would weaken a commitme
     assert.ok(JSON.parse(exported.text).settings.domains.includes('other.org'));
 });
 
+test('two worker instances (normal + private window) writing within the same few milliseconds: last write wins, nothing is corrupted, rules follow storage', async () => {
+    const t = setup(); await t.onboard(false, false); await t.save({ domains: ['example.com'] });
+    const other = createController(t.api);                // the "private window" instance shares storage and DNR
+    const rev = t.state.storage.config.revision;
+    // The other instance commits between our compare-and-set and our write.
+    const realSet = t.api.storage.set; let intercepted = false;
+    t.api.storage.set = async items => {
+        if (!intercepted && items.config) {
+            intercepted = true; t.api.storage.set = realSet;
+            await other.handle(validateMessage({ type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...noList, domains: ['example.com', 'from-private.org'] } }));
+        }
+        return realSet(items);
+    };
+    const mine = await t.send({ type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...noList, domains: ['example.com', 'from-normal.org'] } });
+    const status = (await t.send({ type: 'GET_STATUS' })).status;
+    assert.equal(status.state, 'active');                 // browser rules always match whatever is stored
+    assert.equal(status.settings.domains.length, 2);      // exactly one of the two changes won (documented limit: last write wins)
+    assert.ok(status.settings.domains.includes('example.com'));
+    assert.ok(mine.ok || ['stale', 'apply_failed'].includes(code(mine)));
+});
+
+test('a stale base (another instance saved first) is refused before any rule changes', async () => {
+    const t = setup(); await t.onboard(false, false); await t.save({ domains: ['example.com'] });
+    const rev = t.state.storage.config.revision;
+    const other = createController(t.api);
+    assert.ok((await other.handle(validateMessage({ type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...noList, domains: ['example.com', 'b.org'] } }))).ok);
+    const late = await t.send({ type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...noList, domains: ['example.com', 'c.org'] } });
+    assert.equal(code(late), 'stale');
+    assert.deepEqual([...t.state.storage.config.domains].sort(), ['b.org', 'example.com']);
+});
+
 test('messages: strict schema, trusted senders only, nothing sensitive echoed', () => {
     const ctx = { id: 'test-extension', baseUrl: 'chrome-extension://test-extension/' };
     const good = { id: 'test-extension', url: 'chrome-extension://test-extension/options.html', frameId: 0 };

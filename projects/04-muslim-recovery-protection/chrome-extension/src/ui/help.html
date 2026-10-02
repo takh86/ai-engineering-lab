@@ -1,1 +1,30 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ساعدني الآن — تبصرة</title><link rel="stylesheet" href="style.css"></head><body><main class="center"><span class="tag">تبصرة · ساعدني الآن</span><h1>خد مساحة قبل القرار</h1><p>مش مطلوب منك تحل كل حاجة دلوقتي. خلّينا نغيّر اللحظة دي.</p><section><h2>دقيقة بعيد عن المحتوى</h2><p>ابعد إيدك عن الماوس، خُد نفسًا مريحًا، وقوم من مكانك لو تقدر.</p><div id="timer" role="timer" aria-label="الوقت المتبقي">٦٠</div><button id="start">ابدأ دقيقة</button><p id="step" role="status">الدقيقة لا تفتح الموقع ولا توقف الحجب.</p></section><section><h2>اختار الخطوة اللي بعدها</h2><p>حط الجهاز بعيدًا، اخرج لمكان مشترك، أو اتواصل مع شخص تثق فيه.</p><p>لو رجعت للسلوك اللي عايز تقلّله، تقدر توقف وتبدأ من اللحظة دي. المساعدة دي مش علاجًا ولا ضمانًا للتعافي.</p></section><a class="button secondary" href="popup.html">ارجع لتبصرة</a></main><script type="module" src="help.js"></script></body></html>
+<!doctype html>
+<html lang="ar" dir="rtl" data-title="extShortName">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tabsira</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="center">
+  <span class="tag" data-i18n="common_help_now"></span>
+  <h1 data-i18n="help_title"></h1>
+  <p data-i18n="help_intro"></p>
+  <section>
+    <h2 data-i18n="help_timer_title"></h2>
+    <p data-i18n="help_timer_body"></p>
+    <div id="timer" role="timer" aria-live="off" data-i18n-attr="aria-label:help_timer_label">60</div>
+    <button id="start" type="button" data-i18n="help_start"></button>
+    <p id="step" role="status" data-i18n="help_note"></p>
+  </section>
+  <section>
+    <h2 data-i18n="help_next_title"></h2>
+    <p data-i18n="help_next_body"></p>
+    <p class="hint" data-i18n="help_disclaimer"></p>
+  </section>
+  <a class="button secondary" href="options.html" data-i18n="common_back_to_tabsira"></a>
+</main>
+<script type="module" src="help.js"></script>
+</body>
+</html>

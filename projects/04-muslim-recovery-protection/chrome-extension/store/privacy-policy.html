@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tabsira — Privacy policy / سياسة الخصوصية / Datenschutzerklärung</title>
+<style>
+  :root { color-scheme: light dark; --ink:#1f2d27; --bg:#f6f5ee; --card:#fff; --line:#c9d5cb; --accent:#2b6650; }
+  @media (prefers-color-scheme: dark) { :root { --ink:#e8f0ea; --bg:#121a16; --card:#1b2520; --line:#34463c; --accent:#86cfaa; } }
+  body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.75 system-ui,"Noto Sans Arabic","Noto Sans",sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:24px; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:8px 24px 16px; margin:20px 0; }
+  h1 { font-size:30px; } h2 { font-size:20px; } a { color:var(--accent); }
+  nav a { margin-inline-end:16px; } code { background:rgba(127,127,127,.15); padding:0 4px; border-radius:4px; }
+  .note { font-size:15px; opacity:.85; }
+</style>
+</head>
+<body>
+<main>
+<h1>Tabsira — Privacy policy</h1>
+<nav aria-label="Language"><a href="#en">English</a><a href="#ar">العربية</a><a href="#de">Deutsch</a></nav>
+<p class="note">Version 1.0 · applies to the Tabsira browser extension. <strong>[Owner: add publication date and a contact address before publishing this page.]</strong></p>
+
+<section id="en" lang="en" dir="ltr">
+<h2>English</h2>
+<p><strong>Short version:</strong> Tabsira collects nothing and sends nothing. Everything stays on your device.</p>
+<p><strong>What Tabsira stores, locally.</strong> In your browser’s local extension storage (<code>storage.local</code>): your list of blocked sites, exceptions, search phrases, a few on/off switches, a settings revision number, and the end time of a commitment session if you started one. This data is not encrypted and is not synced by the extension. It never leaves your device unless <em>you</em> export it to a file.</p>
+<p><strong>What Tabsira does not store or collect.</strong> No accounts, no analytics or telemetry, no browsing history, no record of pages or searches that were blocked, no record of when or how often something was blocked, no notes, no device identifiers, no cookies. The extension does not read page content, the screen or images, and contains no content scripts.</p>
+<p><strong>Network.</strong> The extension makes no network requests of its own. Its block lists ship inside the package and are updated only with new versions of the extension.</p>
+<p><strong>Why it asks for “access to websites”.</strong> The browser’s declarativeNetRequest API only lets an extension redirect a blocked page to Tabsira’s help page if the extension has host access. Tabsira uses it solely for that redirect.</p>
+<p><strong>Built-in list.</strong> The adult-sites list is a snapshot of “The Block List Project” (Unlicense / public domain), bundled with the extension. Classification is automated and can be wrong; use Exceptions for wrongly blocked sites.</p>
+<p><strong>Sharing.</strong> Nothing is shared with anyone, including the developer. If you export your settings and share the file, that is your decision.</p>
+<p><strong>Control and deletion.</strong> You can edit or clear all rules in Settings (a commitment session you started limits this until it ends). Removing the extension deletes its stored data.</p>
+<p><strong>Not a medical service.</strong> Tabsira is a self-chosen blocking tool for adults. It is not treatment and makes no promise of recovery.</p>
+</section>
+
+<section id="ar" lang="ar" dir="rtl">
+<h2>العربية</h2>
+<p><strong>باختصار:</strong> «تبصرة» لا تجمع شيئًا ولا ترسل شيئًا. كل شيء يبقى على جهازك.</p>
+<p><strong>ما تخزّنه محليًا.</strong> في التخزين المحلي للإضافة في المتصفح (<code>storage.local</code>): قائمة المواقع المحجوبة والاستثناءات وعبارات البحث وبعض مفاتيح التشغيل ورقم مراجعة الإعدادات، وموعد انتهاء جلسة الالتزام إن بدأتها. هذه البيانات غير مشفّرة ولا تُزامَن عبر الإضافة، ولا تغادر جهازك إلا إذا صدّرتها أنت إلى ملف.</p>
+<p><strong>ما لا تخزّنه ولا تجمعه.</strong> لا حسابات، ولا تحليلات أو قياس عن بُعد، ولا سجل تصفح، ولا سجل للصفحات أو عمليات البحث التي حُجبت، ولا سجل لموعد الحجب أو عدد مرّاته، ولا ملاحظات، ولا معرّفات جهاز، ولا ملفات تعريف ارتباط. لا تقرأ الإضافة محتوى الصفحات ولا الشاشة ولا الصور، وليس فيها سكربتات محتوى.</p>
+<p><strong>الشبكة.</strong> لا تُجري الإضافة أي طلبات شبكة بنفسها. قوائم الحجب مضمّنة في الحزمة وتتحدث فقط مع إصدارات جديدة من الإضافة.</p>
+<p><strong>لماذا تطلب «الوصول إلى المواقع».</strong> واجهة declarativeNetRequest في المتصفح لا تسمح بتحويل الصفحة المحجوبة إلى صفحة مساعدة تبصرة إلا إذا كانت للإضافة صلاحية المواقع. تستخدمها تبصرة لهذا التحويل فقط.</p>
+<p><strong>القائمة المضمّنة.</strong> قائمة مواقع البالغين نسخة من «The Block List Project» (ترخيص Unlicense / ملكية عامة) مضمّنة في الإضافة. التصنيف آلي وقد يخطئ؛ استخدم الاستثناءات للمواقع المحجوبة بالخطأ.</p>
+<p><strong>المشاركة.</strong> لا يُشارَك شيء مع أي جهة، بما فيها المطوّر. وإن صدّرت إعداداتك وشاركت الملف فهذا قرارك.</p>
+<p><strong>التحكم والحذف.</strong> يمكنك تعديل القواعد أو مسحها من الإعدادات (وجلسة الالتزام التي بدأتها تقيّد ذلك حتى تنتهي). حذف الإضافة يحذف بياناتها المخزّنة.</p>
+<p><strong>ليست خدمة طبية.</strong> «تبصرة» أداة حجب يختارها البالغ لنفسه. ليست علاجًا ولا تَعِد بالتعافي.</p>
+</section>
+
+<section id="de" lang="de" dir="ltr">
+<h2>Deutsch</h2>
+<p><strong>Kurz gesagt:</strong> Tabsira erhebt nichts und sendet nichts. Alles bleibt auf deinem Gerät.</p>
+<p><strong>Was lokal gespeichert wird.</strong> Im lokalen Erweiterungsspeicher deines Browsers (<code>storage.local</code>): deine Liste blockierter Websites, Ausnahmen, Suchbegriffe, einige Ein/Aus-Schalter, eine Revisionsnummer der Einstellungen und – falls du eine gestartet hast – das Ende einer Verbindlichkeits-Sitzung. Diese Daten sind nicht verschlüsselt und werden von der Erweiterung nicht synchronisiert. Sie verlassen dein Gerät nur, wenn <em>du</em> sie in eine Datei exportierst.</p>
+<p><strong>Was nicht gespeichert oder erhoben wird.</strong> Keine Konten, keine Analyse oder Telemetrie, kein Verlauf, keine Aufzeichnung blockierter Seiten oder Suchen, keine Aufzeichnung, wann oder wie oft etwas blockiert wurde, keine Notizen, keine Gerätekennungen, keine Cookies. Die Erweiterung liest weder Seiteninhalte noch Bildschirm oder Bilder und enthält keine Content-Skripte.</p>
+<p><strong>Netzwerk.</strong> Die Erweiterung stellt selbst keine Netzwerkanfragen. Ihre Sperrlisten sind im Paket enthalten und werden nur mit neuen Versionen aktualisiert.</p>
+<p><strong>Warum „Zugriff auf Websites“ nötig ist.</strong> Die declarativeNetRequest-Schnittstelle des Browsers erlaubt es nur mit Website-Zugriff, eine blockierte Seite auf die Hilfeseite von Tabsira umzuleiten. Tabsira nutzt ihn ausschließlich dafür.</p>
+<p><strong>Integrierte Liste.</strong> Die Liste für Erwachsenen-Websites ist ein Snapshot von „The Block List Project“ (Unlicense / gemeinfrei) und in der Erweiterung enthalten. Die Einstufung ist automatisiert und kann falsch sein; nutze Ausnahmen für fälschlich blockierte Seiten.</p>
+<p><strong>Weitergabe.</strong> Nichts wird an Dritte weitergegeben, auch nicht an den Entwickler. Wenn du deine Einstellungen exportierst und die Datei teilst, ist das deine Entscheidung.</p>
+<p><strong>Kontrolle und Löschung.</strong> In den Einstellungen kannst du Regeln ändern oder löschen (eine von dir gestartete Verbindlichkeits-Sitzung schränkt das bis zu ihrem Ende ein). Das Entfernen der Erweiterung löscht ihre gespeicherten Daten.</p>
+<p><strong>Kein medizinischer Dienst.</strong> Tabsira ist ein Sperr-Werkzeug, das Erwachsene für sich selbst wählen. Es ist keine Behandlung und verspricht keine Genesung.</p>
+</section>
+</main>
+</body>
+</html>

@@ -47,8 +47,10 @@ const hex = char => `%${char.charCodeAt(0).toString(16).toUpperCase().padStart(2
 // encodeURIComponent leaves these unescaped, but search engines are free to escape them.
 const OPTIONALLY_ESCAPED = new Set(["!", "'", '(', ')', '*', '~']);
 const SPACE = '(?:\\+|%20)+';
-const BEFORE = '(?:\\+|%20|%22|%2C|[-._,])';
-const AFTER = '(?:\\+|%20|%22|%2C|[-._,]|&|#|$)';
+// Word boundaries are deliberately minimal (a space as + or %20, or the parameter edge): every extra
+// alternative costs browser regex memory, and in real Chromium that costs about one Arabic letter each.
+const BEFORE = '(?:\\+|%20)';
+const AFTER = '(?:\\+|%20|&|#|$)';
 
 function encodedToken(token) {
     const encoded = encodeURIComponent(token);
@@ -80,24 +82,23 @@ export function buildPhraseRegex(mode, param, fragments) {
 }
 
 /**
- * Greedy packing of phrases into as few regex rules as the browser accepts.
- * `supports(regex)` -> Promise<boolean> (declarativeNetRequest.isRegexSupported). The longest
- * parameter name is used for the probe so the result is valid for every engine.
+ * Greedy packing of phrases into as few regex rules as the browser accepts for one query parameter.
+ * `supports(regex)` -> Promise<boolean> (declarativeNetRequest.isRegexSupported).
  * Returns { chunks: string[][], unsupported: string[] } deterministically for a given browser.
  */
-export async function packPhrases(phrases, mode, supports) {
+export async function packPhrases(phrases, mode, supports, param = LONGEST_PARAM) {
     const chunks = [];
     const unsupported = [];
     let current = [];
     for (const phrase of phrases) {
         const trial = [...current, phrase];
-        const regex = buildPhraseRegex(mode, LONGEST_PARAM, trial.map(phraseFragment));
+        const regex = buildPhraseRegex(mode, param, trial.map(phraseFragment));
         if (await supports(regex)) { current = trial; continue; }
         if (current.length) {
             chunks.push(current);
             current = [];
         }
-        const alone = buildPhraseRegex(mode, LONGEST_PARAM, [phraseFragment(phrase)]);
+        const alone = buildPhraseRegex(mode, param, [phraseFragment(phrase)]);
         if (await supports(alone)) current = [phrase];
         else unsupported.push(phrase);
     }
@@ -105,11 +106,11 @@ export async function packPhrases(phrases, mode, supports) {
     return { chunks, unsupported };
 }
 
-/** 1-based positions of phrases the browser cannot express as a rule on their own. */
-export async function findUnsupported(phrases, mode, supports) {
+/** 1-based positions of phrases the browser cannot express as a rule on their own for `param`. */
+export async function findUnsupported(phrases, mode, supports, param = 'q') {
     const bad = [];
     for (let i = 0; i < phrases.length; i++) {
-        const regex = buildPhraseRegex(mode, LONGEST_PARAM, [phraseFragment(phrases[i])]);
+        const regex = buildPhraseRegex(mode, param, [phraseFragment(phrases[i])]);
         if (!(await supports(regex))) bad.push(i + 1);
     }
     return bad;

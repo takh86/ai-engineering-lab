@@ -79,16 +79,24 @@ test('phrases: multi-word phrase tolerates repeated spaces and either space enco
 });
 
 test('packing is deterministic, respects the regex budget and reports unsupported phrases', async () => {
-    const supports = async regex => regex.length <= 150;
+    const lengthOf = (...phrases) => buildPhraseRegex('word', 'q', phrases.map(phraseFragment)).length;
     const phrases = ['alpha one', 'beta two', 'gamma three', 'delta four', 'epsilon five', 'zeta six'];
-    const first = await packPhrases(phrases, 'word', supports);
-    const second = await packPhrases(phrases, 'word', supports);
+    const limit = lengthOf(...phrases.slice(0, 3));
+    const supports = async regex => regex.length <= limit;
+    const first = await packPhrases(phrases, 'word', supports, 'q');
+    const second = await packPhrases(phrases, 'word', supports, 'q');
     assert.deepEqual(first, second);
     assert.ok(first.chunks.length >= 2 && first.unsupported.length === 0);
     assert.deepEqual(first.chunks.flat().sort(), [...phrases].sort());
-    const tooLong = await packPhrases(['x'.repeat(60), 'ok word'], 'word', async regex => regex.length <= 120);
+    for (const chunk of first.chunks) assert.ok(lengthOf(...chunk) <= limit);
+    const tight = lengthOf('ok word') + 5;
+    const tooLong = await packPhrases(['x'.repeat(60), 'ok word'], 'word', async regex => regex.length <= tight, 'q');
     assert.deepEqual(tooLong.unsupported, ['x'.repeat(60)]);
     assert.deepEqual(tooLong.chunks.flat(), ['ok word']);
+    // a longer parameter name leaves less room, so the same phrase can fit for q but not for search_query
+    const edge = lengthOf('alpha one');
+    assert.deepEqual((await packPhrases(['alpha one'], 'word', async regex => regex.length <= edge, 'q')).unsupported, []);
+    assert.deepEqual((await packPhrases(['alpha one'], 'word', async regex => regex.length <= edge, 'search_query')).unsupported, ['alpha one']);
 });
 
 test('settings: bounds, uniqueness, exact keys, conflicts with exceptions and search engines', () => {
