@@ -1,0 +1,490 @@
+{
+  "extName": {
+    "message": "تبصرة Tabsira"
+  },
+  "extShortName": {
+    "message": "Tabsira"
+  },
+  "extDescription": {
+    "message": "Blockiere Websites und Suchbegriffe, die du wählst – mit kurzer, respektvoller Hilfe im Moment. Komplett lokal, ohne Konto."
+  },
+  "common_back": {
+    "message": "Zurück"
+  },
+  "common_next": {
+    "message": "Weiter"
+  },
+  "common_cancel": {
+    "message": "Abbrechen"
+  },
+  "common_confirm": {
+    "message": "Bestätigen"
+  },
+  "common_help_now": {
+    "message": "Hilf mir jetzt"
+  },
+  "common_settings": {
+    "message": "Einstellungen"
+  },
+  "common_repair": {
+    "message": "Reparieren"
+  },
+  "common_loading": {
+    "message": "Wird geprüft …"
+  },
+  "common_back_to_tabsira": {
+    "message": "Zurück zu Tabsira"
+  },
+  "common_version": {
+    "message": "Version $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "state_not_configured": {
+    "message": "Das Blockieren ist noch nicht eingerichtet – aktuell wird nichts blockiert."
+  },
+  "state_active": {
+    "message": "Regeln sind installiert und die nötige Berechtigung ist vorhanden. Bestätige es mit dem sicheren Test."
+  },
+  "state_partial": {
+    "message": "Die Einrichtung ist unvollständig oder passt nicht – das Blockieren funktioniert eventuell nicht vollständig."
+  },
+  "state_unknown": {
+    "message": "Der Blockier-Status konnte nicht bestätigt werden. Versuche es erneut oder öffne die Einstellungen."
+  },
+  "reason_host_permission_missing": {
+    "message": "Die Berechtigung für Websites fehlt, daher werden blockierte Seiten nicht umgeleitet."
+  },
+  "reason_rules_mismatch": {
+    "message": "Die Regeln im Browser passen nicht zu deinen Einstellungen. Drücke „Reparieren“."
+  },
+  "reason_phrases_unsupported": {
+    "message": "Einige Begriffe sind länger, als der Browser bei manchen Suchmaschinen erlaubt, und werden dort nicht angewendet. Kürze sie."
+  },
+  "reason_config_corrupt": {
+    "message": "Die gespeicherten Einstellungen sind beschädigt. Bestehende Regeln blieben unverändert."
+  },
+  "reason_storage_error": {
+    "message": "Die gespeicherten Einstellungen konnten nicht gelesen werden."
+  },
+  "reason_api_error": {
+    "message": "Die Blockier-Schnittstelle des Browsers ist nicht erreichbar."
+  },
+  "reason_config_missing_rules_present": {
+    "message": "Gespeicherte Einstellungen fehlen, aber im Browser existieren Blockier-Regeln. Sie blieben unverändert."
+  },
+  "reason_onboarding_pending": {
+    "message": "Schließe die Ersteinrichtung ab, um das Blockieren zu aktivieren."
+  },
+  "reason_nothing_enabled": {
+    "message": "Alle Blockier-Optionen sind ausgeschaltet."
+  },
+  "incog_on": {
+    "message": "Privates Surfen: für die Erweiterung erlaubt."
+  },
+  "incog_off": {
+    "message": "Privates Surfen: für die Erweiterung nicht aktiviert. Aktiviere es bei Bedarf auf der Erweiterungsseite des Browsers."
+  },
+  "incog_unknown": {
+    "message": "Privates Surfen: nicht überprüfbar."
+  },
+  "lock_none": {
+    "message": "Keine Selbstverpflichtung aktiv."
+  },
+  "lock_active": {
+    "message": "Selbstverpflichtung aktiv bis $P1$. Du kannst nur stärkeren Schutz hinzufügen.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_limits": {
+    "message": "Blockiert nur die Websites und Begriffe, die du festlegst. Bilder und Seiteninhalte werden nicht geprüft."
+  },
+  "popup_tagline": {
+    "message": "Ein Raum für deine Entscheidung"
+  },
+  "blocked_title": {
+    "message": "Nehmen wir uns einen Moment"
+  },
+  "blocked_body": {
+    "message": "Diese Anfrage entsprach einer Regel in der von dir gewählten Blockliste."
+  },
+  "blocked_note": {
+    "message": "Die Seite wird von hier aus nicht geöffnet. Du kannst dir eine Minute nehmen und einen passenden nächsten Schritt wählen."
+  },
+  "blocked_privacy": {
+    "message": "Wir speichern weder die Seitenadresse noch den Suchtext, der hierher geführt hat."
+  },
+  "blocked_wrong": {
+    "message": "Falsch blockiert? Füge die Seite in den Einstellungen zu den Ausnahmen hinzu (während einer Selbstverpflichtung nicht möglich)."
+  },
+  "help_title": {
+    "message": "Schaffe Raum vor der Entscheidung"
+  },
+  "help_intro": {
+    "message": "Du musst nicht alles jetzt lösen. Lass uns nur diesen Moment verändern."
+  },
+  "help_timer_title": {
+    "message": "Eine Minute Abstand vom Bildschirm"
+  },
+  "help_timer_body": {
+    "message": "Nimm die Hand von der Maus, atme ruhig und steh auf, wenn du kannst."
+  },
+  "help_timer_label": {
+    "message": "Verbleibende Sekunden"
+  },
+  "help_start": {
+    "message": "Eine Minute starten"
+  },
+  "help_again": {
+    "message": "Noch eine Minute"
+  },
+  "help_note": {
+    "message": "Die Minute öffnet keine Seite und schaltet das Blockieren nicht ab."
+  },
+  "help_after": {
+    "message": "Wähle jetzt einen Schritt: Leg das Gerät weg, wechsle den Ort oder sprich mit einer Person, der du vertraust."
+  },
+  "help_next_title": {
+    "message": "Wähle deinen nächsten Schritt"
+  },
+  "help_next_body": {
+    "message": "Leg das Gerät weg, geh an einen gemeinsamen Ort oder melde dich bei jemandem, dem du vertraust."
+  },
+  "help_disclaimer": {
+    "message": "Diese Hilfe ist keine Behandlung und keine Garantie für Genesung. Wenn du fachliche Unterstützung brauchst, wende dich an Fachleute oder eine vertrauenswürdige Stelle in deinem Land."
+  },
+  "ob_title": {
+    "message": "Willkommen bei Tabsira"
+  },
+  "ob_progress": {
+    "message": "Schritt $P1$ von $P2$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "ob1_title": {
+    "message": "Was die Erweiterung tut"
+  },
+  "ob1_body": {
+    "message": "Sie blockiert die Websites und Suchbegriffe, die du wählst, und zeigt dann eine ruhige Seite mit kurzer Hilfe. Sie ergänzt andere Schutzmaßnahmen (z. B. eine Handy-App oder Familien-DNS), ersetzt sie nicht und ist keine bewiesene Behandlung."
+  },
+  "ob2_title": {
+    "message": "Warum Zugriff auf Websites nötig ist"
+  },
+  "ob2_body": {
+    "message": "Um eine blockierte Seite auf die Hilfeseite umzuleiten, verlangt der Browser den „Zugriff auf Websites“. Wir nutzen ihn nur für die Umleitung: Wir lesen keine Seiteninhalte und speichern nicht, was du besuchst."
+  },
+  "ob3_title": {
+    "message": "Datenschutz"
+  },
+  "ob3_body": {
+    "message": "Keine Konten, keine Analysen, keine Server. Liste und Einstellungen bleiben nur auf diesem Gerät und sind möglicherweise unverschlüsselt. Wir speichern keine Blockier-Versuche und senden nichts an andere."
+  },
+  "ob4_title": {
+    "message": "Grenzen"
+  },
+  "ob4_body": {
+    "message": "Die Erweiterung kann entfernt oder deaktiviert werden. Sie wirkt nicht in anderen Browsern oder bei lokalen Dateien; privates Surfen muss manuell erlaubt werden. Sie prüft keine Bilder oder Seiteninhalte und erkennt Suchen evtl. nicht, die sich ohne neues Laden auf der Seite ändern. Fertige Listen können eine Seite fälschlich blockieren – nutze Ausnahmen."
+  },
+  "ob5_title": {
+    "message": "Wähle den Start und teste"
+  },
+  "ob5_base": {
+    "message": "Integrierte Liste für Erwachsenen-Websites (in der Erweiterung enthalten, wird mit ihren Versionen aktualisiert)"
+  },
+  "ob5_starter": {
+    "message": "Start-Suchbegriffe (ganze Wörter, Arabisch und Englisch)"
+  },
+  "ob5_permission_ok": {
+    "message": "Zugriff auf Websites ist erteilt."
+  },
+  "ob5_permission_missing": {
+    "message": "Zugriff auf Websites ist noch nicht erteilt."
+  },
+  "ob5_grant": {
+    "message": "Zugriff auf Websites erteilen"
+  },
+  "ob5_grant_denied": {
+    "message": "Die Berechtigung wurde nicht erteilt. Ohne sie funktioniert das Blockieren nicht."
+  },
+  "ob5_start": {
+    "message": "Blockieren starten"
+  },
+  "ob5_done": {
+    "message": "Einrichtung abgeschlossen. Mache den sicheren Test zur Bestätigung."
+  },
+  "ob_already_done": {
+    "message": "Die Ersteinrichtung ist bereits abgeschlossen. Du kannst alles in den Einstellungen ändern."
+  },
+  "safe_test": {
+    "message": "Sicherer Test"
+  },
+  "safe_test_hint": {
+    "message": "Öffnet eine reservierte Test-Adresse. Erscheint die Tabsira-Seite, funktioniert das Blockieren in diesem Browser."
+  },
+  "opt_title": {
+    "message": "Tabsira-Einstellungen"
+  },
+  "opt_status": {
+    "message": "Status"
+  },
+  "opt_base_title": {
+    "message": "Integrierte Website-Liste"
+  },
+  "opt_base_label": {
+    "message": "Websites blockieren, die als Inhalte für Erwachsene eingestuft sind"
+  },
+  "opt_base_info": {
+    "message": "$P1$ Domains · Stand: $P2$. Die Einstufung ist automatisiert und von der Community; sie kann falsch sein, einzelne Domains werden nicht geprüft.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_starter_label": {
+    "message": "Start-Suchbegriffe (ganze Wörter)"
+  },
+  "opt_starter_show": {
+    "message": "Start-Begriffe anzeigen"
+  },
+  "opt_sites_title": {
+    "message": "Meine Websites"
+  },
+  "opt_sites_label": {
+    "message": "Zu blockierende Websites – eine pro Zeile"
+  },
+  "opt_sites_hint": {
+    "message": "Blockiert die Website und ihre Subdomains (example.com blockiert mail.example.com, aber nicht badexample.com). Nur die Domain eingeben, ohne Pfad."
+  },
+  "opt_allow_title": {
+    "message": "Ausnahmen"
+  },
+  "opt_allow_label": {
+    "message": "Erlaubte Websites (fälschlich blockiert) – eine pro Zeile"
+  },
+  "opt_allow_hint": {
+    "message": "Eine Ausnahme hat Vorrang vor der integrierten Liste und deinen Websites. Suchmaschinen können nicht ausgenommen werden. Eine Ausnahme schwächt den Schutz und ist daher während einer Selbstverpflichtung nicht erlaubt."
+  },
+  "opt_phrases_title": {
+    "message": "Suchbegriffe"
+  },
+  "opt_words_label": {
+    "message": "Ganze Wörter – ein Begriff pro Zeile (empfohlen)"
+  },
+  "opt_contains_label": {
+    "message": "Teilübereinstimmung – ein Begriff pro Zeile (breiter, kann harmlose Suchen blockieren)"
+  },
+  "opt_phrases_hint": {
+    "message": "Es wird nur im Suchparameter (q, p, search_query oder text) von Google, Bing, DuckDuckGo, Yahoo, YouTube, Yandex, Brave, Ecosia und Qwant geprüft, mit + oder %20 als Leerzeichen, ohne Beachtung der Groß-/Kleinschreibung. Arabische Diakritika und Tatwil werden entfernt; Alef-/Ya-Varianten werden nicht vereinheitlicht. Ein einzelner arabischer Begriff ist durch Browser-Grenzen auf etwa 12–14 Buchstaben begrenzt (weniger mit Leerzeichen). Suchen ohne neues Laden der Seite werden nicht erfasst."
+  },
+  "opt_save": {
+    "message": "Änderungen speichern"
+  },
+  "opt_saved": {
+    "message": "Gespeichert und Regeln installiert. Mache den sicheren Test."
+  },
+  "opt_session_title": {
+    "message": "Ich brauche jetzt stärkere Grenzen"
+  },
+  "opt_session_body": {
+    "message": "Eine Selbstverpflichtung verhindert innerhalb der Erweiterung alles, was den Schutz schwächt: Regel löschen, integrierte Liste ausschalten, Ausnahme hinzufügen, schwächere Einstellungen importieren oder zurücksetzen. Du kannst nur stärkeren Schutz hinzufügen. Sie endet pünktlich und erlaubt dann nur das Bearbeiten; sie entfernt keine Sperre. Eine Änderung der Geräteuhr verschiebt das Ende, und die Erweiterung kann im Browser weiterhin entfernt oder deaktiviert werden."
+  },
+  "opt_session_start": {
+    "message": "$P1$ Minuten",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_session_confirm": {
+    "message": "Eine Selbstverpflichtung von $P1$ Minuten starten? Bis zum Ende kannst du keine Regeln löschen, die Liste ausschalten oder Ausnahmen hinzufügen.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_session_started": {
+    "message": "Selbstverpflichtung gestartet."
+  },
+  "opt_backup_title": {
+    "message": "Sicherung"
+  },
+  "opt_backup_body": {
+    "message": "Der Export speichert deine Einstellungen (Websites, Begriffe, Ausnahmen) in einer Datei auf deinem Gerät. Die Datei ist nicht verschlüsselt, bewahre sie sorgfältig auf. Der Import führt die Datei mit deinen Einstellungen zusammen und schwächt den Schutz nie; während einer Selbstverpflichtung wird er abgelehnt, wenn er Ausnahmen hinzufügt."
+  },
+  "opt_export": {
+    "message": "Einstellungen exportieren"
+  },
+  "opt_import": {
+    "message": "Einstellungen importieren"
+  },
+  "opt_export_hint": {
+    "message": "Die Exportdatei enthält die gewählten Websites und Begriffe als unverschlüsselten Klartext. Bewahre sie privat auf."
+  },
+  "opt_imported": {
+    "message": "Importierte Einstellungen wurden zusammengeführt."
+  },
+  "opt_reset_title": {
+    "message": "Alle Regeln löschen"
+  },
+  "opt_reset": {
+    "message": "Alle Regeln löschen"
+  },
+  "opt_reset_confirm": {
+    "message": "Dadurch wird alles gelöscht und das Blockieren beendet. Bist du sicher?"
+  },
+  "opt_reset_done": {
+    "message": "Alle Regeln wurden gelöscht."
+  },
+  "opt_privacy_title": {
+    "message": "Datenschutz und Grenzen"
+  },
+  "opt_privacy_body": {
+    "message": "Keine Konten, keine Analysen, kein Verlauf, nichts wird an Server oder Personen gesendet. Deine Einstellungen werden lokal in diesem Browser gespeichert und sind möglicherweise unverschlüsselt. Wir speichern weder Blockier-Versuche noch deine Suchbegriffe."
+  },
+  "opt_limits_body": {
+    "message": "Nur Hauptseiten werden blockiert (keine eingebetteten Frames oder Bilder). Sie wirkt nicht in anderen Browsern oder bei lokalen Dateien. Sie kann entfernt oder deaktiviert werden, privates Surfen muss manuell erlaubt werden. Sie liest weder Bildschirm noch Bilder noch Seiteninhalte."
+  },
+  "err_domain_invalid": {
+    "message": "Dieser Website-Name ist ungültig."
+  },
+  "err_domain_empty": {
+    "message": "Leere Zeile."
+  },
+  "err_domain_wildcard_or_space": {
+    "message": "Gib eine Domain ohne Leerzeichen oder Sternchen ein."
+  },
+  "err_domain_has_path": {
+    "message": "Gib nur den Website-Namen ein, ohne Pfad, Port oder Zugangsdaten."
+  },
+  "err_domain_is_ip": {
+    "message": "IP-Adressen werden nicht unterstützt."
+  },
+  "err_domain_is_shared_suffix": {
+    "message": "Diese Domain beherbergt viele unabhängige Websites; gib die konkrete Website ein."
+  },
+  "err_allow_invalid": {
+    "message": "Diese Ausnahme ist ungültig."
+  },
+  "err_too_many_domains": {
+    "message": "Zu viele Websites (maximal $P1$).",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "err_too_many_phrases": {
+    "message": "Zu viele Begriffe (maximal $P1$).",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "err_phrase_invalid": {
+    "message": "Dieser Begriff ist ungültig."
+  },
+  "err_phrase_length": {
+    "message": "Jeder Begriff muss $P1$–$P2$ Zeichen lang sein.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "err_phrase_control_chars": {
+    "message": "Der Begriff enthält Steuerzeichen."
+  },
+  "err_phrase_no_letters": {
+    "message": "Der Begriff braucht mindestens zwei Buchstaben oder Ziffern."
+  },
+  "err_phrase_too_complex": {
+    "message": "Dieser Begriff ist länger, als der Browser für eine Regel erlaubt. Kürze ihn (Arabisch ≈ 12–14 Buchstaben)."
+  },
+  "err_conflict_domain_allow": {
+    "message": "Eine blockierte Website fällt unter eine Ausnahme. Löse den Konflikt auf."
+  },
+  "err_allow_search_engine": {
+    "message": "Eine Suchmaschine kann nicht ausgenommen werden."
+  },
+  "err_config_invalid": {
+    "message": "Die Einstellungen sind ungültig."
+  },
+  "err_config_corrupt": {
+    "message": "Die gespeicherten Einstellungen sind beschädigt. Du kannst sie in den Einstellungen löschen (während einer Selbstverpflichtung nicht möglich)."
+  },
+  "err_import_invalid": {
+    "message": "Die Datei ist kein gültiger Tabsira-Export."
+  },
+  "err_import_version": {
+    "message": "Die Dateiversion wird nicht unterstützt."
+  },
+  "err_import_too_large": {
+    "message": "Die Datei ist zu groß."
+  },
+  "err_locked_weakening": {
+    "message": "Eine Selbstverpflichtung ist aktiv: Diese Änderung würde den Schutz schwächen und ist jetzt nicht erlaubt. Du kannst nur stärkeren Schutz hinzufügen."
+  },
+  "err_stale": {
+    "message": "Die Einstellungen wurden in einem anderen Fenster geändert. Sie wurden neu geladen; prüfe und speichere erneut."
+  },
+  "err_apply_failed": {
+    "message": "Die Änderung konnte nicht angewendet werden, der vorherige Zustand wurde wiederhergestellt. Versuche es erneut."
+  },
+  "err_apply_failed_rollback_failed": {
+    "message": "Die Änderung ist fehlgeschlagen und der vorherige Zustand konnte nicht vollständig wiederhergestellt werden. Drücke „Reparieren“ zur Prüfung."
+  },
+  "err_storage_unavailable": {
+    "message": "Lokaler Speicher ist nicht verfügbar."
+  },
+  "err_session_needs_rules": {
+    "message": "Füge Websites oder Begriffe hinzu oder aktiviere die integrierte Liste, bevor du eine Sitzung startest."
+  },
+  "err_session_needs_active_protection": {
+    "message": "Eine Sitzung kann nur starten, wenn der Status „Regeln installiert“ ist. Behebe zuerst das angezeigte Problem."
+  },
+  "err_already_onboarded": {
+    "message": "Die Ersteinrichtung wurde bereits abgeschlossen."
+  },
+  "err_busy": {
+    "message": "Die Erweiterung bearbeitet gerade eine andere Anfrage (evtl. aus einem anderen Fenster). Versuche es gleich noch einmal."
+  },
+  "err_bad_request": {
+    "message": "Ungültige Anfrage."
+  },
+  "err_unexpected": {
+    "message": "Ein unerwarteter Fehler ist aufgetreten. Versuche es erneut."
+  },
+  "err_worker_unreachable": {
+    "message": "Der Hintergrunddienst der Erweiterung ist nicht erreichbar. Versuche es erneut."
+  },
+  "err_line": {
+    "message": " (Zeile $P1$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  }
+}

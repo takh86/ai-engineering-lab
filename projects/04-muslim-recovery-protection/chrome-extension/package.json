@@ -1,0 +1,17 @@
+{
+  "name": "tabsira",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Tabsira — local-only website and search-phrase blocker with short, respectful help at the moment of blocking.",
+  "engines": { "node": ">=20.11" },
+  "scripts": {
+    "test": "node --test \"tests/unit/*.test.mjs\"",
+    "build": "node scripts/build.mjs",
+    "verify-reproducible": "node scripts/verify-reproducible.mjs",
+    "test:e2e": "node tests/e2e/run.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.56.1"
+  }
+}

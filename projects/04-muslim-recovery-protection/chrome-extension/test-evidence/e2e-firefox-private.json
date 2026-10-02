@@ -1,0 +1,84 @@
+{
+  "meta": {
+    "browser": "firefox-private",
+    "version": "Mozilla Firefox 157.0",
+    "os": "Linux 6.18.44-fc-v51 (x64)",
+    "node": "v22.22.0",
+    "date": "2026-10-02T12:37:56.452Z",
+    "package": {
+      "target": "firefox",
+      "zip": "dist/tabsira-firefox-1.0.0.zip",
+      "zipSha256": "c5dade24516a3ff2319a150bf35463d49fec93d605582762751f1648562babf1",
+      "files": 48,
+      "manifestVersion": "1.0.0",
+      "variants": {
+        "release": "unmodified extraction of the ZIP",
+        "test": "manifest + declarativeNetRequestFeedback only",
+        "optional": "manifest: host access optional + declarativeNetRequestFeedback",
+        "live": "copy of release; manifest version raised in place for the update test"
+      }
+    },
+    "addonInstall": "temporary (geckodriver moz/addon/install, allowPrivateBrowsing true / false)"
+  },
+  "summary": {
+    "PASS": 11
+  },
+  "results": [
+    {
+      "id": "F9.0 setup: onboarding done; host permission granted to the temporary add-on",
+      "status": "PASS",
+      "detail": "{\"hosts\":true}"
+    },
+    {
+      "id": "F9.1 commitment session started (60 min)",
+      "status": "PASS",
+      "detail": "{}"
+    },
+    {
+      "id": "F9.2 status reports that private windows are allowed for the extension (incognitoAllowed=true)",
+      "status": "PASS",
+      "detail": "true"
+    },
+    {
+      "id": "F9.3 a real PRIVATE window (PrivateBrowsingUtils.isWindowPrivate) on a blocked site shows the Tabsira stop page",
+      "status": "PASS",
+      "detail": "{\"isPrivate\":true,\"url\":\"moz-extension://2f6f2d3e-0a4b-4d6e-8f10-6f3a1c2b9a77/blocked.html\",\"handles\":1}"
+    },
+    {
+      "id": "F9.4 private window: an unlisted site loads normally",
+      "status": "PASS",
+      "detail": "{\"url\":\"http://incog-ok.test/\",\"title\":\"REAL-SITE\"}"
+    },
+    {
+      "id": "F9.5 the settings page in the private window sees the SAME commitment and rules",
+      "status": "PASS",
+      "detail": "{\"lock\":true,\"domains\":[\"incog-site.test\"]}"
+    },
+    {
+      "id": "F9.6 commitment cannot be weakened from the private window (removal and exception both refused)",
+      "status": "PASS",
+      "detail": "[\"locked_weakening\",\"locked_weakening\"]"
+    },
+    {
+      "id": "F9.7 stronger protection added from the private window is enforced in it",
+      "status": "PASS",
+      "detail": "{\"ok\":true,\"url\":\"moz-extension://2f6f2d3e-0a4b-4d6e-8f10-6f3a1c2b9a77/blocked\"}"
+    },
+    {
+      "id": "F9.8 afterwards the normal instance still has session and rules (one shared state)",
+      "status": "PASS",
+      "detail": "{\"state\":\"active\",\"domains\":[\"incog-site.test\",\"incog-more.test\"]}"
+    },
+    {
+      "id": "F9.9 without \"Run in Private Windows\": status honestly reports incognitoAllowed=false",
+      "status": "PASS",
+      "detail": "false"
+    },
+    {
+      "id": "F9.10 documented limit: in a private window WITHOUT the switch the extension is not applied and the site loads",
+      "status": "PASS",
+      "detail": "{\"isPrivate\":true,\"url\":\"http://incog-site.test/\",\"title\":\"REAL-SITE\"}"
+    }
+  ],
+  "notes": []
+}

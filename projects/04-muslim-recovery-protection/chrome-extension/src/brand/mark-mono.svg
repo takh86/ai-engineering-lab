@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 550" width="580" height="550" role="img" aria-labelledby="title desc"><title id="title">Tabsira — تبصرة</title><desc id="desc">Monochrome vector filter symbol.</desc><defs>
+<linearGradient id="top" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#22C5F3"/><stop offset=".46" stop-color="#1456C5"/><stop offset="1" stop-color="#06266E"/></linearGradient>
+<linearGradient id="mid" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#13D4E8"/><stop offset=".5" stop-color="#039CF3"/><stop offset="1" stop-color="#0854AC"/></linearGradient>
+<linearGradient id="low" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#18C6EF"/><stop offset="1" stop-color="#0769ED"/></linearGradient>
+<linearGradient id="lime" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#CBF845"/><stop offset="1" stop-color="#9BDA20"/></linearGradient>
+</defs><g>
+<path fill="#0B3B8F" d="M82 20 H550 Q569 20 558 38 L520 93 Q499 121 463 121 H24 Q5 121 14 103 L46 52 Q60 20 82 20 Z"/>
+<path fill="#0B3B8F" d="M128 158 H466 Q485 158 475 174 L435 229 Q413 264 377 264 H123 C57 264 57 158 128 158 Z"/>
+<path fill="#0B3B8F" d="M173 294 H380 Q400 294 388 312 L345 372 Q331 391 312 391 H182 Q167 391 159 376 L143 349 C129 323 147 294 173 294 Z"/>
+<path fill="#0B3B8F" d="M198 420 H296 Q311 420 303 437 L254 522 Q244 540 234 522 L186 437 Q177 420 198 420 Z"/>
+</g></svg>

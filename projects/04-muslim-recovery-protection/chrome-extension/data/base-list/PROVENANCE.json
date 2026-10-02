@@ -1,0 +1,96 @@
+{
+  "name": "Tabsira built-in adult-sites list (ShadowWhisperer Adult UNION Sinfonietta pornography-hosts)",
+  "retrievedAt": "2026-10-02",
+  "decision": "Owner, 2026-10-02: only sources with an explicit licence allowing use, modification and redistribution (commercial use included), with their conditions met.",
+  "composition": "ShadowWhisperer Lists/Adult (The Unlicense) UNION Sinfonietta pornography-hosts (MIT), minus entries covered by a listed parent domain. Nothing else.",
+  "snapshotFile": "adult-domains.txt.gz (gzip of sorted, one domain per line)",
+  "snapshotEntries": 242750,
+  "snapshotSha256": "1a212324216c4140525e0fe441a15845dd39dca91ac7f4cf493008f431f94ef4",
+  "removedAsCoveredByParent": 21635,
+  "counts": {
+    "shadowWhisperer": 222623,
+    "sinfonietta": 61154,
+    "inBoth": 19392,
+    "shadowWhispererOnly": 203231,
+    "sinfoniettaOnly": 41762,
+    "union": 264385
+  },
+  "inputs": {
+    "shadowwhisperer-adult.txt": {
+      "name": "ShadowWhisperer BlockLists - Lists/Adult",
+      "repository": "https://github.com/ShadowWhisperer/BlockLists",
+      "path": "Lists/Adult",
+      "commit": "1404d49b73d3c986da869b33c03a9e617437e0df",
+      "commitDate": "2026-10-01T17:47:57-05:00",
+      "permalink": "https://raw.githubusercontent.com/ShadowWhisperer/BlockLists/1404d49b73d3c986da869b33c03a9e617437e0df/Lists/Adult",
+      "gitBlob": "fbbf471b33009efa2d812730032a89a85ccbfba9",
+      "sha256": "de136908d2b12b31ece5d5bee9e74748b364977a27840fab9a616f2e4b70b3d7",
+      "bytes": 3635639,
+      "validHostnames": 222623,
+      "rejectedLines": 0,
+      "headerLines": [
+        "# Domains: 222,623",
+        "# Updated: 9/24/2026  17:13 (5:13 PM CST)"
+      ],
+      "licence": {
+        "name": "The Unlicense",
+        "permalink": "https://raw.githubusercontent.com/ShadowWhisperer/BlockLists/1404d49b73d3c986da869b33c03a9e617437e0df/LICENSE",
+        "gitBlob": "fdddb29aa445bf3d6a5d843d6dd77e10a9f99657",
+        "sha256": "6b0382b16279f26ff69014300541967a356a666eb0b91b422f6862f6b7dad17e",
+        "committedCopy": "data/base-list/licenses/LICENSE-ShadowWhisperer-Unlicense.txt"
+      }
+    },
+    "sinfonietta-pornography-hosts.txt": {
+      "name": "Sinfonietta hostfiles - pornography-hosts",
+      "repository": "https://github.com/Sinfonietta/hostfiles",
+      "path": "pornography-hosts",
+      "commit": "46f3097d7bcfc9eea323fe365074dfd771d0d17c",
+      "commitDate": "2026-09-08T22:09:06-04:00",
+      "permalink": "https://raw.githubusercontent.com/Sinfonietta/hostfiles/46f3097d7bcfc9eea323fe365074dfd771d0d17c/pornography-hosts",
+      "gitBlob": "198ab532a3bd3f3114c4dc36483cfa33b6425fb5",
+      "sha256": "d5c31a7ee9f1920df47044270449ad42a1b09ad4f3b608410383abaabb27fa1d",
+      "bytes": 1547661,
+      "validHostnames": 61154,
+      "rejectedLines": 6,
+      "headerLines": [],
+      "licence": {
+        "name": "MIT, Copyright (c) 2016 Sinfonietta",
+        "permalink": "https://raw.githubusercontent.com/Sinfonietta/hostfiles/46f3097d7bcfc9eea323fe365074dfd771d0d17c/LICENSE",
+        "gitBlob": "514145afc3039857bf41fb81f4d590dc6b210b94",
+        "sha256": "b32ce488900c449c858b636ac18aab77ae483586508e3aa2e6a916d7a6ace1ae",
+        "committedCopy": "data/base-list/licenses/LICENSE-Sinfonietta-MIT.txt"
+      }
+    }
+  },
+  "licenceCoverage": {
+    "shadowwhisperer-adult.txt": "Single root LICENSE (The Unlicense) in the repository that contains the file; no licence, header or README term restricts Lists/Adult; no other licence file exists in the repository; README says lists are made by the maintainer from a custom script and manual additions and that other lists are not merged; contributions arrive as issues, not as merged lists. Note: the Unlicense text speaks of \"software\"; the list file is part of the licensed repository and is treated as covered - a legal interpretation, not a separate grant.",
+    "sinfonietta-pornography-hosts.txt": "Single root LICENSE (MIT, Copyright (c) 2016 Sinfonietta) in the repository that contains the file; no file-level or directory-level exception; the file has no header or comment lines. Conditions: the copyright and permission notice must accompany copies or substantial portions - they ship in THIRD_PARTY_NOTICES.txt. The file has many contributors (pull requests); contributions made on GitHub to a repository carrying a licence are licensed under that licence (GitHub Terms of Service, section D.6). The project does not document where individual entries came from (README: \"collection\"); some were added from issues in the MIT-licensed StevenBlack/hosts project. We have not verified and cannot verify the origin of each entry."
+  },
+  "examinedAndExcluded": {
+    "The Block List Project porn.txt": "Excluded entirely. A collecting project; its licence alone does not prove the rights of the sources it collected from, and 492,511 of its entries could not be attributed to any examined source.",
+    "HaGeZi dns-blocklists nsfw": "Excluded: GNU GPL-3.0 (copyleft), not usable inside this extension under the Owner decision.",
+    "zachlagden Pi-hole-Optimized-Blocklists nsfw": "Excluded: no licence file.",
+    "Clefspeare13 pornhosts": "Excluded: licence not verifiable from the upstream repository."
+  },
+  "topTlds": {
+    "com": 143530,
+    "net": 15675,
+    "org": 6193,
+    "xyz": 4960,
+    "ru": 4287,
+    "cc": 4266,
+    "info": 3251,
+    "uk": 3133,
+    "nl": 3123,
+    "top": 2885
+  },
+  "benignCanariesChecked": 140,
+  "transform": [
+    "lowercase",
+    "drop entries that are not valid hostnames",
+    "union of the two pinned files",
+    "drop entries covered by a listed parent domain",
+    "sort",
+    "refuse to write if any known-benign canary is covered"
+  ]
+}

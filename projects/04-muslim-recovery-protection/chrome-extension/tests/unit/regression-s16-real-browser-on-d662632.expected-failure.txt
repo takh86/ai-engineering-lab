@@ -1,0 +1,10 @@
+# chromium 141.0.7390.37 on Linux 6.18.44-fc-v51 (x64)
+# package ../../../../../../tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old-wt/projects/04-muslim-recovery-protection/chrome-extension/dist/tabsira-chromium-1.0.0.zip sha256 a1d20ce03b307c9f75c31869fa1b9bff099e89af972f7abb68c76582c8b5f453
+FAIL  S16.1 paused save in the normal window + START_SESSION from the private window: the session start waits for the write, both succeed, and the session is intact afterwards  -> {"paused":true,"midway":"done","saved":true,"started":false,"active":false}
+PASS  S16.2 the saved site is enforced and the private instance reports the identical session end
+FAIL  S16.3a while a frozen holder's lease is valid, the other instance fails closed ("busy") instead of writing blindly  -> {"paused2":true,"first":"session_needs_active_protection","waitedMs":27}
+FAIL  S16.3b after the lease expired the other instance extends the session to 120 min; when the frozen write then resumes the session is NOT shortened or erased  -> {"extended":false,"savedB":"ok","remainingMin":-29848817}
+FAIL  S16.4 afterwards the browser rules match the stored settings (no half-applied state) and weakening is still refused
+
+SUMMARY {"FAIL":4,"PASS":1}
+exit 1

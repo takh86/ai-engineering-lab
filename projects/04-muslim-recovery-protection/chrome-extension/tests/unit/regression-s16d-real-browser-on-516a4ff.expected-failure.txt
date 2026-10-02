@@ -1,0 +1,8 @@
+# chromium 141.0.7390.37 on Linux 6.18.44-fc-v51 (x64)
+# package ../../../../../../tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old8/projects/04-muslim-recovery-protection/chrome-extension/dist/tabsira-chromium-1.0.0.zip sha256 4c75a9e22f5e2295802c735469640fca05a66ea75f66b7fe68de3386293fcde5
+PASS  S16d.1 preconditions: frozen save, newer sites saved and session started from the other instance, newer sites blocked before the stale write
+PASS  S16d.2 the stale rule write lands and the worker is terminated before it can reconcile: rules are EMPTY and protection is lost right after (the hazard exists)
+FAIL  S16d.3 WITHOUT opening Popup/Options, GET_STATUS or REPAIR, protection is restored automatically (watchdog wake-up); time recorded  -> {"recoveredAfterSec":null,"observed":[{"atSec":11,"keepBlocked":false,"newBlocked":false},{"atSec":21,"keepBlocked":false,"newBlocked":false},{"atSec":31,"keepB
+PASS  S16d.4 afterwards the stored sites and the session are intact and the rules equal the stored settings
+
+SUMMARY {"PASS":3,"FAIL":1}

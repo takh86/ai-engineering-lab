@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-title="extShortName">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tabsira</title>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="center">
+  <img class="mark" src="brand/mark.svg" alt="" width="56" height="53">
+  <p class="tag" data-i18n="common_help_now"></p>
+  <h1 data-i18n="help_title"></h1>
+  <p data-i18n="help_intro"></p>
+  <section>
+    <h2 data-i18n="help_timer_title"></h2>
+    <p data-i18n="help_timer_body"></p>
+    <div class="timer" role="timer" aria-live="off" data-i18n-attr="aria-label:help_timer_label">
+      <svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><circle class="track" cx="50" cy="50" r="45"/><circle class="progress" id="ring" cx="50" cy="50" r="45"/></svg>
+      <output id="timer">60</output>
+    </div>
+    <button id="start" type="button" data-i18n="help_start"></button>
+    <p id="step" role="status" data-i18n="help_note"></p>
+  </section>
+  <section>
+    <h2 data-i18n="help_next_title"></h2>
+    <p data-i18n="help_next_body"></p>
+    <p class="hint" data-i18n="help_disclaimer"></p>
+  </section>
+  <a class="button secondary" href="options.html" data-i18n="common_back_to_tabsira"></a>
+</main>
+<script type="module" src="help.js"></script>
+</body>
+</html>
