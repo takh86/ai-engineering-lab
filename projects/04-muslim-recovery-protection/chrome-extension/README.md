@@ -1,4 +1,4 @@
-# تبصرة — Tabsira (browser extension)
+# تبصرة Tabsira (browser extension)
 
 A local-only extension for adults who chose to protect themselves online: it blocks websites and search phrases
 **you** choose, then turns the moment of blocking into a short, respectful pause with help. It complements the

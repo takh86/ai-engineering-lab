@@ -16,7 +16,7 @@ import/export and help page all serve that one purpose.)
 
 | | Arabic (default) | English | Deutsch |
 |---|---|---|---|
-| Name | تبصرة — Tabsira | Tabsira — تبصرة | Tabsira — تبصرة |
+| Name | تبصرة Tabsira | تبصرة Tabsira | تبصرة Tabsira |
 | Summary (≤132) | حجب مواقع وعبارات بحث تختارها بنفسك، ومساعدة قصيرة وقت الرغبة. محلي بالكامل: بلا حسابات ولا تتبع. | Block sites and search phrases you choose, with short, respectful help in the moment. Fully local: no accounts, no tracking. | Blockiere Websites und Suchbegriffe, die du wählst – mit kurzer, respektvoller Hilfe im Moment. Komplett lokal, ohne Konto. |
 
 ## Long description — English

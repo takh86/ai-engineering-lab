@@ -10,7 +10,7 @@ M = {}
 def add(key, ar, en, de): M[key] = {'ar': ar, 'en': en, 'de': de}
 
 # ---- manifest ----
-add('extName', 'تبصرة — Tabsira', 'Tabsira — تبصرة', 'Tabsira — تبصرة')
+add('extName', 'تبصرة Tabsira', 'تبصرة Tabsira', 'تبصرة Tabsira')
 add('extShortName', 'تبصرة', 'Tabsira', 'Tabsira')
 add('extDescription',
     'حجب مواقع وعبارات بحث تختارها بنفسك، ومساعدة قصيرة وقت الرغبة. محلي بالكامل: بلا حسابات ولا تتبع.',
