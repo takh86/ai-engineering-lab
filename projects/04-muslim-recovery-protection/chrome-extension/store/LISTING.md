@@ -101,7 +101,8 @@ Selbsthilfe-Werkzeug, keine Behandlung, ohne Heilungsversprechen.
 | `storage` | Saves your block list, exceptions, phrases, switches and the end time of a commitment session in this browser only, so rules survive restarts. |
 | `declarativeNetRequest` | Lets the browser itself apply the block rules (redirect a blocked page to Tabsira’s help page). Tabsira never sees the pages you visit; rules are evaluated by the browser. |
 | Host access `http://*/*`, `https://*/*` | Required by the browser for a redirect action: Tabsira can only redirect a blocked page for any site you choose if it has host access. It is **not** used to read, modify or collect page content. There are no content scripts. |
-| *(not requested)* | `tabs`, `webNavigation`, `webRequest`, `history`, `cookies`, `activeTab`, `scripting`, `downloads`, `alarms`, `declarativeNetRequestFeedback` — deliberately not used. |
+| `alarms` | A local once-a-minute timer that wakes Tabsira to check that the browser's block rules still match your saved settings, and to rebuild them if a browser or extension restart left them out of date. No data is read or sent. (No install warning.) |
+| *(not requested)* | `tabs`, `webNavigation`, `webRequest`, `history`, `cookies`, `activeTab`, `scripting`, `downloads`, `declarativeNetRequestFeedback` — deliberately not used. |
 
 **Remote code:** none. All code and the block list are inside the package. No `eval`, no external scripts (CSP: `script-src 'self'`).
 

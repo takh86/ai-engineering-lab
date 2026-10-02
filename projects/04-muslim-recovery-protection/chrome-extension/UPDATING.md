@@ -41,4 +41,4 @@ choice; the price is that a list is as fresh as the last release.
 
 An extension update resets which static rulesets are enabled to the manifest default (disabled). The service worker
 re-applies the stored configuration on `onInstalled`, browser start and permission changes. This was verified in
-Chromium (see `TESTING.md`, S7.11). Between the update and the first worker run the built-in list may be briefly off.
+Chromium (see `TESTING.md`, S7.11). Until the worker's first run after the update the built-in list is off; the first worker run (any event, or the watchdog alarm within about a minute) restores it.

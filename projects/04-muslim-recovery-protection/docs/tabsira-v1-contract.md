@@ -41,7 +41,11 @@ proposal** needing an Owner decision (see "Proposals needing a decision" in `chr
 | 4 | Apply the approved visual identity (palette, Cairo Bold + Tajawal, blue/lime filter mark) to Popup, Options, Onboarding, Blocked, Help; no unverified safety claims, no family/report/monitoring features, no "stop protection" as the primary action; original SVG not claimed. | `src/ui/tokens.css`, `chrome-extension/docs/brand/ASSETS.md`; the mark is a **redraw** from the reference image (not the designer's SVG); contrast and layout tested (`tokens.test.mjs`, S15). |
 | 5 | Security and Red Team review; real screenshots; freeze a commit; test the packages themselves; new PR to `main` completing PR #73's prototype; do not merge or publish. | `tabsira-security-review.md` (self-review, not independent — stated); e2e extracts and tests the release ZIPs; new PR. |
 
+## Permission added after the review of `516a4ff` — Owner decision
+`alarms` (no install warning in Chrome/Edge/Firefox) was added to wake the extension after its worker is terminated, so rules left stale by a late write are rebuilt (README "Recovery"; security review F12). It is the only mechanism available without broader permissions. Store listing, privacy policy and README were updated. **Refusing it is possible** (remove it from `scripts/build.mjs`; the documented gap then stands).
+
 ## Unresolved decisions (Owner)
+- **`alarms` permission** (above).
 - **List licence sign-off** — especially the 492,511 **unattributed** Block List Project entries (origin unknown, found in no other examined source; strict alternative ≈ 276 k entries, whose size difference is not a coverage measurement) — see `data/base-list/README.md`.
 - **Master SVG** of the Tabsira mark (the shipped mark is a redraw), and an approved store icon/promo design.
 - **Independent** security reviewer for the final round (this round was a self-review).

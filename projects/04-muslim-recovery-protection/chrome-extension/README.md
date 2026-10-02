@@ -68,9 +68,10 @@ private. Full text: [`store/privacy-policy.html`](store/privacy-policy.html).
 |---|---|
 | `storage` | Keep your settings across restarts. |
 | `declarativeNetRequest` | Let the browser apply the rules itself. |
+| `alarms` | **Added after the review of `516a4ff` — Owner decision pending.** No install warning. A once-a-minute local timer that wakes the extension to check that the browser's rules still match your settings and rebuild them if not (see "Recovery"). Nothing is sent anywhere. |
 | Website access (`http://*/*`, `https://*/*`) | Required by the browser to *redirect* a blocked page to the help page for any site you choose. Not used to read or change pages; **no content scripts.** |
 
-Not requested: `tabs`, `webNavigation`, `webRequest`, `history`, `cookies`, `activeTab`, `scripting`, `alarms`, `downloads`.
+Not requested: `tabs`, `webNavigation`, `webRequest`, `history`, `cookies`, `activeTab`, `scripting`, `downloads`.
 No `web_accessible_resources` in the Chrome/Edge package, so websites cannot detect the extension by its fixed ID (verified: a hostile page cannot frame, load, script or fetch any extension file); Chrome/Edge do set `incognito: "split"` so the stop page can be shown in private windows. Firefox requires exactly one web-accessible resource (`blocked.html`) for the redirect, and its add-on host is a random per-profile UUID. CSP `default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'`.
 The worker accepts only schema-validated messages from the extension's own popup/settings/onboarding pages.
 
@@ -89,8 +90,27 @@ The worker accepts only schema-validated messages from the extension's own popup
   from the private window is refused. Two windows saving at once are serialised by a lease-based lock; if a worker is frozen for longer than the 20 s
   lease the other one proceeds, and whatever the frozen one writes when it resumes is ranked below the newer records and ignored; rules are rebuilt from storage.
 - **Clock changes, disabling, removing, other browsers/profiles, local files** are outside any guarantee.
-- **Updates:** browsers reset which static ruleset is enabled on an extension update; the worker re-applies your settings
-  immediately (verified) but there can be a brief gap.
+- **Updates:** browsers reset which static ruleset is enabled on an extension update; the worker re-applies your settings when it starts
+  (verified). Until that first run the built-in list is off; the watchdog (below) bounds how long a missed run can last.
+
+## Recovery — when protection is restored after something goes wrong
+
+Browser rules are *derived* state: the browser offers no conditional write, so a worker that was frozen and resumes late can still land a stale rule write.
+The stored settings and session are never affected (append-only records, write-once keys), but the **browser rules can differ from them until they are rebuilt**.
+They are rebuilt from the stored settings, under the write lock, by whichever of these happens first:
+
+| Trigger | When | Needs |
+|---|---|---|
+| The late worker itself (it notices it lost its lease) | immediately | the worker survives the next few milliseconds |
+| **Watchdog alarm** (`alarms` permission) | within about one alarm period — 1 minute requested; measured **32 s** (Chromium, Chrome for Testing, Edge) and **53 s** (Firefox; the Firefox figure is for rules removed behind the extension's back) in one run each, with the worker terminated right after the stale write and no Popup/Options opened; the real time depends on the alarm's phase and is bounded by roughly the 60 s period | browser running, extension enabled, timer firing (a sleeping or suspended computer fires it on wake) |
+| Every start of the extension's worker (message, storage or permission event) | at that moment | the event |
+| Browser start (`onStartup`), extension install/update | at that moment | — |
+| Opening Popup/Options/Onboarding, or "Repair" | at that moment | the user |
+
+**While rules differ from the stored settings** (at worst until the watchdog fires) the browser enforces the *rules*, not the settings: a rule that a stale write removed
+does not block, and a rule it added still blocks. Starting a commitment session is refused during a mismatch, and the status says so (`rules_mismatch`) as soon as it is looked at.
+**Not covered:** the extension disabled or removed, the browser not running or the computer asleep, and the `alarms` permission refused by the browser.
+Without the `alarms` permission (the previous release) a terminated worker was *not* recovered until one of the other triggers happened — measured: 170 s without recovery (`tests/unit/regression-s16d-real-browser-on-516a4ff.expected-failure.txt`).
 
 ## Install (testing)
 

@@ -4,11 +4,11 @@
     "version": "154.0.4258.53",
     "os": "Linux 6.18.44-fc-v51 (x64)",
     "node": "v22.22.0",
-    "date": "2026-10-02T09:59:14.418Z",
+    "date": "2026-10-02T10:40:42.285Z",
     "package": {
       "target": "chromium",
       "zip": "dist/tabsira-chromium-1.0.0.zip",
-      "zipSha256": "4c75a9e22f5e2295802c735469640fca05a66ea75f66b7fe68de3386293fcde5",
+      "zipSha256": "a07e55d609d10f387b49195092ae99cb3d772d2d00f99f87820a3bd3c1e3864a",
       "files": 48,
       "manifestVersion": "1.0.0",
       "variants": {
@@ -20,7 +20,7 @@
     }
   },
   "summary": {
-    "PASS": 149,
+    "PASS": 153,
     "NOT_RUN": 2
   },
   "results": [
@@ -172,17 +172,17 @@
     {
       "id": "S4.1 does not block notblocked-user.test",
       "status": "PASS",
-      "detail": "http://notblocked-user.test:39331/"
+      "detail": "http://notblocked-user.test:43349/"
     },
     {
       "id": "S4.1 does not block blocked-user.test.evil.example",
       "status": "PASS",
-      "detail": "http://blocked-user.test.evil.example:39331/"
+      "detail": "http://blocked-user.test.evil.example:43349/"
     },
     {
       "id": "S4.1 does not block blocked-user.tests.example",
       "status": "PASS",
-      "detail": "http://blocked-user.tests.example:39331/"
+      "detail": "http://blocked-user.tests.example:43349/"
     },
     {
       "id": "S4.2 exception for a subdomain beats the parent block; siblings stay blocked",
@@ -302,27 +302,27 @@
     {
       "id": "S5.3 allowed: phrase only in another parameter",
       "status": "PASS",
-      "detail": "http://www.google.com:39331/search?q=ordinary&note=tabsira+word"
+      "detail": "http://www.google.com:43349/search?q=ordinary&note=tabsira+word"
     },
     {
       "id": "S5.3 allowed: param name boundary (aq)",
       "status": "PASS",
-      "detail": "http://www.google.com:39331/search?aq=tabsira+word"
+      "detail": "http://www.google.com:43349/search?aq=tabsira+word"
     },
     {
       "id": "S5.3 allowed: word mode: embedded in a longer word",
       "status": "PASS",
-      "detail": "http://www.google.com:39331/search?q=xtabsira+words"
+      "detail": "http://www.google.com:43349/search?q=xtabsira+words"
     },
     {
       "id": "S5.3 allowed: phrase in the path, not the query",
       "status": "PASS",
-      "detail": "http://www.google.com:39331/search?x=1"
+      "detail": "http://www.google.com:43349/search?x=1"
     },
     {
       "id": "S5.3 allowed: different engine param (p on google)",
       "status": "PASS",
-      "detail": "http://www.google.com:39331/search?p=tabsira+word"
+      "detail": "http://www.google.com:43349/search?p=tabsira+word"
     },
     {
       "id": "S5.3 allowed: phrase in path only",
@@ -482,7 +482,7 @@
     {
       "id": "S9.2 private window WITHOUT the switch: extension is not applied, the site loads (documented limit; manual enable needed)",
       "status": "PASS",
-      "detail": "http://incog-site.test:39331/"
+      "detail": "http://incog-site.test:43349/"
     },
     {
       "id": "S9.3 status reports private windows allowed (incognitoAllowed=true) and protection still active",
@@ -522,27 +522,27 @@
     {
       "id": "S11.1 enabling the full built-in list succeeds",
       "status": "PASS",
-      "detail": "117 ms"
+      "detail": "119 ms"
     },
     {
       "id": "S11.2 enabling takes under 15 s",
       "status": "PASS",
-      "detail": "117 ms"
+      "detail": "119 ms"
     },
     {
       "id": "S11.3 navigation overhead with the list on is under 50 ms (median of 25, local server)",
       "status": "PASS",
-      "detail": "off 44 ms / on 43 ms"
+      "detail": "off 43 ms / on 46 ms"
     },
     {
       "id": "S11.4 per-URL matching cost with the list is under 5 ms",
       "status": "PASS",
-      "detail": "0.43 ms / 0.49 ms"
+      "detail": "0.54 ms / 0.46 ms"
     },
     {
       "id": "S11.5 total browser memory increase from the list is under 400 MB",
       "status": "PASS",
-      "detail": "1012 MB → 1029 MB"
+      "detail": "1013 MB → 1030 MB"
     },
     {
       "id": "S12.1 keyboard Tab reaches every interactive control on the settings page (17 controls)",
@@ -697,7 +697,7 @@
     {
       "id": "S16.3a while a frozen holder's lease is valid, the other instance fails closed (\"busy\") instead of writing blindly",
       "status": "PASS",
-      "detail": "{\"paused2\":true,\"first\":\"busy\",\"waitedMs\":19994}"
+      "detail": "{\"paused2\":true,\"first\":\"busy\",\"waitedMs\":19998}"
     },
     {
       "id": "S16.3b after the lease expired the other instance extends the session to 120 min; when the frozen write then resumes the session is NOT shortened or erased",
@@ -732,7 +732,7 @@
     {
       "id": "S16c.1 precondition: the private instance's first session was recorded, then aged to \"ended\"; the cleanup froze inside the real removal",
       "status": "PASS",
-      "detail": "{\"first\":true,\"aged\":[\"lock:5-1:889d3f8b-0041-4ad2-b9b5-d06eb477f7a4\"],\"ended\":true,\"frozen\":true}"
+      "detail": "{\"first\":true,\"aged\":[\"lock:5-1:8d478ef9-b3d8-403e-aea1-26e23ecce18f\"],\"ended\":true,\"frozen\":true}"
     },
     {
       "id": "S16c.2 while the frozen worker's lease is valid the private instance fails closed (\"busy\"); after expiry it starts a NEW 120-minute session",
@@ -748,6 +748,26 @@
       "id": "S16c.4 a save that deletes every blocked site is still refused, the sites and rules stay, navigation is still blocked",
       "status": "PASS",
       "detail": "{\"weak\":\"locked_weakening\",\"domains\":[\"clean-keep.test\",\"clean-second.test\"],\"blocked\":true}"
+    },
+    {
+      "id": "S16d.1 preconditions: frozen save, newer sites saved and session started from the other instance, newer sites blocked before the stale write",
+      "status": "PASS",
+      "detail": "{\"frozen\":true,\"newer\":true,\"started\":true,\"beforeRelease\":{\"keep\":true,\"added\":true}}"
+    },
+    {
+      "id": "S16d.2 the stale rule write lands and the worker is terminated before it can reconcile: rules are EMPTY and protection is lost right after (the hazard exists)",
+      "status": "PASS",
+      "detail": "{\"rulesAfterStale\":[],\"lostRightAfter\":{\"keep\":true,\"added\":true},\"extensionPagesOpen\":0}"
+    },
+    {
+      "id": "S16d.3 WITHOUT opening Popup/Options, GET_STATUS or REPAIR, protection is restored automatically (watchdog wake-up); time recorded",
+      "status": "PASS",
+      "detail": "{\"recoveredAfterSec\":32,\"observed\":[{\"atSec\":11,\"keepBlocked\":false,\"newBlocked\":false},{\"atSec\":21,\"keepBlocked\":false,\"newBlocked\":false},{\"atSec\":32,\"keepBlocked\":true,\"newBlocked\":true}]}"
+    },
+    {
+      "id": "S16d.4 afterwards the stored sites and the session are intact and the rules equal the stored settings",
+      "status": "PASS",
+      "detail": "{\"state\":\"active\",\"lock\":true,\"domains\":[\"life-keep.test\",\"life-new.test\"],\"oldSiteLoads\":true}"
     },
     {
       "id": "S17.1 a hostile web page cannot embed, load, script, fetch or open any extension page or file",
@@ -791,7 +811,7 @@
     },
     {
       "id": "S11",
-      "text": "{\"browser\":\"msedge/msedge\",\"listDomains\":714093,\"extensionReadyMs\":2125,\"enableBaseListMs\":117,\"navMedianOffMs\":44,\"navMedianOnMs\":43,\"rssOffMB\":1012,\"rssOnMB\":1029,\"matchMsPerUrl\":0.43,\"phraseMatchMsPerUrl\":0.49}"
+      "text": "{\"browser\":\"msedge/msedge\",\"listDomains\":714093,\"extensionReadyMs\":2264,\"enableBaseListMs\":119,\"navMedianOffMs\":43,\"navMedianOnMs\":46,\"rssOffMB\":1013,\"rssOnMB\":1030,\"matchMsPerUrl\":0.54,\"phraseMatchMsPerUrl\":0.46}"
     },
     {
       "id": "S12",
@@ -808,6 +828,10 @@
     {
       "id": "S16b",
       "text": "the frozen save finished as busy"
+    },
+    {
+      "id": "S16d",
+      "text": "protection restored automatically after 32 s (first checked 10 s after the worker was terminated, then every 10 s; real navigations only)"
     },
     {
       "id": "S17-history",

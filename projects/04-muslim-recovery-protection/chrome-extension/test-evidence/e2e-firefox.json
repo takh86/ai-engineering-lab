@@ -4,11 +4,11 @@
     "version": "Mozilla Firefox 157.0",
     "os": "Linux 6.18.44-fc-v51 (x64)",
     "node": "v22.22.0",
-    "date": "2026-10-02T10:04:52.623Z",
+    "date": "2026-10-02T10:47:30.198Z",
     "package": {
       "target": "firefox",
       "zip": "dist/tabsira-firefox-1.0.0.zip",
-      "zipSha256": "94bf51ab86da823c235dd2718868a8512386eec4310d27d00d8c2f26ff0f94dc",
+      "zipSha256": "36b7ef250de3f1cc9836c9478bbb1ffde020e665457a12946051243129c669ab",
       "files": 48,
       "manifestVersion": "1.0.0",
       "variants": {
@@ -22,7 +22,7 @@
     "note": "Firefox build is the conda-forge repackaging of the Mozilla release, not a mozilla.org download"
   },
   "summary": {
-    "PASS": 43,
+    "PASS": 44,
     "NOT_RUN": 1
   },
   "results": [
@@ -232,9 +232,14 @@
       "detail": "{\"state\":\"active\",\"reasons\":[]}"
     },
     {
+      "id": "F10.1 rules (and the built-in list) removed behind our back are restored AUTOMATICALLY by the watchdog alarm, without any status request",
+      "status": "PASS",
+      "detail": "{\"lostNow\":true,\"recoveredAfterSec\":53}"
+    },
+    {
       "id": "F8.1 median local navigation with the full built-in ruleset enabled is under 250 ms",
       "status": "PASS",
-      "detail": "99 ms"
+      "detail": "97 ms"
     },
     {
       "id": "F6b.1 withdrawn website permission is detected (status partial + specific reason)",
@@ -250,15 +255,19 @@
   "notes": [
     {
       "id": "F2",
-      "text": "onboarding+enable base list took 5992 ms; host permission granted: true; RSS (all Firefox processes) before ≈ 1113 MB, after enable ≈ 1607 MB"
+      "text": "onboarding+enable base list took 4770 ms; host permission granted: true; RSS (all Firefox processes) before ≈ 1127 MB, after enable ≈ 1615 MB"
     },
     {
       "id": "F4.2",
       "text": "Firefox accepted a phrase that Chromium/Edge refuse (regex memory limit); the extension still validates through isRegexSupported on each browser."
     },
     {
+      "id": "F10",
+      "text": "Firefox: protection restored automatically after 53 s (checked every 10 s; real navigations only)"
+    },
+    {
       "id": "F8",
-      "text": "Firefox median navigation (15 loads, local proxy) with base list on: 99 ms; RSS (all Firefox processes) ≈ 1481 MB"
+      "text": "Firefox median navigation (15 loads, local proxy) with base list on: 97 ms; RSS (all Firefox processes) ≈ 1496 MB"
     },
     {
       "id": "F6b",

@@ -3,6 +3,7 @@
 Nothing below has been done. No account was created, no fee paid, nothing uploaded or published.
 
 ## Before any submission
+- [ ] **Decide the `alarms` permission** (added in the watchdog fix after the review of `516a4ff`; no install warning; it is the only mechanism that recovers protection after a terminated worker — see `README.md` "Recovery"). If you refuse it, remove it from `scripts/build.mjs`, `store/LISTING.md` and `store/privacy-policy.html`, and accept the documented gap (no automatic recovery until browser start, extension reload, or opening Popup/Options).
 - [ ] Review and approve: Arabic/English/German copy (UI, `store/LISTING.md`, privacy policy) by native speakers.
 - [ ] Review the **starter search phrases** (`src/core/starter-terms.js`) and the **built-in list decision** (`data/base-list/README.md`).
 - [ ] Provide the designer's **master SVG** of the mark (the shipped mark is a redraw of the approved reference image, `docs/brand/ASSETS.md`) and approve the generated icon, screenshots and promo images in `store/images/`.
