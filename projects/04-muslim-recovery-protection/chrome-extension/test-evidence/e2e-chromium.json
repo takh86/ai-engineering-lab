@@ -4,17 +4,30 @@
     "version": "141.0.7390.37",
     "os": "Linux 6.18.44-fc-v51 (x64)",
     "node": "v22.22.0",
-    "date": "2026-10-02T07:13:09.073Z"
+    "date": "2026-10-02T08:36:58.316Z",
+    "package": {
+      "target": "chromium",
+      "zip": "dist/tabsira-chromium-1.0.0.zip",
+      "zipSha256": "2babb4430eeb66c79fbdb8d991d8542f8c84443881a237fdcc230425e59db50f",
+      "files": 47,
+      "manifestVersion": "1.0.0",
+      "variants": {
+        "release": "unmodified extraction of the ZIP",
+        "test": "manifest + declarativeNetRequestFeedback only",
+        "optional": "manifest: host access optional + declarativeNetRequestFeedback",
+        "live": "copy of release; manifest version raised in place for the update test"
+      }
+    }
   },
   "summary": {
-    "PASS": 122,
+    "PASS": 141,
     "NOT_RUN": 2
   },
   "results": [
     {
       "id": "S1.1 onboarding page opens on install",
       "status": "PASS",
-      "detail": "about:blank chrome-extension://npkjonkeimbibamkkbakcfohnblejlfi/onboarding.html"
+      "detail": "about:blank chrome-extension://bdlpppdmphbemfapmociknhigifegkcp/onboarding.html"
     },
     {
       "id": "S1.2 fresh install reports not_configured, no rules, base list off",
@@ -29,7 +42,7 @@
     {
       "id": "S1.4 base list metadata is bundled and readable",
       "status": "PASS",
-      "detail": "domainCount=936979"
+      "detail": "domainCount=714093"
     },
     {
       "id": "S2.1 Arabic UI is RTL (browser language ar)",
@@ -54,12 +67,12 @@
     {
       "id": "S2.5 safe self-test domain redirects to the stop page (real DNR redirect)",
       "status": "PASS",
-      "detail": "chrome-extension://npkjonkeimbibamkkbakcfohnblejlfi/blocked.html"
+      "detail": "chrome-extension://bdlpppdmphbemfapmociknhigifegkcp/blocked.html"
     },
     {
       "id": "S2.6 stop page shows no blocked address or search text",
       "status": "PASS",
-      "detail": "chrome-extension://npkjonkeimbibamkkbakcfohnblejlfi/blocked.html"
+      "detail": "chrome-extension://bdlpppdmphbemfapmociknhigifegkcp/blocked.html"
     },
     {
       "id": "S2.7 stop page is RTL Arabic with a Help-now link",
@@ -112,6 +125,16 @@
       "detail": "hits=0"
     },
     {
+      "id": "S3.5b domains traceable only to GPL/unlicensed sources are NOT in the ruleset (12 samples; names only, never requested)",
+      "status": "PASS",
+      "detail": "0,0,0,0,0,0,0,0,0,0,0,0"
+    },
+    {
+      "id": "S3.5c ShadowWhisperer-only domains (coverage added) ARE in the ruleset (12 samples)",
+      "status": "PASS",
+      "detail": "1,1,1,1,1,1,1,1,1,1,1,1"
+    },
+    {
       "id": "S3.6 match comes from the bundled static ruleset",
       "status": "PASS",
       "detail": "base_adult"
@@ -134,32 +157,32 @@
     {
       "id": "S4.1 blocks blocked-user.test",
       "status": "PASS",
-      "detail": "chrome-extension://npkjonkeimbibamkkbakcfohnblejlfi/blocked."
+      "detail": "chrome-extension://bdlpppdmphbemfapmociknhigifegkcp/blocked."
     },
     {
       "id": "S4.1 blocks sub.blocked-user.test",
       "status": "PASS",
-      "detail": "chrome-extension://npkjonkeimbibamkkbakcfohnblejlfi/blocked."
+      "detail": "chrome-extension://bdlpppdmphbemfapmociknhigifegkcp/blocked."
     },
     {
       "id": "S4.1 blocks a.b.blocked-user.test",
       "status": "PASS",
-      "detail": "chrome-extension://npkjonkeimbibamkkbakcfohnblejlfi/blocked."
+      "detail": "chrome-extension://bdlpppdmphbemfapmociknhigifegkcp/blocked."
     },
     {
       "id": "S4.1 does not block notblocked-user.test",
       "status": "PASS",
-      "detail": "http://notblocked-user.test:39433/"
+      "detail": "http://notblocked-user.test:39517/"
     },
     {
       "id": "S4.1 does not block blocked-user.test.evil.example",
       "status": "PASS",
-      "detail": "http://blocked-user.test.evil.example:39433/"
+      "detail": "http://blocked-user.test.evil.example:39517/"
     },
     {
       "id": "S4.1 does not block blocked-user.tests.example",
       "status": "PASS",
-      "detail": "http://blocked-user.tests.example:39433/"
+      "detail": "http://blocked-user.tests.example:39517/"
     },
     {
       "id": "S4.2 exception for a subdomain beats the parent block; siblings stay blocked",
@@ -239,67 +262,67 @@
     {
       "id": "S5.2 blocked: plus-encoded",
       "status": "PASS",
-      "detail": "chrome-extension://npkjonkeimbibamkkbakcfohnblejlfi/blocked.html"
+      "detail": "chrome-extension://bdlpppdmphbemfapmociknhigifegkcp/blocked.html"
     },
     {
       "id": "S5.2 blocked: percent20",
       "status": "PASS",
-      "detail": "chrome-extension://npkjonkeimbibamkkbakcfohnblejlfi/blocked.html"
+      "detail": "chrome-extension://bdlpppdmphbemfapmociknhigifegkcp/blocked.html"
     },
     {
       "id": "S5.2 blocked: upper case",
       "status": "PASS",
-      "detail": "chrome-extension://npkjonkeimbibamkkbakcfohnblejlfi/blocked.html"
+      "detail": "chrome-extension://bdlpppdmphbemfapmociknhigifegkcp/blocked.html"
     },
     {
       "id": "S5.2 blocked: extra params before",
       "status": "PASS",
-      "detail": "chrome-extension://npkjonkeimbibamkkbakcfohnblejlfi/blocked.html"
+      "detail": "chrome-extension://bdlpppdmphbemfapmociknhigifegkcp/blocked.html"
     },
     {
       "id": "S5.2 blocked: arabic percent-encoded",
       "status": "PASS",
-      "detail": "chrome-extension://npkjonkeimbibamkkbakcfohnblejlfi/blocked.html"
+      "detail": "chrome-extension://bdlpppdmphbemfapmociknhigifegkcp/blocked.html"
     },
     {
       "id": "S5.2 blocked: arabic lower-hex",
       "status": "PASS",
-      "detail": "chrome-extension://npkjonkeimbibamkkbakcfohnblejlfi/blocked.html"
+      "detail": "chrome-extension://bdlpppdmphbemfapmociknhigifegkcp/blocked.html"
     },
     {
       "id": "S5.2 blocked: word inside longer query",
       "status": "PASS",
-      "detail": "chrome-extension://npkjonkeimbibamkkbakcfohnblejlfi/blocked.html"
+      "detail": "chrome-extension://bdlpppdmphbemfapmociknhigifegkcp/blocked.html"
     },
     {
       "id": "S5.2 blocked: contains mode substring",
       "status": "PASS",
-      "detail": "chrome-extension://npkjonkeimbibamkkbakcfohnblejlfi/blocked.html"
+      "detail": "chrome-extension://bdlpppdmphbemfapmociknhigifegkcp/blocked.html"
     },
     {
       "id": "S5.3 allowed: phrase only in another parameter",
       "status": "PASS",
-      "detail": "http://www.google.com:39433/search?q=ordinary&note=tabsira+word"
+      "detail": "http://www.google.com:39517/search?q=ordinary&note=tabsira+word"
     },
     {
       "id": "S5.3 allowed: param name boundary (aq)",
       "status": "PASS",
-      "detail": "http://www.google.com:39433/search?aq=tabsira+word"
+      "detail": "http://www.google.com:39517/search?aq=tabsira+word"
     },
     {
       "id": "S5.3 allowed: word mode: embedded in a longer word",
       "status": "PASS",
-      "detail": "http://www.google.com:39433/search?q=xtabsira+words"
+      "detail": "http://www.google.com:39517/search?q=xtabsira+words"
     },
     {
       "id": "S5.3 allowed: phrase in the path, not the query",
       "status": "PASS",
-      "detail": "http://www.google.com:39433/search?x=1"
+      "detail": "http://www.google.com:39517/search?x=1"
     },
     {
       "id": "S5.3 allowed: different engine param (p on google)",
       "status": "PASS",
-      "detail": "http://www.google.com:39433/search?p=tabsira+word"
+      "detail": "http://www.google.com:39517/search?p=tabsira+word"
     },
     {
       "id": "S5.3 allowed: phrase in path only",
@@ -329,7 +352,7 @@
     {
       "id": "S6.1 blocked navigation: single redirect to the stop page, no loop",
       "status": "PASS",
-      "detail": "chrome-extension://npkjonkeimbibamkkbakcfohnblejlfi/blocked.html"
+      "detail": "chrome-extension://bdlpppdmphbemfapmociknhigifegkcp/blocked.html"
     },
     {
       "id": "S6.2 the stop page is requested exactly once",
@@ -459,7 +482,7 @@
     {
       "id": "S9.2 private window WITHOUT the switch: extension is not applied, the site loads (documented limit; manual enable needed)",
       "status": "PASS",
-      "detail": "http://incog-site.test:39433/"
+      "detail": "http://incog-site.test:39517/"
     },
     {
       "id": "S9.3 status reports private windows allowed (incognitoAllowed=true) and protection still active",
@@ -469,7 +492,7 @@
     {
       "id": "S9.4 private window WITH the switch: blocked site shows the Tabsira stop page (split instance)",
       "status": "PASS",
-      "detail": "chrome-extension://npkjonkeimbibamkkbakcfohnblejlfi/blocked.html"
+      "detail": "chrome-extension://bdlpppdmphbemfapmociknhigifegkcp/blocked.html"
     },
     {
       "id": "S9.5 private window: unlisted site loads normally",
@@ -497,34 +520,34 @@
       "detail": ""
     },
     {
-      "id": "S11.1 enabling the 937k-domain list succeeds",
+      "id": "S11.1 enabling the full built-in list succeeds",
       "status": "PASS",
-      "detail": "98 ms"
+      "detail": "93 ms"
     },
     {
       "id": "S11.2 enabling takes under 15 s",
       "status": "PASS",
-      "detail": "98 ms"
+      "detail": "93 ms"
     },
     {
       "id": "S11.3 navigation overhead with the list on is under 50 ms (median of 25, local server)",
       "status": "PASS",
-      "detail": "off 32 ms / on 31 ms"
+      "detail": "off 33 ms / on 34 ms"
     },
     {
       "id": "S11.4 per-URL matching cost with the list is under 5 ms",
       "status": "PASS",
-      "detail": "0.36 ms / 0.46 ms"
+      "detail": "0.55 ms / 0.40 ms"
     },
     {
       "id": "S11.5 total browser memory increase from the list is under 400 MB",
       "status": "PASS",
-      "detail": "854 MB → 879 MB"
+      "detail": "869 MB → 882 MB"
     },
     {
-      "id": "S12.1 keyboard Tab reaches every interactive control on the settings page (16 controls)",
+      "id": "S12.1 keyboard Tab reaches every interactive control on the settings page (17 controls)",
       "status": "PASS",
-      "detail": "16/16"
+      "detail": "17/17"
     },
     {
       "id": "S12.2 every focused control shows a visible focus outline",
@@ -539,12 +562,12 @@
     {
       "id": "S12.4 measured text/button contrast ≥ 4.5:1 in light and dark schemes",
       "status": "PASS",
-      "detail": "min 6.73"
+      "detail": "min 6.97"
     },
     {
       "id": "S12.5 RTL layout: Arabic text starts at the right edge; site list input is LTR",
       "status": "PASS",
-      "detail": "{\"dir\":\"rtl\",\"align\":\"start\",\"hRight\":24,\"hLeft\":571,\"domainsDir\":\"ltr\"}"
+      "detail": "{\"dir\":\"rtl\",\"align\":\"start\",\"hRight\":16,\"hLeft\":664,\"domainsDir\":\"ltr\"}"
     },
     {
       "id": "S12.6 de UI: LTR and translated",
@@ -622,6 +645,91 @@
       "detail": ""
     },
     {
+      "id": "S15.1 [ar] popup in the not-configured state conveys it by text + icon + state attribute (not colour alone)",
+      "status": "PASS",
+      "detail": "{\"glyph\":2,\"text\":39,\"state\":\"not_configured\"}"
+    },
+    {
+      "id": "S15.2 [ar] popup in the active state conveys it by text + icon (a different glyph from the not-configured one)",
+      "status": "PASS",
+      "detail": "{\"glyph\":2,\"text\":56,\"state\":\"active\"}"
+    },
+    {
+      "id": "S15.1 [de] popup in the not-configured state conveys it by text + icon + state attribute (not colour alone)",
+      "status": "PASS",
+      "detail": "{\"glyph\":2,\"text\":75,\"state\":\"not_configured\"}"
+    },
+    {
+      "id": "S15.2 [de] popup in the active state conveys it by text + icon (a different glyph from the not-configured one)",
+      "status": "PASS",
+      "detail": "{\"glyph\":2,\"text\":102,\"state\":\"active\"}"
+    },
+    {
+      "id": "S15.1 [en] popup in the not-configured state conveys it by text + icon + state attribute (not colour alone)",
+      "status": "PASS",
+      "detail": "{\"glyph\":2,\"text\":58,\"state\":\"not_configured\"}"
+    },
+    {
+      "id": "S15.2 [en] popup in the active state conveys it by text + icon (a different glyph from the not-configured one)",
+      "status": "PASS",
+      "detail": "{\"glyph\":2,\"text\":91,\"state\":\"active\"}"
+    },
+    {
+      "id": "S15.3 all 5 pages × ar/de/en × light/dark: Cairo headings + Tajawal text loaded and applied; lime primary action with dark text (contrast ≥ 4.5); navy/white headings; mark loaded; no unverifiable safety claim; no \"stop protection\" action",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S15.4 all 5 pages × ar/de/en × light/dark: no horizontal scrolling, no clipped or off-screen element at normal size, 200% text size and 320 px width (400% zoom)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S16.1 paused save in the normal window + START_SESSION from the private window: the session start waits for the write, both succeed, and the session is intact afterwards",
+      "status": "PASS",
+      "detail": "{\"paused\":true,\"midway\":\"waiting\",\"saved\":true,\"started\":true,\"active\":true}"
+    },
+    {
+      "id": "S16.2 the saved site is enforced and the private instance reports the identical session end",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S16.3a while a frozen holder's lease is valid, the other instance fails closed (\"busy\") instead of writing blindly",
+      "status": "PASS",
+      "detail": "{\"paused2\":true,\"first\":\"busy\",\"waitedMs\":19981}"
+    },
+    {
+      "id": "S16.3b after the lease expired the other instance extends the session to 120 min; when the frozen write then resumes the session is NOT shortened or erased",
+      "status": "PASS",
+      "detail": "{\"extended\":true,\"savedB\":\"ok\",\"remainingMin\":120}"
+    },
+    {
+      "id": "S16.4 afterwards the browser rules match the stored settings (no half-applied state) and weakening is still refused",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S17.1 a hostile web page cannot embed, load, script, fetch or open any extension page or file",
+      "status": "PASS",
+      "detail": "{\"reach\":{\"frameLoaded\":false,\"image\":\"blocked\",\"script\":\"blocked\",\"fetch\":\"blocked\"},\"frameUrls\":[],\"extPages\":[\"chrome-error://chromewebdata/\"]}"
+    },
+    {
+      "id": "S17.2 a hostile page cannot start a session or change settings by messaging the extension",
+      "status": "PASS",
+      "detail": "no-api"
+    },
+    {
+      "id": "S17.3 the three blocked visits were stopped (precondition for the leak scan)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S17.4 after blocked visits, Tabsira's storage (extension settings, state, IndexedDB, local/session storage) contains no visited URL part or search text",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
       "id": "S10.1 no console output in any extension page or worker mentions a tested URL or phrase (2 console messages captured)",
       "status": "PASS",
       "detail": ""
@@ -643,11 +751,23 @@
     },
     {
       "id": "S11",
-      "text": "{\"browser\":\"chrome-linux/chrome\",\"listDomains\":936979,\"extensionReadyMs\":2592,\"enableBaseListMs\":98,\"navMedianOffMs\":32,\"navMedianOnMs\":31,\"rssOffMB\":854,\"rssOnMB\":879,\"matchMsPerUrl\":0.36,\"phraseMatchMsPerUrl\":0.46}"
+      "text": "{\"browser\":\"chrome-linux/chrome\",\"listDomains\":714093,\"extensionReadyMs\":2112,\"enableBaseListMs\":93,\"navMedianOffMs\":33,\"navMedianOnMs\":34,\"rssOffMB\":869,\"rssOnMB\":882,\"matchMsPerUrl\":0.55,\"phraseMatchMsPerUrl\":0.4}"
     },
     {
       "id": "S12",
-      "text": "contrast ratios {\"light\":{\"text\":13.13,\"hint\":7.84,\"button\":6.73,\"secondary\":11.89},\"dark\":{\"text\":15.26,\"hint\":8.66,\"button\":9.81,\"secondary\":10.35}}"
+      "text": "contrast ratios {\"light\":{\"text\":14.34,\"hint\":7.65,\"button\":6.97,\"secondary\":10.31},\"dark\":{\"text\":14.94,\"hint\":8.4,\"button\":9.23,\"secondary\":18.36}}"
+    },
+    {
+      "id": "S15",
+      "text": "30 page renderings × 3 sizes checked; 0 problem(s) listed in the failing checks"
+    },
+    {
+      "id": "S16.3",
+      "text": "the frozen save finished as ok"
+    },
+    {
+      "id": "S17-history",
+      "text": "Chromium's own history after blocked visits (the browser's behaviour, not the extension's): {\"urls\":7,\"containsBlockedOriginalUrl\":true,\"containsStopPage\":true}"
     }
   ]
 }

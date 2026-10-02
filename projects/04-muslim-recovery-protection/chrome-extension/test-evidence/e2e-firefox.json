@@ -4,7 +4,20 @@
     "version": "Mozilla Firefox 157.0",
     "os": "Linux 6.18.44-fc-v51 (x64)",
     "node": "v22.22.0",
-    "date": "2026-10-02T07:18:32.748Z",
+    "date": "2026-10-02T08:49:21.622Z",
+    "package": {
+      "target": "firefox",
+      "zip": "dist/tabsira-firefox-1.0.0.zip",
+      "zipSha256": "31829ffc4e654471037cec764facbec1113ff9419cc6b4747a6329cfa7b29512",
+      "files": 47,
+      "manifestVersion": "1.0.0",
+      "variants": {
+        "release": "unmodified extraction of the ZIP",
+        "test": "manifest + declarativeNetRequestFeedback only",
+        "optional": "manifest: host access optional + declarativeNetRequestFeedback",
+        "live": "copy of release; manifest version raised in place for the update test"
+      }
+    },
     "addonInstall": "temporary (geckodriver moz/addon/install)",
     "note": "Firefox build is the conda-forge repackaging of the Mozilla release, not a mozilla.org download"
   },
@@ -21,7 +34,7 @@
     {
       "id": "F1.2 base list metadata readable",
       "status": "PASS",
-      "detail": "936979"
+      "detail": "714093"
     },
     {
       "id": "F1.3 UI follows the Firefox locale (en-US build → English, LTR, translated)",
@@ -51,7 +64,7 @@
     {
       "id": "F2.2 status active (permission present) — or an honest partial with the reason",
       "status": "PASS",
-      "detail": "{\"base\":{\"date\":\"2026-07-18\",\"domainCount\":936979,\"enabled\":true,\"version\":\"1.0.0\"},\"counts\":{\"allow\":0,\"contains\":0,\"domains\":0,\"dynamicRules\":0,\"starter\":0,\"words\":0},\"incognitoAllowed\":false,\"limits\":{\"allow\":300,\"contains\":40,\"domains\":1000,\"importBytes\":262144,\"words\":60},\"lock\":{\"active\":false"
+      "detail": "{\"base\":{\"date\":\"2026-10-02\",\"domainCount\":714093,\"enabled\":true,\"version\":\"1.0.0\"},\"counts\":{\"allow\":0,\"contains\":0,\"domains\":0,\"dynamicRules\":0,\"starter\":0,\"words\":0},\"incognitoAllowed\":false,\"limits\":{\"allow\":300,\"contains\":40,\"domains\":1000,\"importBytes\":262144,\"words\":60},\"lock\":{\"active\":false"
     },
     {
       "id": "F2.3 safe self-test domain redirects to the stop page (real Firefox DNR redirect)",
@@ -219,9 +232,9 @@
       "detail": "{\"state\":\"active\",\"reasons\":[]}"
     },
     {
-      "id": "F8.1 median local navigation with the 937k-domain ruleset enabled is under 250 ms",
+      "id": "F8.1 median local navigation with the full built-in ruleset enabled is under 250 ms",
       "status": "PASS",
-      "detail": "115 ms"
+      "detail": "99 ms"
     },
     {
       "id": "F6b.1 withdrawn website permission is detected (status partial + specific reason)",
@@ -237,7 +250,7 @@
   "notes": [
     {
       "id": "F2",
-      "text": "onboarding+enable base list took 2831 ms; host permission granted: true; RSS (all Firefox processes) before ≈ 1122 MB, after enable ≈ 1722 MB"
+      "text": "onboarding+enable base list took 6040 ms; host permission granted: true; RSS (all Firefox processes) before ≈ 1128 MB, after enable ≈ 1617 MB"
     },
     {
       "id": "F4.2",
@@ -245,7 +258,7 @@
     },
     {
       "id": "F8",
-      "text": "Firefox median navigation (15 loads, local proxy) with base list on: 115 ms; RSS (all Firefox processes) ≈ 1687 MB"
+      "text": "Firefox median navigation (15 loads, local proxy) with base list on: 99 ms; RSS (all Firefox processes) ≈ 1635 MB"
     },
     {
       "id": "F6b",
