@@ -1,15 +1,15 @@
 # Tabsira V1 — security and Red Team review
 
-Date: 2026-10-02 · Scope: `projects/04-muslim-recovery-protection/chrome-extension` (Chrome/Edge/Firefox packages) ·
+Date: 2026-10-02 (updated after the independent review of `7294cd6`) · Scope: `projects/04-muslim-recovery-protection/chrome-extension` (Chrome/Edge/Firefox packages) ·
 Reviewed commit: see the PR (the review was repeated on the frozen commit; evidence files carry the package SHA-256).
 
 ## Independence — read this first
 
-The Owner asked for an **independent** security and Red Team review. The first independent review (of `d662632`) found the session race
-that this version fixes. This second round was done **by the same agent that wrote the fix**, because the repository rules allow
-sub-agents only for bounded research and the session did not launch a separate reviewer. It is therefore a **self-review with real attacks
-against the built packages — not an independent audit.** Findings below are real and verified; the *absence* of further findings is
-not evidence of absence. Recommended before publication: one more reviewer who did not write this code, starting from this document.
+The Owner asked for an **independent** security and Red Team review. An independent review of `d662632` found the session race fixed in V1.1, and an
+independent review of `7294cd6` found a further **late-write** flaw (F10 below) that my own self-review had missed and had even documented as an accepted
+residual (old F5). Both findings came from outside this agent. The rounds done by this agent are **self-reviews with real attacks against the built packages
+— not independent audits**, and they have now been wrong once. Findings below are verified; the *absence* of further findings is not evidence of absence.
+Recommended before publication: another independent review starting from this document and `tests/unit/late-writes.test.mjs`.
 
 ## Threat model
 
@@ -29,11 +29,13 @@ not evidence of absence. Recommended before publication: one more reviewer who d
 | F2 | Concurrency | A repair/reconcile paused **before** its rule write, past its lease, could install stale rules after another instance saved a newer configuration (rules ≠ stored settings until the next status check). | Medium | **Fixed.** Rules-only commits now re-verify ownership and the stored configuration after writing; on mismatch the browser is rebuilt from storage. | unit test "a repair paused BEFORE its rule write…" (fails on the previous controller: `regression-stale-repair-before-fix.expected-failure.txt`) |
 | F3 | Privacy | The export file holds the user's blocked sites/phrases as unencrypted text; the UI did not say so. | Low | **Fixed.** Hint next to the buttons (ar/en/de), privacy policy updated. | locale parity test, S15 text checks |
 | F4 | Privacy | The **browser's own history** keeps the address the user tried to open (and the stop page), as for any visit. Measured in Chromium: the original blocked URL and the stop page both appear in `History`. Tabsira has no `history` permission and never reads or copies it. | Medium (user-facing) | **Documented**, not fixable by an extension. Privacy policy and README say so; recommend clearing history or using a profile policy if that matters. | S17 note `S17-history` |
-| F5 | Concurrency | Residual window: a worker frozen for more than the 20 s lease **between** its last ownership check and its single `storage.set({config})` can still write its (now stale) configuration. It cannot touch the session; the next status/start/reconcile restores rules from storage. | Low | **Accepted**, documented. | S16.3 (long freeze) |
+| F5 | Concurrency | *(was: accepted residual window between the last ownership check and the storage write.)* **Reclassified as F10 and fixed** — it was not harmless: a frozen writer could replace the whole configuration. | — | see F10 | — |
 | F6 | Tamper | Extension storage can be edited through the extension's developer tools: a user can delete the session keys and end a session early, or write a far-future value to lengthen it. | Info | **Accepted** — by definition of the feature ("friction, not tamper resistance"); tampered/invalid values are detected and never trusted (`mergeLocks`, `invalidLockKeys`). | `security.test.mjs`, controller tests |
 | F7 | Permissions | `http://*/*` + `https://*/*` host access is broad. | Info | **Accepted**: required to *redirect* arbitrary user-chosen sites; no content scripts, no `tabs`/`history`/`webRequest`/`cookies`/`scripting`. | static manifest test |
 | F8 | Surface | Firefox needs `web_accessible_resources` for `blocked.html`. The page is inert (no messaging, no state, no parameters) and the add-on host is a random per-profile UUID. | Info | **Accepted.** | S2.9b, F-suite |
 | F9 | Invisible input | A zero-width character inside a typed domain is dropped by URL normalisation (stored name is clean ASCII); bidi controls are refused for domains and removed from phrases. | Info | **Verified.** | `security.test.mjs` |
+
+| F10 | Concurrency | **Late write (independent review of `7294cd6`).** A `SAVE_SETTINGS` that deletes sites is frozen at `storage.set({config})` after `assertOwner` and the compare; its lease expires; another instance saves newer sites and starts a session; the frozen write resumes. Result: stored sites `[]`, rules 0, session still active. Re-checking ownership before a non-atomic write cannot prevent this, because the freeze can happen after the check. | High | **Fixed by construction, not by another check.** The configuration is no longer overwritten: each write creates `cfg:<epoch>:<instance>`; the epoch is registered when the lock is entered (strictly above all earlier holders, ownership re-verified afterwards); the effective configuration is the highest record, so a late record is dominated by everything written after its holder entered the lock. `START_SESSION` writes a pinning record, so nothing begun before a session can land inside it. Rollback removes only its own record and is skipped when the lease is gone; compaction keeps the two newest records. | simulation: `tests/unit/late-writes.test.mjs` (6 of 9 tests fail on `7294cd6`; output archived) · real browser: S16b (fails on the `7294cd6` package: domains `[]`, state `not_configured`, late save `ok`; passes now) |
 
 No finding rated Critical was open at the end of the review.
 
@@ -51,6 +53,7 @@ No finding rated Critical was open at the end of the review.
 | Homograph / IDN / IPv4 / credentials / port in a "domain" | `security.test.mjs`, core tests | refused or normalised to the punycode name; homograph stays a different name |
 | Weakening during a session by every path (save, import, reset, replace, longer phrase, exception) | controller tests, S7, S9, F5, F9 | `locked_weakening` |
 | Two instances racing a session start / extension / rollback | `concurrency.test.mjs`, S16 | max-wins; never shortened; rules follow storage |
+| Writers frozen past their lease (at the config write, the rule write, the rollback, the record removal) resuming after newer saves and a session start | `late-writes.test.mjs`, **S16b (real normal + private instances)** | late record dominated; newer sites, rules and session intact |
 | Tampered lock values (negative, NaN, huge, extra keys, look-alike keys) | `security.test.mjs` | invalid → corrupt state, never trusted; look-alike keys ignored |
 | Leakage: visited URL parts / search text in extension storage, IndexedDB, local/session storage after blocked visits | S17.4 | none found |
 | Leakage: console output of pages and worker | S10 | none; no unexpected errors |
@@ -59,6 +62,8 @@ No finding rated Critical was open at the end of the review.
 | Supply chain | `package.json`, `src/fonts/SOURCES.md`, `PROVENANCE.json` | no runtime dependencies; fonts SHA-256 pinned (OFL); list inputs SHA-256 pinned |
 
 ## Not covered
+
+What remains: browsers' rule application (`declarativeNetRequest`) is not transactional with storage, so rules are *derived* state: a late rule write can briefly leave rules different from the stored configuration. That is detected (status `rules_mismatch`), `START_SESSION` refuses while it persists, and the late worker's own `busy` path, any status check, start-up and `Repair` rebuild the rules from the effective record.
 
 Independent audit; fuzzing campaign beyond the listed cases; Windows/macOS behaviour; branded Chrome stable (Chrome **for Testing** was used);
 Brave/Opera; signed AMO build; behaviour of other extensions that modify requests (priority conflicts with other `declarativeNetRequest` extensions are
