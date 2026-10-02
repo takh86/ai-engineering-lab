@@ -50,10 +50,27 @@ export function errorText(error) {
 const formatTime = ms => new Date(ms).toLocaleString(ext.i18n.getUILanguage(), { dateStyle: 'short', timeStyle: 'short' });
 export const formatDate = value => value ?? '—';
 
-/** Fills the standard status block. Returns the status for callers that need details. */
+// Status glyphs (drawn, not coloured emoji): state is conveyed by icon + text + colour, never colour alone.
+const SVG = 'http://www.w3.org/2000/svg';
+const GLYPHS = {
+    active: [['circle', { cx: 12, cy: 12, r: 9.5 }], ['path', { d: 'M7.5 12.5l3 3 6-6.5' }]],                       // check in circle: rules installed
+    partial: [['path', { d: 'M12 3.5l9.5 16.5h-19z' }], ['path', { d: 'M12 10v4.5M12 17.2v.3' }]],                  // triangle with !
+    unknown: [['circle', { cx: 12, cy: 12, r: 9.5 }], ['path', { d: 'M9.5 9.5a2.6 2.6 0 115 .8c0 1.6-2.5 2-2.5 3.7M12 17.2v.3' }]],  // ? in circle
+    not_configured: [['circle', { cx: 12, cy: 12, r: 9.5, 'stroke-dasharray': '3 3' }], ['path', { d: 'M8.5 12h7' }]]  // dashed circle: nothing set up
+};
+function drawGlyph(svg, state) {
+    svg.replaceChildren(...(GLYPHS[state] ?? GLYPHS.unknown).map(([tag, attributes]) => {
+        const node = document.createElementNS(SVG, tag);
+        for (const [name, value] of Object.entries(attributes)) node.setAttribute(name, String(value));
+        return node;
+    }));
+}
+
+/** Fills the standard status block. */
 export function renderStatus(status, { box, reasonList, lock, incognito }) {
     const state = status?.state ?? 'unknown';
     box.dataset.state = state;
+    drawGlyph(box.querySelector('.state-icon'), state);
     box.querySelector('.state-text').textContent = t(`state_${state}`);
     reasonList.replaceChildren(...(status?.reasons ?? []).map(reason => Object.assign(document.createElement('li'), { textContent: t(`reason_${reason}`) })));
     reasonList.hidden = !reasonList.children.length;

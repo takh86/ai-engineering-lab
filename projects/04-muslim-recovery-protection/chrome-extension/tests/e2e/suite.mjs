@@ -43,7 +43,7 @@ export async function runSuite({ browserName, executablePath, report }) {
         check('S1.2 fresh install reports not_configured, no rules, base list off', s.state === 'not_configured' && s.counts.dynamicRules === 0 && s.base.enabled === false, JSON.stringify({ state: s.state, reasons: s.reasons }));
         const real = await visit(b.context, url('tabsira-selftest.test'));
         check('S1.3 nothing is blocked before onboarding (honest "not configured")', real.real && !real.blocked);
-        check('S1.4 base list metadata is bundled and readable', s.base.domainCount > 900000, `domainCount=${s.base.domainCount}`);
+        check('S1.4 base list metadata is bundled and readable', s.base.domainCount > 650000, `domainCount=${s.base.domainCount}`);
         await finish(b);
     }
 
@@ -94,7 +94,8 @@ export async function runSuite({ browserName, executablePath, report }) {
         await onboard(options, true, false);
         const worker = b.getWorker();
         const all = listDomains(); const set = new Set(all);
-        const sample = [all[0], all[1000], all[250000], all[500000], all[900000], all[all.length - 1]];
+        const at = fraction => all[Math.floor((all.length - 1) * fraction)];
+        const sample = [all[0], at(0.001), at(0.25), at(0.5), at(0.9), all[all.length - 1]];
         const direct = []; const sub = []; for (const d of sample) { direct.push((await matchOutcome(worker, `https://${d}/`)).length); sub.push((await matchOutcome(worker, `https://deep.sub.${d}/page?x=1`)).length); }
         check('S3.1 sampled listed domains match the static ruleset (6 across the list)', direct.every(n => n === 1), direct.join(','));
         check('S3.2 their subdomains match (DNS label boundary)', sub.every(n => n === 1), sub.join(','));
@@ -105,6 +106,11 @@ export async function runSuite({ browserName, executablePath, report }) {
         check('S3.4 listed name used as a prefix label of another domain is not matched', suffixLook.every(n => n === 0), suffixLook.join(','));
         let benignHits = 0; for (const c of canaries()) benignHits += (await matchOutcome(worker, `https://www.${c}/`)).length;
         check(`S3.5 all ${canaries().length} known-benign canary sites are NOT matched`, benignHits === 0, `hits=${benignHits}`);
+        const samples = JSON.parse(fs.readFileSync(path.join(root, 'data/base-list/provenance-samples.json'), 'utf8'));
+        const removed = []; for (const d of samples.removedUnclearLicence) removed.push((await matchOutcome(worker, `https://${d}/`)).length);
+        const added = []; for (const d of samples.addedFromShadowWhisperer) added.push((await matchOutcome(worker, `https://${d}/`)).length);
+        check('S3.5b domains traceable only to GPL/unlicensed sources are NOT in the ruleset (12 samples; names only, never requested)', removed.every(n => n === 0), removed.join(','));
+        check('S3.5c ShadowWhisperer-only domains (coverage added) ARE in the ruleset (12 samples)', added.every(n => n === 1), added.join(','));
         const redirectTarget = await worker.evaluate(async u => { const o = await chrome.declarativeNetRequest.testMatchOutcome({ url: u, type: 'main_frame', method: 'get' }); return o.matchedRules[0]?.rulesetId; }, `https://${all[5]}/`);
         check('S3.6 match comes from the bundled static ruleset', redirectTarget === 'base_adult', String(redirectTarget));
         const off = await save(options, { baseList: false });
@@ -413,8 +419,8 @@ export async function runSuite({ browserName, executablePath, report }) {
         const matchPhraseMs = await b.getWorker().evaluate(async () => { const t = performance.now(); for (let i = 0; i < 200; i++) await chrome.declarativeNetRequest.testMatchOutcome({ url: `https://www.google.com/search?q=ordinary+${i}`, type: 'main_frame', method: 'get' }); return (performance.now() - t) / 200; });
         const limits = await b.getWorker().evaluate(async () => { const d = chrome.declarativeNetRequest; return { MAX_NUMBER_OF_DYNAMIC_RULES: d.MAX_NUMBER_OF_DYNAMIC_RULES, MAX_NUMBER_OF_UNSAFE_DYNAMIC_RULES: d.MAX_NUMBER_OF_UNSAFE_DYNAMIC_RULES, MAX_NUMBER_OF_REGEX_RULES: d.MAX_NUMBER_OF_REGEX_RULES, GUARANTEED_MINIMUM_STATIC_RULES: d.GUARANTEED_MINIMUM_STATIC_RULES, MAX_NUMBER_OF_STATIC_RULESETS: d.MAX_NUMBER_OF_STATIC_RULESETS, MAX_NUMBER_OF_ENABLED_STATIC_RULESETS: d.MAX_NUMBER_OF_ENABLED_STATIC_RULESETS, availableStaticRules: await d.getAvailableStaticRuleCount() }; });
         note('S11-limits', JSON.stringify(limits));
-        note('S11', JSON.stringify({ browser: executablePath.split('/').slice(-2).join('/'), listDomains: 936979, extensionReadyMs: startMs, enableBaseListMs: enableMs, navMedianOffMs: median(offTimes), navMedianOnMs: median(onTimes), rssOffMB: rssOff, rssOnMB: rssOn, matchMsPerUrl: Number(matchMs.toFixed(2)), phraseMatchMsPerUrl: Number(matchPhraseMs.toFixed(2)) }));
-        check('S11.1 enabling the 937k-domain list succeeds', enabled.ok, `${enableMs} ms`);
+        note('S11', JSON.stringify({ browser: executablePath.split('/').slice(-2).join('/'), listDomains: listDomains().length, extensionReadyMs: startMs, enableBaseListMs: enableMs, navMedianOffMs: median(offTimes), navMedianOnMs: median(onTimes), rssOffMB: rssOff, rssOnMB: rssOn, matchMsPerUrl: Number(matchMs.toFixed(2)), phraseMatchMsPerUrl: Number(matchPhraseMs.toFixed(2)) }));
+        check('S11.1 enabling the full built-in list succeeds', enabled.ok, `${enableMs} ms`);
         check('S11.2 enabling takes under 15 s', enableMs < 15000, `${enableMs} ms`);
         check('S11.3 navigation overhead with the list on is under 50 ms (median of 25, local server)', median(onTimes) - median(offTimes) < 50, `off ${median(offTimes)} ms / on ${median(onTimes)} ms`);
         check('S11.4 per-URL matching cost with the list is under 5 ms', matchMs < 5 && matchPhraseMs < 5, `${matchMs.toFixed(2)} ms / ${matchPhraseMs.toFixed(2)} ms`);

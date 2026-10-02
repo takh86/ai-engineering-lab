@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- App/toolbar icon: navy tile (#0B3B8F) with the redrawn Tabsira mark; gradient ends lightened so the mark stays legible on navy. -->
+  <defs>
+    <linearGradient id="a" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#4FC0FF"/><stop offset=".55" stop-color="#2F86F0"/><stop offset="1" stop-color="#1456C5"/></linearGradient>
+    <linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3DD3FF"/><stop offset="1" stop-color="#1F7FE0"/></linearGradient>
+    <linearGradient id="c" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4FB3FF"/><stop offset="1" stop-color="#2F86F0"/></linearGradient>
+    <linearGradient id="d" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C6F04A"/><stop offset="1" stop-color="#A5D82A"/></linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#0B3B8F"/>
+  <g transform="translate(14 17) scale(0.12)">
+    <g transform="translate(-40 -40)">
+      <path fill="url(#a)" d="M175 52H830Q858 52 845 78L790 170Q765 202 725 202H70Q40 200 58 172L135 70Q150 52 175 52Z"/>
+      <path fill="url(#b)" d="M205 248H715Q740 250 725 275L668 372Q645 400 610 400H205Q152 395 152 325Q155 252 205 248Z"/>
+      <path fill="url(#c)" d="M285 440H595Q618 442 606 462L553 553Q538 580 508 580H305Q282 578 270 556L256 508Q246 474 254 458Q262 440 285 440Z"/>
+      <path fill="url(#d)" d="M335 622H492Q510 624 500 642L418 770Q408 784 398 770L322 642Q316 622 335 622Z"/>
+    </g>
+  </g>
+</svg>

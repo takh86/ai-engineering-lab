@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="40 40 830 750" role="img" aria-label="Tabsira mark">
+  <!-- Tabsira filter mark. REDRAWN as vector from the Owner-approved visual-identity reference image (not the original
+       vector file). Replace with the designer's master SVG when available (see docs/brand/ASSETS.md). -->
+  <defs>
+    <linearGradient id="g1" x1="0" y1=".7" x2="1" y2=".3"><stop offset="0" stop-color="#2AA6F7"/><stop offset=".45" stop-color="#0B5FF0"/><stop offset="1" stop-color="#0A2F86"/></linearGradient>
+    <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#19C8FF"/><stop offset=".55" stop-color="#0A78D6"/><stop offset="1" stop-color="#0B3B8F"/></linearGradient>
+    <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2AA6F7"/><stop offset="1" stop-color="#1456C5"/></linearGradient>
+    <linearGradient id="g4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C6F04A"/><stop offset="1" stop-color="#8CC81F"/></linearGradient>
+  </defs>
+  <path fill="url(#g1)" d="M175 52H830Q858 52 845 78L790 170Q765 202 725 202H70Q40 200 58 172L135 70Q150 52 175 52Z"/>
+  <path fill="url(#g2)" d="M205 248H715Q740 250 725 275L668 372Q645 400 610 400H205Q152 395 152 325Q155 252 205 248Z"/>
+  <path fill="url(#g3)" d="M285 440H595Q618 442 606 462L553 553Q538 580 508 580H305Q282 578 270 556L256 508Q246 474 254 458Q262 440 285 440Z"/>
+  <path fill="url(#g4)" d="M335 622H492Q510 624 500 642L418 770Q408 784 398 770L322 642Q316 622 335 622Z"/>
+</svg>

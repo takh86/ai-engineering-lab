@@ -103,7 +103,7 @@ add('opt_title', 'إعداد تبصرة', 'Tabsira settings', 'Tabsira-Einstellu
 add('opt_status', 'الحالة', 'Status', 'Status')
 add('opt_base_title', 'قائمة المواقع الأساسية', 'Built-in sites list', 'Integrierte Website-Liste')
 add('opt_base_label', 'حجب المواقع المصنّفة للبالغين', 'Block sites classified as adult', 'Websites blockieren, die als Inhalte für Erwachsene eingestuft sind')
-add('opt_base_info', '{1} نطاق · المصدر: The Block List Project (Unlicense) · آخر تحديث للمصدر: {2}. التصنيف آلي مجتمعي وقد يخطئ؛ لا يوجد تحقق ذاتي من كل نطاق.', '{1} domains · Source: The Block List Project (Unlicense) · Source last updated: {2}. Classification is automated and community-made and can be wrong; each domain is not individually verified.', '{1} Domains · Quelle: The Block List Project (Unlicense) · Quelle zuletzt aktualisiert: {2}. Die Einstufung ist automatisiert und von der Community; sie kann falsch sein, einzelne Domains werden nicht geprüft.')
+add('opt_base_info', '{1} نطاق · لقطة بتاريخ {2}. التصنيف آلي مجتمعي وقد يخطئ؛ لا يوجد تحقق ذاتي من كل نطاق.', '{1} domains · snapshot of {2}. Classification is automated and community-made and can be wrong; each domain is not individually verified.', '{1} Domains · Stand: {2}. Die Einstufung ist automatisiert und von der Community; sie kann falsch sein, einzelne Domains werden nicht geprüft.')
 add('opt_starter_label', 'عبارات البحث المبدئية (كلمات كاملة)', 'Starter search phrases (whole words)', 'Start-Suchbegriffe (ganze Wörter)')
 add('opt_starter_show', 'عرض العبارات المبدئية', 'Show the starter phrases', 'Start-Begriffe anzeigen')
 add('opt_sites_title', 'مواقعي', 'My sites', 'Meine Websites')
@@ -167,6 +167,7 @@ E = {
  'session_needs_rules': ('أضف مواقع أو عبارات أو فعّل القائمة الأساسية قبل بدء الجلسة.', 'Add sites or phrases, or turn on the built-in list, before starting a session.', 'Füge Websites oder Begriffe hinzu oder aktiviere die integrierte Liste, bevor du eine Sitzung startest.'),
  'session_needs_active_protection': ('لا تبدأ الجلسة قبل أن تصبح الحالة «القواعد مثبتة». أصلح المشكلة الظاهرة أولًا.', 'A session can only start when the status is “rules installed”. Fix the shown problem first.', 'Eine Sitzung kann nur starten, wenn der Status „Regeln installiert“ ist. Behebe zuerst das angezeigte Problem.'),
  'already_onboarded': ('تم الإعداد الأولي من قبل.', 'First-time setup was already completed.', 'Die Ersteinrichtung wurde bereits abgeschlossen.'),
+ 'busy': ('الإضافة تعالج طلبًا آخر الآن (ربما من نافذة أخرى). أعد المحاولة بعد لحظات.', 'The extension is busy with another request (possibly from another window). Try again in a moment.', 'Die Erweiterung bearbeitet gerade eine andere Anfrage (evtl. aus einem anderen Fenster). Versuche es gleich noch einmal.'),
  'bad_request': ('طلب غير صالح.', 'Invalid request.', 'Ungültige Anfrage.'),
  'unexpected': ('حدث خطأ غير متوقع. أعد المحاولة.', 'An unexpected error occurred. Try again.', 'Ein unerwarteter Fehler ist aufgetreten. Versuche es erneut.'),
  'worker_unreachable': ('تعذّر الاتصال بخلفية الإضافة. أعد المحاولة.', 'Could not reach the extension’s background. Try again.', 'Der Hintergrunddienst der Erweiterung ist nicht erreichbar. Versuche es erneut.'),

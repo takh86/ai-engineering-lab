@@ -67,7 +67,7 @@ try {
     // ---- F1: install ----
     const st0 = await s.status();
     check('F1.1 temporary install succeeds; options page loads; worker answers (Firefox event page)', st0?.state === 'not_configured', JSON.stringify(st0?.state));
-    check('F1.2 base list metadata readable', st0?.base?.domainCount > 900000, String(st0?.base?.domainCount));
+    check('F1.2 base list metadata readable', st0?.base?.domainCount > 650000, String(st0?.base?.domainCount));
     const dir = await s.inOptions('return [document.documentElement.dir, document.documentElement.lang, document.querySelector("h1").textContent];');
     check('F1.3 UI follows the Firefox locale (en-US build → English, LTR, translated)', dir[0] === 'ltr' && dir[1].startsWith('en') && dir[2] === 'Tabsira settings', JSON.stringify(dir));
     skip('F1.3b Arabic RTL UI inside Firefox', 'needs the Arabic Firefox language pack, not installable offline here; Arabic/RTL rendering is verified in Chromium and Edge');
@@ -168,7 +168,7 @@ try {
         const timing = async () => { await s.d.switchTo(await s.d.newTab()); const times = []; for (let i = 0; i < 15; i++) { const t = Date.now(); await s.d.goto(`http://perf-${i}.test/`).catch(() => {}); times.push(Date.now() - t); } times.sort((a, b) => a - b); return times[Math.floor(times.length / 2)]; };
         const withList = await timing(); const rssOn = rssMb();
         report.note('F8', `Firefox median navigation (15 loads, local proxy) with base list on: ${withList} ms; RSS (all Firefox processes) ≈ ${rssOn} MB`);
-        check('F8.1 median local navigation with the 937k-domain ruleset enabled is under 250 ms', withList < 250, `${withList} ms`);
+        check('F8.1 median local navigation with the full built-in ruleset enabled is under 250 ms', withList < 250, `${withList} ms`);
         // ---- F6b: withdrawn permission ----
         const removed = await s.inOptions('try { return await browser.permissions.remove({ origins: ["http://*/*", "https://*/*"] }); } catch (e) { return "error: " + e.message; }');
         await sleep(800);

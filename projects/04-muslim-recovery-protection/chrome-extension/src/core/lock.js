@@ -20,3 +20,23 @@ export function extend(lock, minutes, now = Date.now()) {
     if (!SESSION_MINUTES.includes(minutes)) return null;
     return { until: Math.max(lock.until, now + minutes * 60000) };
 }
+
+// ---- grow-only storage layout (no read-modify-write on a shared value) ----
+// storage.local has no compare-and-set, so the end time is never kept in one shared value that a late or stale writer
+// could overwrite. Each worker instance writes only its OWN key ("lock:<instance>"), and only ever a larger end time;
+// the effective end time is the maximum over all keys. A stale write can therefore never shorten or erase a session.
+export const LOCK_KEY_PREFIX = 'lock:';
+export const LEGACY_LOCK_KEY = 'lock';
+export const isLockKey = key => key === LEGACY_LOCK_KEY || key.startsWith(LOCK_KEY_PREFIX);
+
+/** Merges every lock entry of a full storage snapshot: { until, invalidKeys, keys }. */
+export function mergeLocks(snapshot) {
+    let until = 0; const invalidKeys = []; const keys = {};
+    for (const [key, value] of Object.entries(snapshot)) {
+        if (!isLockKey(key)) continue;
+        if (!isLockValid(value)) { invalidKeys.push(key); continue; }
+        keys[key] = value.until;
+        until = Math.max(until, value.until);
+    }
+    return { until, invalidKeys, keys };
+}

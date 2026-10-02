@@ -4,15 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Tabsira</title>
+<link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <main>
-  <span class="tag" data-i18n="extShortName"></span>
+  <header class="brandbar"><img class="mark" src="brand/mark.svg" alt="" width="40" height="36"><span class="wordmark" data-i18n="extShortName"></span><span class="tag" data-i18n="popup_tagline"></span></header>
   <h1 data-i18n="ob_title"></h1>
   <ol class="steps" id="dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li></ol>
   <p class="tag" id="progress" role="status" aria-live="polite"></p>
-
   <section data-step="1"><h2 data-i18n="ob1_title"></h2><p data-i18n="ob1_body"></p></section>
   <section data-step="2" hidden><h2 data-i18n="ob2_title"></h2><p data-i18n="ob2_body"></p></section>
   <section data-step="3" hidden><h2 data-i18n="ob3_title"></h2><p data-i18n="ob3_body"></p></section>
@@ -31,10 +31,9 @@
     </div>
     <p class="hint" data-i18n="safe_test_hint"></p>
   </section>
-
   <div class="actions">
-    <button type="button" id="back" class="secondary" data-i18n="common_back"></button>
     <button type="button" id="next" data-i18n="common_next"></button>
+    <button type="button" id="back" class="secondary" data-i18n="common_back"></button>
   </div>
 </main>
 <script type="module" src="onboarding.js"></script>

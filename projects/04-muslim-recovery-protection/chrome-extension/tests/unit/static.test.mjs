@@ -104,7 +104,7 @@ test('build output: every file the manifest and pages reference exists; base rul
         }
         const rules = JSON.parse(fs.readFileSync(path.join(dir, 'rulesets', 'base_adult.json'), 'utf8'));
         assert.equal(rules.length, 1);
-        assert.ok(rules[0].condition.requestDomains.length > 900000);
+        assert.ok(rules[0].condition.requestDomains.length > 650000);
         assert.ok(rules[0].condition.requestDomains.includes('tabsira-selftest.test'));
         assert.deepEqual(rules[0].condition.resourceTypes, ['main_frame']);
     }
@@ -117,9 +117,17 @@ test('build is reproducible: two builds give byte-identical ZIPs', () => {
     for (const name of fs.readdirSync(out).filter(f => f.endsWith('.zip'))) assert.equal(sha(path.join(out, name)), sha(path.join(second, name)), name);
 });
 
-test('base list snapshot matches its provenance and has no benign canary', () => {
+test('base list: provenance names every input with its licence, excludes GPL/unlicensed sources, notices are bundled', () => {
     const provenance = JSON.parse(read('data', 'base-list', 'PROVENANCE.json'));
-    assert.match(provenance.licenseOfRepository, /Unlicense/u);
-    assert.ok(fs.existsSync(path.join(root, 'data', 'base-list', 'LICENSE-blocklistproject.txt')));
     assert.equal(provenance.upstreamCommit, null);
+    assert.ok(provenance.snapshotEntries > 650000);
+    const inputs = provenance.inputs;
+    assert.match(inputs['shadowwhisperer-adult.txt'].licence, /Unlicense/u);
+    assert.match(inputs['sinfonietta-pornography-hosts.txt'].licence, /MIT/u);
+    assert.match(inputs['blp-porn.txt'].licence, /Unlicense/u);
+    for (const traceOnly of ['hagezi-nsfw.txt', 'zachlagden-nsfw.txt', 'clefspeare13-porn-hosts.txt']) assert.match(inputs[traceOnly].use, /TRACE ONLY/u);
+    for (const info of Object.values(inputs)) assert.match(info.sha256, /^[0-9a-f]{64}$/u);
+    const notices = read('data', 'base-list', 'THIRD_PARTY_NOTICES.md');
+    for (const needle of ['Sinfonietta', 'ShadowWhisperer', 'Block List Project', 'free and unencumbered', 'MIT License']) assert.ok(notices.includes(needle), needle);
+    assert.ok(fs.existsSync(path.join(out, 'chromium', 'THIRD_PARTY_NOTICES.txt')));
 });

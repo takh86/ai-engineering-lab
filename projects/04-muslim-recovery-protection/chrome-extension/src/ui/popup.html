@@ -4,16 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Tabsira</title>
+<link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <main class="popup">
-  <span class="tag" data-i18n="popup_tagline"></span>
-  <h1 data-i18n="extShortName"></h1>
+  <header class="brandbar"><img class="mark" src="brand/mark.svg" alt="" width="40" height="36"><span class="wordmark" data-i18n="extShortName"></span><span class="tag" data-i18n="popup_tagline"></span></header>
   <div class="status" id="status" role="status" aria-live="polite" data-state="unknown">
-    <span class="state-text" data-i18n="common_loading"></span>
-    <ul class="reasons" id="reasons" hidden></ul>
-  </div>
+      <svg class="state-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"></svg>
+      <div class="state-body"><span class="state-text" data-i18n="common_loading"></span><ul class="reasons" id="reasons" hidden></ul></div>
+    </div>
   <p id="lock" class="muted"></p>
   <div class="actions">
     <a class="button" id="help" href="help.html" target="_blank" rel="noopener" data-i18n="common_help_now"></a>

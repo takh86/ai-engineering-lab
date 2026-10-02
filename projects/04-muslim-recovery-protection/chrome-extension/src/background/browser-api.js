@@ -5,8 +5,13 @@ export function createBrowserApi(ext = globalThis.browser ?? globalThis.chrome) 
         id: ext.runtime.id,
         baseUrl: ext.runtime.getURL(''),
         now: () => Date.now(),
+        // Coordination between worker instances (normal + private window): unique id, wall clock for leases, async sleep.
+        instanceId: (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`).replaceAll(':', ''),
+        clock: () => Date.now(),
+        sleep: ms => new Promise(resolve => setTimeout(resolve, ms)),
         storage: {
             get: keys => ext.storage.local.get(keys),
+            getAll: () => ext.storage.local.get(null),
             set: items => ext.storage.local.set(items),
             remove: keys => ext.storage.local.remove(keys)
         },

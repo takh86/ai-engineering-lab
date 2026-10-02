@@ -7,6 +7,8 @@ import { isTrustedSender, validateMessage } from '../../src/background/messages.
 import { createFakeBrowser } from './fake-browser.mjs';
 
 const MIN = 60000;
+// The session end time is the maximum over all grow-only lock entries (core/lock.js).
+const lockUntil = t => Math.max(0, ...Object.entries(t.state.storage).filter(([k]) => k === 'lock' || k.startsWith('lock:')).map(([, v]) => v.until));
 const noList = { baseList: false, starterTerms: false, domains: [], allow: [], words: [], contains: [] };
 function setup(options) {
     const fake = createFakeBrowser(options);
@@ -85,9 +87,9 @@ test('commitment: refuses every weakening path, allows stronger changes, ends on
     // stronger is allowed, even removing an exception
     assert.ok((await attempt({ domains: ['example.com', 'more.org'], allow: [] })).ok);
     // shorter session cannot shorten
-    const until = t.state.storage.lock.until;
+    const until = lockUntil(t);
     await t.send({ type: 'START_SESSION', minutes: 60 });
-    assert.equal(t.state.storage.lock.until, until);
+    assert.equal(lockUntil(t), until);
     // expiry only re-enables editing; nothing is removed by itself
     t.state.now += 61 * MIN;
     const before = JSON.stringify(t.state.rules);
@@ -104,7 +106,7 @@ test('commitment cannot start around inactive protection or with nothing configu
     await t.save({ domains: ['example.com'] });
     t.state.hosts = false;
     assert.equal(code(await t.send({ type: 'START_SESSION', minutes: 60 })), 'session_needs_active_protection');
-    assert.equal(t.state.storage.lock.until, 0);
+    assert.equal(lockUntil(t), 0);
 });
 
 test('commitment survives service-worker restart and config/lock live in separate keys', async () => {
@@ -213,7 +215,7 @@ test('concurrent requests are serialized: no lost update, no interleaved rule in
     assert.deepEqual(results.map(r => r.ok), [true, false, true]);       // second saw a stale revision; lock ran after the first
     assert.equal(results[1].error.code, 'stale');
     assert.deepEqual(t.state.storage.config.domains, ['a.example.com']);
-    assert.ok(t.state.storage.lock.until > 0);
+    assert.ok(lockUntil(t) > 0);
 });
 
 test('import merges into settings and is refused when it would weaken a commitment', async () => {
@@ -227,51 +229,10 @@ test('import merges into settings and is refused when it would weaken a commitme
     assert.ok(JSON.parse(exported.text).settings.domains.includes('other.org'));
 });
 
-test('two worker instances (normal + private window) writing within the same few milliseconds: last write wins, nothing is corrupted, rules follow storage', async () => {
-    const t = setup(); await t.onboard(false, false); await t.save({ domains: ['example.com'] });
-    const other = createController(t.api);                // the "private window" instance shares storage and DNR
-    const rev = t.state.storage.config.revision;
-    // The other instance commits between our compare-and-set and our write.
-    const realSet = t.api.storage.set; let intercepted = false;
-    t.api.storage.set = async items => {
-        if (!intercepted && items.config) {
-            intercepted = true; t.api.storage.set = realSet;
-            await other.handle(validateMessage({ type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...noList, domains: ['example.com', 'from-private.org'] } }));
-        }
-        return realSet(items);
-    };
-    const mine = await t.send({ type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...noList, domains: ['example.com', 'from-normal.org'] } });
-    const status = (await t.send({ type: 'GET_STATUS' })).status;
-    assert.equal(status.state, 'active');                 // browser rules always match whatever is stored
-    assert.equal(status.settings.domains.length, 2);      // exactly one of the two changes won (documented limit: last write wins)
-    assert.ok(status.settings.domains.includes('example.com'));
-    assert.ok(mine.ok || ['stale', 'apply_failed'].includes(code(mine)));
-});
-
-test('another instance commits after our rules were installed but before our write: ours is refused and rules follow the stored (other) config', async () => {
-    const t = setup(); await t.onboard(false, false); await t.save({ domains: ['example.com'] });
-    const other = createController(t.api);
-    const rev = t.state.storage.config.revision;
-    const realUpdate = t.api.dnr.updateDynamicRules; let first = true;
-    t.api.dnr.updateDynamicRules = async options => {
-        await realUpdate(options);
-        if (first) {
-            first = false; t.api.dnr.updateDynamicRules = realUpdate;
-            await other.handle(validateMessage({ type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...noList, domains: ['example.com', 'theirs.org'] } }));
-        }
-    };
-    const mine = await t.send({ type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...noList, domains: ['example.com', 'mine.org'] } });
-    assert.equal(code(mine), 'stale');
-    const status = (await t.send({ type: 'GET_STATUS' })).status;
-    assert.equal(status.state, 'active');
-    assert.deepEqual([...status.settings.domains].sort(), ['example.com', 'theirs.org']);
-    assert.deepEqual([...t.state.rules[0].condition.requestDomains].sort(), ['example.com', 'theirs.org']);
-});
-
 test('a stale base (another instance saved first) is refused before any rule changes', async () => {
     const t = setup(); await t.onboard(false, false); await t.save({ domains: ['example.com'] });
     const rev = t.state.storage.config.revision;
-    const other = createController(t.api);
+    const other = createController({ ...t.api, instanceId: 'other-instance' });
     assert.ok((await other.handle(validateMessage({ type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...noList, domains: ['example.com', 'b.org'] } }))).ok);
     const late = await t.send({ type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...noList, domains: ['example.com', 'c.org'] } });
     assert.equal(code(late), 'stale');

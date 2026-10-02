@@ -3,7 +3,8 @@ import { defaultConfig, parseSettings, migrate, weakeningReasons, settingsOf, ex
 import { findUnsupported } from '../core/phrases.js';
 import { STARTER_TERMS } from '../core/starter-terms.js';
 import { planRules, rulesMatch, BASE_RULESET_ID } from '../core/rules.js';
-import { emptyLock, isLockValid, isActive, extend, SESSION_MINUTES } from '../core/lock.js';
+import { isActive, SESSION_MINUTES, LOCK_KEY_PREFIX, mergeLocks } from '../core/lock.js';
+import { createWriteMutex } from './coordination.js';
 
 export const HOST_ORIGINS = Object.freeze(['http://*/*', 'https://*/*']);
 const EMPTY_SETTINGS = Object.freeze({ baseList: false, starterTerms: false, domains: [], allow: [], words: [], contains: [] });
@@ -18,8 +19,9 @@ const EMPTY_SETTINGS = Object.freeze({ baseList: false, starterTerms: false, dom
  * the last good one and the next reconcile makes the browser match it again.
  * No function here logs, and no error carries user-entered text.
  */
-export function createController(api) {
+export function createController(api, { mutex: mutexOptions } = {}) {
     let queue = Promise.resolve();
+    const mutex = createWriteMutex(api, mutexOptions);   // cross-instance (normal + private window) write coordination
     const supportCache = new Map();
 
     const serialize = task => {
@@ -36,18 +38,22 @@ export function createController(api) {
     };
 
     // ---- reading state ----
+    // The configuration lives in `config`; the session end time lives in grow-only `lock:<instance>` keys (core/lock.js).
+    // A configuration write never touches any lock key, so a late configuration write cannot erase or shorten a session.
     async function readState() {
-        let stored;
-        try { stored = await api.storage.get(['config', 'lock']); }
+        let all;
+        try { all = await api.storage.getAll(); }
         catch { return { kind: 'error', reason: 'storage_error' }; }
-        const raw = { config: stored.config, lock: stored.lock };   // exactly what is stored, for compare-and-set / restore
-        let lock = stored.lock === undefined ? emptyLock() : stored.lock;
-        if (!isLockValid(lock)) lock = null;
+        const raw = { config: all.config };           // exactly what is stored, for compare-and-set / restore
+        const locks = mergeLocks(all);
+        let lock = { until: locks.until };
         try {
-            const result = migrate(stored.config, lock ?? undefined);
-            if (!result.fresh && !isLockValid(result.lock)) return { kind: 'corrupt', reason: 'config_corrupt', lock: null, raw };
-            return { kind: result.fresh ? 'fresh' : 'ok', config: result.config, lock: result.lock, migrated: result.migrated, raw };
-        } catch { return { kind: 'corrupt', reason: 'config_corrupt', lock, raw }; }
+            const result = migrate(all.config, lock);
+            if (result.migrated) lock = { until: Math.max(lock.until, result.lock.until), v0: result.lock.until };
+            else lock = { until: locks.until };
+            if (locks.invalidKeys.length) return { kind: 'corrupt', reason: 'config_corrupt', lock, raw, lockKeys: locks, invalidLockKeys: locks.invalidKeys };
+            return { kind: result.fresh ? 'fresh' : 'ok', config: result.config, lock, migrated: result.migrated, raw, lockKeys: locks };
+        } catch { return { kind: 'corrupt', reason: 'config_corrupt', lock, raw, lockKeys: locks, invalidLockKeys: locks.invalidKeys }; }
     }
 
     const activeSettings = config => (config.onboarded ? config : { ...config, ...EMPTY_SETTINGS });
@@ -78,16 +84,17 @@ export function createController(api) {
         ? Object.fromEntries(Object.keys(item).sort().map(key => [key, item[key]])) : item));
     const sameJson = (a, b) => stable(a) === stable(b);
     async function storedMatches(expected) {
-        const now = await api.storage.get(['config', 'lock']);
-        return sameJson(now.config, expected.config) && sameJson(now.lock, expected.lock);
+        const now = await api.storage.get('config');
+        return sameJson(now.config, expected.config);
     }
 
     /**
      * Applies `config` to the browser and (when `persist`) storage, atomically from the caller's view.
-     * `expected` is the exact raw storage content ({ config, lock }, possibly undefined values) the change is based on:
-     * it is compared right before writing and restored on failure.
+     * `expected` is the exact raw storage content ({ config }, possibly undefined) the change is based on: it is
+     * compared right before writing and restored on failure. Runs inside the write mutex; the lease is re-checked right
+     * before the write. The session end time is never written here.
      */
-    async function commit({ config, lock, expected, persist }) {
+    async function commit({ config, expected, persist }) {
         const plan = await planRules(activeSettings(config), supports);
         const before = await snapshot();
         let touchedStorage = false;
@@ -97,9 +104,10 @@ export function createController(api) {
             if (persist) {
                 // A normal and a private-window instance of this worker can both write (Chromium "split" mode).
                 // Re-check right before writing, and again after, so an interleaved write is reported, not lost silently.
+                await mutex.assertOwner();
                 if (!(await storedMatches(expected))) throw new TabsiraError('stale');
                 touchedStorage = true;
-                await api.storage.set({ config, lock });
+                await api.storage.set({ config });
             }
             if (!(await verify(plan))) {
                 // The browser may momentarily hold another instance's rules (private window saving at the same instant).
@@ -111,6 +119,9 @@ export function createController(api) {
             if (persist && !sameJson((await api.storage.get('config')).config, config)) throw new TabsiraError('stale');
             return plan;
         } catch (error) {
+            // Lease lost (this worker was paused past its lease and another instance may have written): do nothing
+            // destructive here. handle() re-runs reconciliation under the mutex, which makes the browser follow storage.
+            if (error instanceof TabsiraError && error.code === 'busy') throw error;
             let restored = true;
             const attempt = async step => { try { await step(); } catch { restored = false; } };
             // If another worker instance (private window) wrote the configuration after we did, its write is the
@@ -134,7 +145,7 @@ export function createController(api) {
                 await attempt(() => setDynamicRules(before.rules));
                 await attempt(() => setBaseEnabled(before.baseEnabled));
                 if (touchedStorage) {
-                    await attempt(() => (expected.config === undefined ? api.storage.remove(['config', 'lock']) : api.storage.set({ config: expected.config, ...(expected.lock !== undefined ? { lock: expected.lock } : {}) })));
+                    await attempt(() => (expected.config === undefined ? api.storage.remove(['config']) : api.storage.set({ config: expected.config })));
                 }
             }
             const code = supersededByOther && restored ? 'stale' : restored ? (error instanceof TabsiraError && error.code === 'stale' ? 'stale' : 'apply_failed') : 'apply_failed_rollback_failed';
@@ -201,6 +212,15 @@ export function createController(api) {
     }
 
     // ---- reconcile: make the browser match the stored configuration ----
+    // Runs inside the write mutex when it may write (migration, repair). Storage clean-up removes only lock entries that
+    // can no longer matter (expired, or smaller than the effective end time).
+    async function compactLocks(state) {
+        const now = api.now();
+        const stale = Object.entries(state.lockKeys?.keys ?? {}).filter(([, until]) => until <= now || until < state.lock.until).map(([key]) => key);
+        // keep exactly one entry when a session is active: the largest (first in sort order)
+        if (stale.length) { await mutex.assertOwner(); await api.storage.remove(stale); }
+    }
+
     async function reconcileTask() {
         const state = await readState();
         if (state.kind === 'ok') {
@@ -208,13 +228,26 @@ export function createController(api) {
             const actual = await snapshot();
             const matches = rulesMatch(actual.rules, plan.rules) && actual.baseEnabled === plan.baseListEnabled;
             if (!matches || state.migrated) {
-                await commit({ config: state.config, lock: state.lock, expected: state.raw, persist: !!state.migrated });
+                await commit({ config: state.config, expected: state.raw, persist: !!state.migrated });
+                if (state.migrated && state.lock.v0 > 0) await writeLock(state.lock.v0);
             }
+            if (mutex.isHeld()) { try { await compactLocks(await readState()); } catch { /* clean-up is optional */ } }
         }
         // 'fresh' with leftover rules, 'corrupt' and 'error': never delete protection because of a read problem.
         return statusNow();
     }
-    const reconcile = () => serialize(reconcileTask).catch(() => statusNow().catch(() => null));
+    const guarded = task => mutex.run(task);
+    const reconcile = () => serialize(() => guarded(reconcileTask)).catch(() => statusNow().catch(() => null));
+
+    /** Raises this instance's own lock entry to `until` (never lowers it) and verifies the merged result. */
+    async function writeLock(until) {
+        await mutex.assertOwner();
+        const key = `${LOCK_KEY_PREFIX}${api.instanceId}`;
+        const own = (await api.storage.get(key))[key];
+        if (own && Number.isSafeInteger(own.until) && own.until >= until) return;
+        await api.storage.set({ [key]: { until } });
+        if (mergeLocks(await api.storage.getAll()).until < until) throw new TabsiraError('apply_failed');
+    }
 
     // ---- operations ----
     async function requireWritable() {
@@ -234,7 +267,7 @@ export function createController(api) {
             const bad = await findUnsupported(settings[mode], mode === 'words' ? 'word' : 'contains', supports, 'q');
             if (bad.length) throw new TabsiraError('phrase_too_complex', { line: bad[0], list: mode });
         }
-        await commit({ config: next, lock: state.lock, expected: state.raw, persist: true });
+        await commit({ config: next, expected: state.raw, persist: true });
     }
 
     const checkRevision = (state, baseRevision) => {
@@ -244,7 +277,7 @@ export function createController(api) {
     const operations = {
         async GET_STATUS() {
             let status = await statusNow();
-            if (status.reasons.includes('rules_mismatch')) status = await reconcileTask().catch(() => status);
+            if (status.reasons.includes('rules_mismatch')) status = await guarded(reconcileTask).catch(() => status);
             return { status };
         },
         async SAVE_SETTINGS({ baseRevision, settings }) {
@@ -274,15 +307,9 @@ export function createController(api) {
                 // Never promise commitment around protection that is not actually in place.
                 throw new TabsiraError(status.state === 'not_configured' ? 'session_needs_rules' : 'session_needs_active_protection');
             }
-            const lock = extend(state.lock, minutes, now);
-            try {
-                await api.storage.set({ lock });
-                const check = await api.storage.get('lock');
-                if (!check.lock || check.lock.until !== lock.until) throw new Error('read-back mismatch');
-            } catch {
-                try { await api.storage.set({ lock: state.lock }); } catch { /* reported below */ }
-                throw new TabsiraError('apply_failed');
-            }
+            // Grow-only: only ever raises this instance's own key; the effective end time is the maximum over all keys.
+            const target = Math.max(state.lock.until, now + minutes * 60000);
+            if (target > state.lock.until) await writeLock(target);
             return { status: await statusNow() };
         },
         async RESET({ baseRevision }) {
@@ -293,7 +320,7 @@ export function createController(api) {
             await applySettings(state, { ...EMPTY_SETTINGS });
             return { status: await statusNow() };
         },
-        async REPAIR() { return { status: await reconcileTask() }; },
+        async REPAIR() { return { status: await reconcileTask() }; },   // runs inside the mutex (see handle)
         async GET_EXPORT() {
             const state = await requireWritable();
             return { text: JSON.stringify(exportSettings(state.config), null, 2) };
@@ -303,11 +330,13 @@ export function createController(api) {
     async function handle(message) {
         try {
             const operation = operations[message.type];
-            const result = await serialize(() => operation(message));
+            const readOnly = message.type === 'GET_STATUS' || message.type === 'GET_EXPORT';
+            const result = await serialize(() => (readOnly ? operation(message) : guarded(() => operation(message))));
             return { ok: true, ...result };
         } catch (error) {
             let status = null;
             try { status = await statusNow(); } catch { /* keep error only */ }
+            if (error instanceof TabsiraError && ['busy', 'stale'].includes(error.code)) status = (await reconcile()) ?? status;
             return { ok: false, error: toErrorPayload(error), status };
         }
     }
@@ -316,9 +345,10 @@ export function createController(api) {
     // (its end time is stored separately) still blocks it.
     async function resetCorruptTask(state) {
         if (state.lock && isActive(state.lock, api.now())) throw new TabsiraError('locked_weakening', { reasons: ['reset'] });
-        await commit({ config: { ...defaultConfig(), onboarded: true, baseList: false, starterTerms: false, revision: 1 }, lock: emptyLock(), expected: state.raw, persist: true });
+        await commit({ config: { ...defaultConfig(), onboarded: true, baseList: false, starterTerms: false, revision: 1 }, expected: state.raw, persist: true });
+        if (state.invalidLockKeys?.length) { await mutex.assertOwner(); await api.storage.remove(state.invalidLockKeys); }
         return { status: await statusNow() };
     }
 
-    return { handle, reconcile, statusNow, readState, supports };
+    return { handle, reconcile, statusNow, readState, supports, instanceId: api.instanceId };
 }

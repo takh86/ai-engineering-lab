@@ -2,10 +2,11 @@
 // that is covered by tests/e2e in real browsers. It models: atomic dynamic-rule replacement,
 // browser-side reordering/normalization of returned rules, static ruleset switching, permission
 // state, and one-shot failure injection per operation.
+let fakeCounter = 0;
 export function createFakeBrowser({ regexLimit = 400, hosts = true, incognito = true } = {}) {
     const state = {
         storage: {}, rules: [], baseEnabled: false, hosts, incognito, now: 1_700_000_000_000, badge: '',
-        fail: {}, calls: []
+        fail: {}, calls: [], clockSkew: 0
     };
     // state.fail[name] = n  -> the next n calls of `name` throw (true means 1).
     const failOnce = name => {
@@ -22,6 +23,10 @@ export function createFakeBrowser({ regexLimit = 400, hosts = true, incognito = 
     const api = {
         id: 'test-extension', baseUrl: 'chrome-extension://test-extension/',
         now: () => state.now,
+        instanceId: `i${++fakeCounter}`,
+        // Lease/poll clock is real wall time (tests control `state.now` only for the session clock).
+        clock: () => Date.now() + state.clockSkew,
+        sleep: ms => new Promise(resolve => setTimeout(resolve, ms)),
         storage: {
             get: async keys => {
                 failOnce('storage.get'); state.calls.push('storage.get');
@@ -31,7 +36,13 @@ export function createFakeBrowser({ regexLimit = 400, hosts = true, incognito = 
                 // Real chrome.storage returns objects with sorted keys; the fake does too.
                 return Object.fromEntries(list.filter(k => k in state.storage).map(k => [k, sorted(structuredClone(state.storage[k]))]));
             },
-            set: async items => { failOnce('storage.set'); state.calls.push('storage.set'); for (const [k, v] of Object.entries(items)) state.storage[k] = structuredClone(v); },
+            getAll: async () => {
+                failOnce('storage.get');
+                const sorted = value => (value && typeof value === 'object' && !Array.isArray(value)
+                    ? Object.fromEntries(Object.keys(value).sort().map(key => [key, sorted(value[key])])) : Array.isArray(value) ? value.map(sorted) : value);
+                return sorted(structuredClone(state.storage));
+            },
+            set: async items => { if ('config' in items) failOnce('storage.set'); state.calls.push('storage.set'); for (const [k, v] of Object.entries(items)) state.storage[k] = structuredClone(v); },
             remove: async keys => { failOnce('storage.remove'); for (const k of keys) delete state.storage[k]; }
         },
         dnr: {

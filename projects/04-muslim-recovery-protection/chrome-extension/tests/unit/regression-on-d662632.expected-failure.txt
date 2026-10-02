@@ -1,0 +1,19 @@
+not ok 1 - REGRESSION: a paused SAVE_SETTINGS (same settings) must not erase a session started meanwhile
+  error: 'the session survives the late write'
+not ok 2 - REGRESSION (variants): a paused IMPORT, or a config write that fails and rolls back, never touches the session
+  error: 'import{"code":"session_needs_active_protection","params":{}}'
+not ok 3 - two sessions started and extended at the same time: the effective end time is the maximum and never decreases
+  error: '[{"code":"apply_failed","params":{}},null,null,null,null]'
+not ok 4 - storage layout: a stale or rule-breaking writer cannot shorten the session (grow-only entries)
+  error: |-
+not ok 5 - configuration writes never write any lock key
+  error: |-
+not ok 6 - mutual exclusion: five instances saving from one base revision - exactly one wins, critical sections never overlap
+  error: |-
+not ok 7 - lease lost (worker paused beyond its lease): its late write is refused, the other instance state stands, rules follow storage
+  error: |-
+not ok 8 - a crashed holder cannot block forever (lease expiry), a live one makes others fail with "busy"
+  error: "Cannot read properties of undefined (reading 'code')"
+ok 9 - reconciliation of a damaged browser state while another instance saves is serialized by the same mutex
+# pass 1
+# fail 8

@@ -40,7 +40,7 @@ function baseManifest() {
         declarative_net_request: { rule_resources: [{ id: 'base_adult', enabled: false, path: 'rulesets/base_adult.json' }] },
         // Chromium: no web_accessible_resources - redirecting to the stop page does not need them (verified), and leaving
         // them out stops websites from detecting the extension by its fixed ID. Firefox needs one (see MANIFESTS.firefox).
-        content_security_policy: { extension_pages: "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'" }
+        content_security_policy: { extension_pages: "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'" }
     };
 }
 const MANIFESTS = {
@@ -68,8 +68,8 @@ function buildBaseList() {
     if (digest !== provenance.snapshotSha256) throw new Error('snapshot hash does not match PROVENANCE.json');
     const rule = { id: 1, priority: 1, action: { type: 'redirect', redirect: { extensionPath: '/blocked.html' } },
         condition: { requestDomains: [SELFTEST_DOMAIN, ...domains], resourceTypes: ['main_frame'] } };
-    const meta = { version: pkg.version, domainCount: domains.length, upstreamDate: provenance.upstreamLastModified.slice(0, 10), retrievedAt: provenance.retrievedAt,
-        snapshotSha256: provenance.snapshotSha256, source: provenance.name, license: 'Unlicense' };
+    const meta = { version: pkg.version, domainCount: domains.length, upstreamDate: provenance.retrievedAt, retrievedAt: provenance.retrievedAt,
+        snapshotSha256: provenance.snapshotSha256, source: provenance.name, license: 'Unlicense / MIT (see THIRD_PARTY_NOTICES.txt)' };
     return { rules: `${JSON.stringify([rule])}\n`, meta: `${JSON.stringify(meta, null, 2)}\n` };
 }
 
@@ -81,11 +81,14 @@ function buildTarget(target, baseList) {
     copyDir(path.join(root, 'src', 'background'), path.join(out, 'background'));
     copyDir(path.join(root, 'src', '_locales'), path.join(out, '_locales'));
     copyDir(path.join(root, 'src', 'icons'), path.join(out, 'icons'));
+    copyDir(path.join(root, 'src', 'fonts'), path.join(out, 'fonts'));
+    fs.mkdirSync(path.join(out, 'brand'));
+    fs.copyFileSync(path.join(root, 'src', 'brand', 'mark.svg'), path.join(out, 'brand', 'mark.svg'));
     fs.mkdirSync(path.join(out, 'rulesets'));
     fs.writeFileSync(path.join(out, 'rulesets', 'base_adult.json'), baseList.rules);
     fs.writeFileSync(path.join(out, 'base-list-meta.json'), baseList.meta);
     fs.writeFileSync(path.join(out, 'manifest.json'), `${JSON.stringify(MANIFESTS[target](), null, 2)}\n`);
-    fs.copyFileSync(path.join(root, 'data', 'base-list', 'LICENSE-blocklistproject.txt'), path.join(out, 'LICENSE-blocklist.txt'));
+    fs.copyFileSync(path.join(root, 'data', 'base-list', 'THIRD_PARTY_NOTICES.md'), path.join(out, 'THIRD_PARTY_NOTICES.txt'));
     return out;
 }
 
