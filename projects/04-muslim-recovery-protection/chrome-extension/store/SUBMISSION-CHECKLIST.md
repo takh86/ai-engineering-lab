@@ -15,7 +15,7 @@ Nothing below has been done. No account was created, no fee paid, nothing upload
 ## Chrome Web Store
 - [ ] Developer account + one-time registration fee (Owner pays).
 - [ ] Upload `dist/tabsira-chromium-1.0.0.zip` (built with `npm run build`).
-- [ ] Listing text from `LISTING.md`; icon 128 px, screenshots (1280×800), small promo tile (440×280) from `store/images/`.
+- [ ] Listing text from `LISTING.md`; icon 128 px, Chrome screenshots = the five titled images in `store/chrome-web-store/` (1280×800, 24-bit PNG, ZIP included; regenerate with `scripts/make-chrome-store-screenshots.mjs`), small promo tile (440×280) from `store/images/`.
 - [ ] Privacy practices tab: single purpose, permission justifications, “no data collected” (all in `LISTING.md`), privacy policy URL.
 - [ ] Expect extra review time for broad host access (`http://*/*`, `https://*/*`); the justification is in `LISTING.md`.
 
