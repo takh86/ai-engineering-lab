@@ -24,7 +24,9 @@ const copyDir = (from, to) => {
 };
 
 function baseManifest() {
-    const permissions = ['storage', 'declarativeNetRequest'];
+    // 'alarms' (no install warning): the only way for the extension to be woken after its worker was terminated, so that a rule set left
+    // behind by a late write is detected and rebuilt from storage (see service-worker.js, README "Recovery").
+    const permissions = ['storage', 'declarativeNetRequest', 'alarms'];
     return {
         manifest_version: 3,
         name: '__MSG_extName__', short_name: '__MSG_extShortName__', description: '__MSG_extDescription__',

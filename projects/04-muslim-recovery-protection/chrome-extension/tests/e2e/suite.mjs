@@ -857,6 +857,89 @@ export async function runSuite({ browserName, executablePath, report, pkg }) {
         }
     }
 
+    // ================= S16d: lifecycle of a STALE RULE WRITE when the real worker is terminated before it can reconcile (review of 516a4ff) =================
+    // A save that deletes every site is frozen inside the real chrome.declarativeNetRequest.updateDynamicRules; its lease expires; the other (private)
+    // instance saves newer sites and starts a session; the frozen rule write is released (it lands: rules removed) and its continuation never runs;
+    // the real worker is then terminated (CDP ServiceWorker.stopAllWorkers) BEFORE the reconcile path (busy -> handle() -> reconcile()) could execute.
+    // Observed WITHOUT opening Popup/Options and without GET_STATUS/REPAIR: only real navigations. Then each recovery trigger is tried separately.
+    if (want('S16d')) {
+        const { chromium } = await import('playwright-core');
+        const net = await import('node:net');
+        const freePort = () => new Promise(resolve => { const srv = net.createServer(); srv.listen(0, '127.0.0.1', () => { const { port: p } = srv.address(); srv.close(() => resolve(p)); }); });
+        const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'tabsira-e2e-life-'));
+        let b = await open({ profileDir: profile });
+        let options = await openExtPage(b.context, b.extensionId, 'options.html');
+        await onboard(options); await save(options, { domains: ['life-keep.test', 'life-old.test'] });
+        const extId = b.extensionId;
+        await finish(b); await sleep(1200);
+        const prefsFile = path.join(profile, 'Default', 'Preferences');
+        const prefs = JSON.parse(fs.readFileSync(prefsFile, 'utf8')); prefs.extensions.settings[extId].incognito = true; fs.writeFileSync(prefsFile, JSON.stringify(prefs));
+        const port = await freePort();
+        b = await open({ profileDir: profile, extraArgs: [`--remote-debugging-port=${port}`] });
+        await sleep(1500);
+        options = await openExtPage(b.context, b.extensionId, 'options.html');
+        const normalWorker = b.getWorker();
+        const cdp = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
+        const seen = new Set(cdp.contexts().flatMap(c => c.pages()));
+        await options.evaluate(u => chrome.windows.create({ url: u, incognito: true }), `chrome-extension://${b.extensionId}/options.html`).catch(() => {});
+        await sleep(2800);
+        let priv = null; for (const ctx of cdp.contexts()) for (const p of ctx.pages()) if (!seen.has(p) && p.url().startsWith('chrome-extension://')) priv = p;
+        if (!priv) { skip('S16d.* stale rule write + worker termination', 'a private-window settings page was not observable in this browser'); await cdp.close().catch(() => {}); await finish(b); }
+        else {
+            const sendPriv = message => priv.evaluate(m => chrome.runtime.sendMessage(m), message);
+            const rulesNow = () => b.context.pages()[0] && normalWorker.evaluate(async () => (await chrome.declarativeNetRequest.getDynamicRules()).flatMap(r => r.condition.requestDomains ?? []).sort()).catch(() => 'worker-gone');
+            await normalWorker.evaluate(() => {
+                const dnr = chrome.declarativeNetRequest; const original = dnr.updateDynamicRules.bind(dnr);
+                globalThis.__gate = { hit: false, release: null };
+                dnr.updateDynamicRules = o => {
+                    if (!globalThis.__gate.hit) {
+                        globalThis.__gate.hit = true;
+                        // frozen BEFORE the real call; once released the real call runs and lands, but the continuation never resumes
+                        return new Promise(() => { globalThis.__gate.release = () => { original(o); }; });
+                    }
+                    return original(o);
+                };
+            });
+            const rev = (await status(options)).revision;
+            send(options, { type: 'SAVE_SETTINGS', baseRevision: rev, settings: { ...NO_LIST, domains: [] } }).catch(() => {});      // deletes every site; never resolves
+            let frozen = false; for (let i = 0; i < 100 && !frozen; i++) { frozen = await normalWorker.evaluate(() => globalThis.__gate.hit); if (!frozen) await sleep(50); }
+            await sleep(21500);                                                        // the frozen holder's lease is over
+            const cur = (await sendPriv({ type: 'GET_STATUS' })).status;
+            const newer = await sendPriv({ type: 'SAVE_SETTINGS', baseRevision: cur.revision, settings: { ...NO_LIST, domains: ['life-keep.test', 'life-new.test'] } });
+            const started = await sendPriv({ type: 'START_SESSION', minutes: 60 });
+            const beforeRelease = { keep: (await visit(b.context, url('life-keep.test'))).blocked, added: (await visit(b.context, url('life-new.test'))).blocked };
+            await normalWorker.evaluate(() => { globalThis.__gate.release(); });                  // the stale rule write lands; its continuation never runs
+            await sleep(400);
+            const rulesAfterStale = await rulesNow();
+            // terminate the real worker(s) before any reconcile path can run
+            const cdpSession = await b.context.newCDPSession(b.context.pages()[0]);
+            await Promise.race([cdpSession.send('ServiceWorker.enable').catch(() => {}), sleep(5000)]);
+            await Promise.race([cdpSession.send('ServiceWorker.stopAllWorkers').catch(() => {}), sleep(5000)]);
+            await sleep(1500);
+            await b.context.newPage();                                                          // keep one ordinary tab alive
+            await priv.close().catch(() => {});
+            for (const p of b.context.pages()) if (p.url().startsWith('chrome-extension://')) await p.close().catch(() => {});   // no extension page stays open (incl. the install-time onboarding tab): only real navigations from here on
+            const extensionPagesOpen = b.context.pages().filter(p => p.url().startsWith('chrome-extension://')).length;
+            const lostRightAfter = { keep: !(await visit(b.context, url('life-keep.test'))).blocked, added: !(await visit(b.context, url('life-new.test'))).blocked };
+            const t0 = Date.now(); const observed = []; let recoveredAfterSec = null;
+            while (Date.now() - t0 < 170000) {       // only real navigations: no Popup, no Options, no GET_STATUS, no REPAIR
+                await sleep(10000);
+                const keep = await visit(b.context, url('life-keep.test')); const added = await visit(b.context, url('life-new.test'));
+                observed.push({ atSec: Math.round((Date.now() - t0) / 1000), keepBlocked: keep.blocked, newBlocked: added.blocked });
+                if (keep.blocked && added.blocked) { recoveredAfterSec = Math.round((Date.now() - t0) / 1000); break; }
+            }
+            const again = await openExtPage(b.context, b.extensionId, 'options.html');       // only now: look at the final state
+            const final = (await send(again, { type: 'GET_STATUS' })).status;
+            const oldLoads = (await visit(b.context, url('life-old.test'))).real;
+            check('S16d.1 preconditions: frozen save, newer sites saved and session started from the other instance, newer sites blocked before the stale write', frozen && newer.ok && started.ok && beforeRelease.keep && beforeRelease.added, JSON.stringify({ frozen, newer: newer.ok, started: started.ok, beforeRelease }));
+            check('S16d.2 the stale rule write lands and the worker is terminated before it can reconcile: rules are EMPTY and protection is lost right after (the hazard exists)', Array.isArray(rulesAfterStale) && rulesAfterStale.length === 0 && lostRightAfter.keep && lostRightAfter.added && extensionPagesOpen === 0, JSON.stringify({ rulesAfterStale, lostRightAfter, extensionPagesOpen }));
+            check('S16d.3 WITHOUT opening Popup/Options, GET_STATUS or REPAIR, protection is restored automatically (watchdog wake-up); time recorded', recoveredAfterSec !== null, JSON.stringify({ recoveredAfterSec, observed }));
+            check('S16d.4 afterwards the stored sites and the session are intact and the rules equal the stored settings', final.state === 'active' && final.lock.active && JSON.stringify([...final.settings.domains].sort()) === JSON.stringify(['life-keep.test', 'life-new.test']) && oldLoads, JSON.stringify({ state: final.state, lock: final.lock.active, domains: final.settings.domains, oldSiteLoads: oldLoads }));
+            note('S16d', `protection restored automatically after ${recoveredAfterSec} s (first checked 10 s after the worker was terminated, then every 10 s; real navigations only)`);
+            await cdp.close().catch(() => {}); await finish(b);
+        }
+    }
+
     // ================= S17: hostile web page + data leakage (red-team checks against the real package) =================
     if (want('S17')) {
         const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'tabsira-e2e-leak-'));

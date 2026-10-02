@@ -166,6 +166,17 @@ try {
         const healed = await s.status();
         check('F7.1 rules removed behind our back are detected and restored', healed.state === 'active' && healed.base.enabled && (await s.visit('http://extra-lock.test/')).blocked, JSON.stringify({ state: healed.state, reasons: healed.reasons }));
         await s.back();
+        // ---- F10: watchdog - rules removed behind our back and NOTHING asks for status: the alarm must restore them ----
+        await s.inOptions('const r = await browser.declarativeNetRequest.getDynamicRules(); await browser.declarativeNetRequest.updateDynamicRules({ removeRuleIds: r.map(x => x.id) }); await browser.declarativeNetRequest.updateEnabledRulesets({ disableRulesetIds: ["base_adult"] }); return true;');
+        const lostNow = !(await s.visit('http://extra-lock.test/')).blocked;
+        const t0 = Date.now(); let recovered = null;
+        while (Date.now() - t0 < 170000) {            // only real navigations: no status, no repair, no extension page action
+            await sleep(10000);
+            if ((await s.visit('http://extra-lock.test/')).blocked && (await s.visit('http://tabsira-selftest.test/')).blocked) { recovered = Math.round((Date.now() - t0) / 1000); break; }
+        }
+        check('F10.1 rules (and the built-in list) removed behind our back are restored AUTOMATICALLY by the watchdog alarm, without any status request', lostNow && recovered !== null, JSON.stringify({ lostNow, recoveredAfterSec: recovered }));
+        report.note('F10', `Firefox: protection restored automatically after ${recovered} s (checked every 10 s; real navigations only)`);
+        await s.back();
         // ---- F8: perf ----
         const timing = async () => { await s.d.switchTo(await s.d.newTab()); const times = []; for (let i = 0; i < 15; i++) { const t = Date.now(); await s.d.goto(`http://perf-${i}.test/`).catch(() => {}); times.push(Date.now() - t); } times.sort((a, b) => a - b); return times[Math.floor(times.length / 2)]; };
         const withList = await timing(); const rssOn = rssMb();

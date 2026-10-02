@@ -17,7 +17,20 @@ ext.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
 });
 
-const start = async () => { await api.restrictStorage(); await controller.reconcile(); };
+// Watchdog. Browser rules are derived state and the browser offers no conditional write: a worker that was frozen past its lease can still land a
+// stale rule write and then be terminated before its own reconciliation runs (review of 516a4ff; test S16d). Nothing else wakes a terminated worker,
+// so an alarm wakes it periodically (and every start of the worker checks once): if the rules differ from the stored settings they are rebuilt under
+// the write lock. Read-only when everything matches. Recovery time: see README "Recovery".
+const WATCHDOG_ALARM = 'tabsira-verify';
+const verifyRules = () => controller.handle({ type: 'GET_STATUS' }).catch(() => {});     // GET_STATUS repairs a rules mismatch under the write lock
+const ensureWatchdog = async () => {
+    try { if (!(await ext.alarms.get(WATCHDOG_ALARM))) await ext.alarms.create(WATCHDOG_ALARM, { delayInMinutes: 1, periodInMinutes: 1 }); } catch { /* alarms unavailable: other triggers still apply */ }
+};
+ext.alarms?.onAlarm.addListener(alarm => { if (alarm.name === WATCHDOG_ALARM) verifyRules(); });
+ensureWatchdog();
+verifyRules();
+
+const start = async () => { await api.restrictStorage(); await ensureWatchdog(); await controller.reconcile(); };
 ext.runtime.onStartup.addListener(start);
 ext.runtime.onInstalled.addListener(async details => {
     await start();

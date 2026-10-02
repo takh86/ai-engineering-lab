@@ -70,7 +70,7 @@ test('manifest (both targets): least permissions, strict CSP, minimal web-access
         const manifest = JSON.parse(fs.readFileSync(path.join(out, target, 'manifest.json'), 'utf8'));
         assert.equal(manifest.manifest_version, 3);
         assert.equal(manifest.version, JSON.parse(read('package.json')).version);
-        assert.deepEqual([...manifest.permissions].sort(), ['declarativeNetRequest', 'storage']);
+        assert.deepEqual([...manifest.permissions].sort(), ['alarms', 'declarativeNetRequest', 'storage']);   // 'alarms' = watchdog wake-up, no install warning
         assert.deepEqual(manifest.host_permissions, ['http://*/*', 'https://*/*']);
         if (target === 'chromium') assert.equal(manifest.web_accessible_resources, undefined);   // no fixed-ID fingerprint
         else assert.deepEqual(manifest.web_accessible_resources, [{ resources: ['blocked.html'], matches: ['http://*/*', 'https://*/*'] }]);   // Firefox requirement, random UUID
