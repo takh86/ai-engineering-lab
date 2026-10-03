@@ -72,6 +72,7 @@ test('manifest (both targets): least permissions, strict CSP, minimal web-access
         assert.equal(manifest.version, JSON.parse(read('package.json')).version);
         assert.deepEqual([...manifest.permissions].sort(), ['alarms', 'declarativeNetRequest', 'storage']);   // 'alarms' = watchdog wake-up, no install warning
         assert.deepEqual(manifest.host_permissions, ['http://*/*', 'https://*/*']);
+        assert.deepEqual(manifest.optional_permissions, ['activeTab', 'notifications']); // owner-approved, explicit opt-in only
         if (target === 'chromium') assert.equal(manifest.web_accessible_resources, undefined);   // no fixed-ID fingerprint
         else assert.deepEqual(manifest.web_accessible_resources, [{ resources: ['blocked.html'], matches: ['http://*/*', 'https://*/*'] }]);   // Firefox requirement, random UUID
         assert.equal(manifest.content_scripts, undefined);
@@ -137,6 +138,8 @@ test('base list: ONLY the two explicitly licensed sources, pinned to commits and
     for (const needle of ['ShadowWhisperer', 'Sinfonietta', 'free and unencumbered software', 'The MIT License', 'Copyright (c) 2016 Sinfonietta', sw.commit, sin.commit]) assert.ok(notices.includes(needle), needle);
     for (const forbidden of ['Block List Project', 'HaGeZi', 'zachlagden']) assert.ok(!notices.includes(forbidden), `${forbidden} must not appear in the shipped notices as a source`);
     assert.ok(fs.existsSync(path.join(out, 'chromium', 'THIRD_PARTY_NOTICES.txt')));
+    const preview = fs.readFileSync(path.join(out, 'chromium', 'base-domains.txt'));
+    assert.equal(crypto.createHash('sha256').update(preview).digest('hex'), provenance.snapshotSha256, 'preview is the exact licensed snapshot');
     // the shipped notice carries the full MIT text of Sinfonietta (condition of the licence)
     assert.ok(read('data', 'base-list', 'THIRD_PARTY_NOTICES.md').includes(read('data', 'base-list', 'licenses', 'LICENSE-Sinfonietta-MIT.txt').trim()));
 });
