@@ -54,3 +54,36 @@ test('a tampered record that is the newest makes the state corrupt (fail closed)
     assert.ok((await send({ type: 'GET_STATUS' })).status.reasons.includes('config_corrupt'));
     assert.ok(configKey(3, 'abc').startsWith('cfg:3:'));
 });
+
+test('commitment cancellation and request lists have finite entry and lock-name bounds', async () => {
+    const { parseCommitment, addReleases, COMMITMENT_LIMITS } = await import('../../src/core/commitment.js');
+    const names = Array.from({ length: COMMITMENT_LIMITS.maxReleases }, (_, i) => `lock:${i}:worker`);
+    const state = { exitDelay: 60, request: null, releases: names };
+    assert.equal(parseCommitment(state).releases.length, COMMITMENT_LIMITS.maxReleases);
+    assert.deepEqual(addReleases(names, [names[0]]), names, 'repeated already-released names do not consume capacity');
+    assert.throws(() => addReleases(names, ['lock:new:worker']), error => error.code === 'commitment_release_limit');
+    assert.throws(() => parseCommitment({ ...state, releases: [...names, 'lock:new:worker'] }), error => error.code === 'config_corrupt');
+    assert.throws(() => parseCommitment({ ...state, releases: [`lock:${'a'.repeat(COMMITMENT_LIMITS.maxLockKeyLength)}`] }), error => error.code === 'config_corrupt');
+    for (const keys of [[...names, 'lock:new:worker'], [`lock:${'a'.repeat(COMMITMENT_LIMITS.maxLockKeyLength)}`]]) {
+        assert.throws(() => parseCommitment({ ...state, request: { readyAt: 1, until: 2, keys } }), error => error.code === 'config_corrupt');
+    }
+});
+
+test('configuration, lock merging and record selection have no circular module dependencies', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const path = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const visiting = new Set(), visited = new Set();
+    async function check(url) {
+        const file = fileURLToPath(url);
+        assert.equal(visiting.has(file), false, `circular module dependency through ${path.basename(file)}`);
+        if (visited.has(file)) return;
+        visiting.add(file);
+        const source = await readFile(url, 'utf8');
+        for (const [, relative] of source.matchAll(/(?:import|export)\s[^;]*?from\s+['"]([^'"]+)['"]/gu)) {
+            if (relative.startsWith('.')) await check(new URL(relative, url));
+        }
+        visiting.delete(file); visited.add(file);
+    }
+    for (const name of ['config', 'lock', 'records']) await check(new URL(`../../src/core/${name}.js`, import.meta.url));
+});

@@ -1,5 +1,5 @@
 import { TabsiraError } from '../core/errors.js';
-import { epochKey, maxEpoch } from '../core/records.js';
+import { epochKey, maxEpoch, MAX_EPOCH } from '../core/records.js';
 
 const PREFIX = 'mx:';
 
@@ -22,12 +22,26 @@ export function createWriteMutex(api, { leaseMs = 20000, waitMs = 15000, pollMs 
     let epoch = 0;
     let sequence = 0;
 
+    // A genuine lease never claims more than `leaseMs` from the moment it was written. An entry that expires further ahead than
+    // max(2 leases, 5 minutes) (a clock that jumped forward while its owner was killed, or a damaged entry) is not trusted: it cannot lock
+    // everyone out. Trade-off: a wall clock stepped BACK by more than that makes a live holder look implausible; mutual exclusion is then
+    // lost for that window, and the fencing epochs (core/records.js) keep the stored state consistent.
+    const maxAhead = Math.max(2 * leaseMs, 300_000);
     const entriesOf = (all, now) => Object.entries(all)
-        .filter(([name, value]) => name.startsWith(PREFIX) && name !== key && value && typeof value === 'object' && Number.isFinite(value.exp) && value.exp > now)
+        .filter(([name, value]) => name.startsWith(PREFIX) && name !== key && value && typeof value === 'object' && Number.isFinite(value.exp) && value.exp > now && value.exp <= now + maxAhead)
         .map(([name, value]) => ({ id: name.slice(PREFIX.length), ticket: Number(value.ticket) || 0, choosing: !!value.choosing }));
     const before = (a, b) => a.ticket < b.ticket || (a.ticket === b.ticket && a.id < b.id);
 
     async function acquire() {
+        try { await register(); }
+        catch (error) {
+            // A storage error half-way must not leave a live entry that makes every other writer wait for the whole lease.
+            await api.storage.remove([key]).catch(() => {});
+            throw error;
+        }
+    }
+
+    async function register() {
         const deadline = api.clock() + waitMs;
         await api.storage.set({ [key]: { choosing: true, ticket: 0, exp: api.clock() + leaseMs } });
         const others = entriesOf(await api.storage.getAll(), api.clock());
@@ -58,8 +72,12 @@ export function createWriteMutex(api, { leaseMs = 20000, waitMs = 15000, pollMs 
         const mine = all[key];
         const now = api.clock();
         if (!mine || mine.choosing || !(mine.exp > now)) { held = false; throw new TabsiraError('busy'); }
+        // Only a rival that is really AHEAD (smaller ticket) takes the lock away. A rival that is merely `choosing` has not drawn a ticket yet and,
+        // by the bakery invariant, will draw one above ours: it read our entry before we passed the wait loop in register(), which only returns once
+        // no rival is choosing. Treating it as a conflict aborted the holder whenever the protection, feature and prayer controllers and the
+        // watchdog overlapped inside one worker (about one run in three in real Chromium).
         const rivals = entriesOf(all, now);
-        if (rivals.some(entry => entry.choosing || (entry.ticket > 0 && before(entry, { id: me, ticket: mine.ticket })))) { held = false; throw new TabsiraError('busy'); }
+        if (rivals.some(entry => entry.ticket > 0 && before(entry, { id: me, ticket: mine.ticket }))) { held = false; throw new TabsiraError('busy'); }
         await api.storage.set({ [key]: { ...mine, exp: now + leaseMs } });
     }
 
@@ -68,6 +86,7 @@ export function createWriteMutex(api, { leaseMs = 20000, waitMs = 15000, pollMs 
     // the epoch was being registered, assertOwner() fails closed before anything else is written.
     async function beginEpoch() {
         epoch = 1 + maxEpoch(await api.storage.getAll());
+        if (epoch >= MAX_EPOCH) throw new TabsiraError('config_corrupt');   // only reachable with a damaged/planted key: say so instead of writing an invalid record
         sequence = 0;
         await api.storage.set({ [epochKey(epoch, me)]: { n: epoch } });   // write-once, unique name: never rewritten, only removed when dominated
         await assertOwner();

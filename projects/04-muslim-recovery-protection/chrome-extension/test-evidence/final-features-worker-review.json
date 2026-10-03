@@ -1,0 +1,5 @@
+{
+  "repo": "/workspace/scratch/bcf19308400d/tabsira-product/projects/04-muslim-recovery-protection/chrome-extension",
+  "result": "PASS",
+  "coverage": "Actual service-worker listener with fake WebExtension APIs; sender capability boundaries, worker password gates, status redaction, recovery protection invariance"
+}

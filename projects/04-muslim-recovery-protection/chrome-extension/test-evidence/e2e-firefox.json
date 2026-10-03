@@ -4,13 +4,13 @@
     "version": "Mozilla Firefox 157.0",
     "os": "Linux 6.18.44-fc-v51 (x64)",
     "node": "v22.22.0",
-    "date": "2026-10-02T12:36:15.787Z",
+    "date": "2026-10-02T18:20:08.871Z",
     "package": {
       "target": "firefox",
-      "zip": "dist/tabsira-firefox-1.0.0.zip",
-      "zipSha256": "c5dade24516a3ff2319a150bf35463d49fec93d605582762751f1648562babf1",
+      "zip": "dist/tabsira-firefox-1.0.1.zip",
+      "zipSha256": "82d1e64ebf8c90da85e57257a6f20877b433a558c9a20eb7f3c45d79bc6ea47b",
       "files": 48,
-      "manifestVersion": "1.0.0",
+      "manifestVersion": "1.0.1",
       "variants": {
         "release": "unmodified extraction of the ZIP",
         "test": "manifest + declarativeNetRequestFeedback only",
@@ -39,7 +39,7 @@
     {
       "id": "F1.3 UI follows the Firefox locale (en-US build → English, LTR, translated)",
       "status": "PASS",
-      "detail": "[\"ltr\",\"en-US\",\"Tabsira settings\"]"
+      "detail": "[\"ltr\",\"en\",\"Tabsira settings\"]"
     },
     {
       "id": "F1.3b Arabic RTL UI inside Firefox",
@@ -64,7 +64,7 @@
     {
       "id": "F2.2 status active (permission present) — or an honest partial with the reason",
       "status": "PASS",
-      "detail": "{\"base\":{\"date\":\"2026-10-02\",\"domainCount\":242750,\"enabled\":true,\"version\":\"1.0.0\"},\"counts\":{\"allow\":0,\"contains\":0,\"domains\":0,\"dynamicRules\":0,\"starter\":0,\"words\":0},\"incognitoAllowed\":false,\"limits\":{\"allow\":300,\"contains\":40,\"domains\":1000,\"importBytes\":262144,\"words\":60},\"lock\":{\"active\":false"
+      "detail": "{\"base\":{\"date\":\"2026-10-02\",\"domainCount\":242750,\"enabled\":true,\"version\":\"1.0.1\"},\"counts\":{\"allow\":0,\"contains\":0,\"domains\":0,\"dynamicRules\":1,\"starter\":0,\"words\":0},\"incognitoAllowed\":false,\"limits\":{\"allow\":300,\"contains\":40,\"domains\":1000,\"importBytes\":262144,\"words\":60},\"lock\":{\"active\":false"
     },
     {
       "id": "F2.3 safe self-test domain redirects to the stop page (real Firefox DNR redirect)",
@@ -239,7 +239,7 @@
     {
       "id": "F8.1 median local navigation with the full built-in ruleset enabled is under 250 ms",
       "status": "PASS",
-      "detail": "95 ms"
+      "detail": "63 ms"
     },
     {
       "id": "F6b.1 withdrawn website permission is detected (status partial + specific reason)",
@@ -255,7 +255,7 @@
   "notes": [
     {
       "id": "F2",
-      "text": "onboarding+enable base list took 1448 ms; host permission granted: true; RSS (all Firefox processes) before ≈ 1113 MB, after enable ≈ 1344 MB"
+      "text": "onboarding+enable base list took 948 ms; host permission granted: true; RSS (all Firefox processes) before ≈ 1119 MB, after enable ≈ 1364 MB"
     },
     {
       "id": "F4.2",
@@ -267,7 +267,7 @@
     },
     {
       "id": "F8",
-      "text": "Firefox median navigation (15 loads, local proxy) with base list on: 95 ms; RSS (all Firefox processes) ≈ 1209 MB"
+      "text": "Firefox median navigation (15 loads, local proxy) with base list on: 63 ms; RSS (all Firefox processes) ≈ 1195 MB"
     },
     {
       "id": "F6b",

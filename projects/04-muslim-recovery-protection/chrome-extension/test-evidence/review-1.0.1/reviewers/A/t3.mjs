@@ -1,0 +1,52 @@
+import {boot, lib} from './h.mjs';
+const b = await boot();
+const say=(n,r)=>console.log(n.padEnd(52), r.ok?'ok':'ERR '+r.error?.code, r.error?.params?JSON.stringify(r.error.params):'', '| state', r.status?.state, 'lock', r.status?.lock?.active);
+// session before onboarding
+say('session before onboarding', await b.send({type:'START_SESSION',minutes:60}));
+await b.onboard(true,true);
+say('session with base+starter only', await b.send({type:'START_SESSION',minutes:60}));
+// unlocked state first; reset to cleared -> not_configured
+say('reset (nothing)', await b.send({type:'RESET', baseRevision:(await b.status()).revision}));
+console.log('state after reset', (await b.status()).state, JSON.stringify((await b.status()).reasons));
+say('session when not_configured', await b.send({type:'START_SESSION',minutes:60}));
+say('save domains', await b.save({baseList:true,domains:['a.test','sub.b.test'],words:['alpha beta'],contains:['gamma'],allow:['c.test']}));
+say('start 61 (invalid)', await b.send({type:'START_SESSION',minutes:61}));
+say('start 60', await b.send({type:'START_SESSION',minutes:60}));
+const until1 = (await b.status()).lock.until;
+say('start 120 extends', await b.send({type:'START_SESSION',minutes:120}));
+const until2 = (await b.status()).lock.until;
+say('start 60 again (must not shorten)', await b.send({type:'START_SESSION',minutes:60}));
+const until3 = (await b.status()).lock.until;
+console.log('until deltas(min):', ((until2-until1)/60000).toFixed(1), ((until3-until2)/60000).toFixed(2));
+const cur = async()=> (await b.status());
+const rev = async()=> (await cur()).revision;
+const s = async over => { const st=(await cur()).settings; return b.send({type:'SAVE_SETTINGS', baseRevision: await rev(), settings:{...st,...over}}); };
+say('add domain (stronger)', await s({domains:['a.test','sub.b.test','new.test']}));
+say('add phrase (stronger)', await s({domains:['a.test','sub.b.test','new.test'],words:['alpha beta','delta']}));
+say('remove domain', await s({domains:['a.test']}));
+say('replace domain a.test->parent of sub? (b.test replaces sub.b.test: stronger)', await s({domains:['a.test','b.test','new.test']}));
+say('remove phrase', await s({words:['delta']}));
+say('word->contains conversion (covered)', await s({words:['delta'], contains:['gamma','alpha beta']}));
+say('baseList off', await s({baseList:false}));
+say('starter off', await s({starterTerms:false}));
+say('add exception', await s({allow:['c.test','d.test']}));
+say('remove exception (stronger)', await s({allow:[]}));
+say('reset during session', await b.send({type:'RESET',baseRevision:await rev()}));
+const st = await cur();
+const exp = {format:'tabsira-settings',version:2,settings:{baseList:false,starterTerms:false,domains:['z.test'],allow:[],words:[],contains:[]}};
+say('import stronger (add domain z.test)', await b.send({type:'IMPORT_SETTINGS',baseRevision:await rev(),text:JSON.stringify(exp)}));
+exp.settings.allow=['e.test'];
+say('import with exception', await b.send({type:'IMPORT_SETTINGS',baseRevision:await rev(),text:JSON.stringify(exp)}));
+say('stale revision', await b.send({type:'SAVE_SETTINGS',baseRevision:0,settings:st.settings}));
+say('export during session', {ok:(await b.send({type:'GET_EXPORT'})).ok});
+console.log('final settings', JSON.stringify((await cur()).settings));
+// rules reflect?
+console.log('dyn rules', (await cur()).counts.dynamicRules);
+// expire session by replacing lock keys
+await b.page.evaluate(async()=>{ const all=await chrome.storage.local.get(null); const ks=Object.keys(all).filter(k=>k.startsWith('lock')); await chrome.storage.local.remove(ks); await chrome.storage.local.set({['lock:9999999999999:forged']:{until:Date.now()+3000}}); });
+console.log('forged 3s lock active:', (await cur()).lock.active);
+await lib.sleep(3500);
+console.log('after expiry active:', (await cur()).lock.active);
+say('after expiry: remove domain', await s({domains:['a.test']}));
+const st2=await cur(); console.log('rules intact after expiry? dyn', st2.counts.dynamicRules, st2.state);
+await b.context.close();

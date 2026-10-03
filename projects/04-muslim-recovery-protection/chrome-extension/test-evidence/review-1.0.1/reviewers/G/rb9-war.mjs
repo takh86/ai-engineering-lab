@@ -1,0 +1,17 @@
+import http from 'node:http';
+import { launch, openExtPage, send, executableFor, sleep } from '/home/user/ai-engineering-lab/projects/04-muslim-recovery-protection/chrome-extension/tests/e2e/lib.mjs';
+const b = await launch({ executablePath: executableFor('chromium'), extensionDir: process.cwd() + '/ext-war' });
+const page0 = await openExtPage(b.context, b.extensionId, 'options.html');
+await send(page0, { type: 'COMPLETE_ONBOARDING', baseList: true, starterTerms: true });
+const server = http.createServer((q, s) => { s.setHeader('content-type', 'text/html'); if (q.url === '/') s.end('<!doctype html><title>ENGINE HOME</title><form action="/search" method="get"><input name="q" id="q"><button id="go">Search</button></form>'); else s.end('<title>REAL-SITE</title>results'); });
+await new Promise(r => server.listen(0, '127.0.0.1', r));
+const P = server.address().port;
+const p = await b.context.newPage();
+await p.goto(`http://www.bing.com:${P}/`);
+await p.fill('#q', 'xvideos'); await Promise.all([p.waitForEvent('framenavigated').catch(()=>{}), p.click('#go')]); await sleep(1200);
+console.log('form submit (phrase rule) ->', p.url(), '\nBODY:', JSON.stringify(await p.evaluate(() => document.body.innerText)));
+await p.screenshot({ path: 'form-submit-war.png' });
+const p2 = await b.context.newPage(); await p2.goto(`http://www.bing.com:${P}/search?q=xvideos`).catch(()=>{}); await sleep(500);
+console.log('typed URL (same rule) ->', p2.url(), '| title', await p2.title());
+await p2.screenshot({ path: 'typed-war.png' });
+await b.context.close(); server.close();

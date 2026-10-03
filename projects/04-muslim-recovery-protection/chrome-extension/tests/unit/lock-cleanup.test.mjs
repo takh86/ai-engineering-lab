@@ -43,20 +43,17 @@ const deleteEverything = async (t, controller) => {
     return t.send(controller, { type: 'SAVE_SETTINGS', baseRevision: status.revision, settings: { ...noList } });
 };
 
-test('REVIEW 0b46c1d: a frozen cleanup of an EXPIRED session key cannot wipe the new session that re-used the key', async () => {
+test('REVIEW 0b46c1d (updated for 1.0.1): cleanup no longer deletes an expired newest session key, so a late delete has nothing to reach', async () => {
     const t = trio(); await configured(t);
     assert.ok((await t.send(t.a, { type: 'START_SESSION', minutes: 60 })).ok);
+    const firstEnd = lockUntil(t.state);
     t.state.now += 61 * MIN;                                       // A's first session has ended
-    const freeze = freezeRemoval(t, isLockKey);
-    const cleanup = t.send(t.b, { type: 'REPAIR' });                // B reconciles: selects A's expired key, checks ownership, freezes at remove
-    await until(() => freeze.seen.frozen, 'B froze inside the removal of the stale session key');
-    t.state.clockSkew += 60_000;                                    // B's lease expires
-    freeze.restore();
-    const second = await t.send(t.a, { type: 'START_SESSION', minutes: 120 });   // A starts a NEW session (old layout: the same storage key)
+    assert.ok((await t.send(t.b, { type: 'REPAIR' })).ok);          // B reconciles and compacts storage
+    assert.equal(lockUntil(t.state), firstEnd, 'the expired newest entry is kept (a forward clock error can never delete a session for good)');
+    const second = await t.send(t.a, { type: 'START_SESSION', minutes: 120 });
     assert.ok(second.ok, JSON.stringify(second.error));
-    freezeRemoval; freeze.release(); await cleanup;                 // the old removal now runs
     const after = await statusOf(t, t.a);
-    assert.ok(after.lock.active, 'the new session survived the late cleanup');
+    assert.ok(after.lock.active, 'the new session is active');
     assert.ok(lockUntil(t.state) >= t.state.now + 119 * MIN, 'its full 120-minute end time is intact');
     const attempt = await deleteEverything(t, t.a);
     assert.equal(attempt.ok, false);
@@ -126,7 +123,7 @@ test('mutex entries: a late removal or resurrection fails CLOSED (busy / ignored
     const t = trio(); await configured(t);
     // (a) an expired mutex entry that another instance removes while its owner re-acquires: the owner may get "busy", the state never changes
     const before = JSON.stringify(Object.entries(t.state.storage).filter(([key]) => key.startsWith('cfg:') || key === 'config'));
-    t.state.storage['mx:ghost'] = { choosing: false, ticket: 1, exp: Date.now() + 60_000 };       // a live-looking holder that is long gone
+    t.state.storage['mx:ghost'] = { choosing: false, ticket: 1, exp: Date.now() + 15_000 };       // a live-looking holder (within one lease) that is long gone
     const quick = createController(t.api, { mutex: { leaseMs: 20000, waitMs: 60, pollMs: 2 } });
     const refused = await quick.handle(validateMessage({ type: 'SAVE_SETTINGS', baseRevision: (await statusOf(t, t.a)).revision, settings: { ...noList, domains: ['example.com'] } }));
     assert.equal(refused.ok, false); assert.equal(refused.error.code, 'busy');
@@ -174,5 +171,5 @@ test('late MUTEX REMOVAL: a holder whose mutex entry is removed behind its back 
     assert.ok(takeover.ok, JSON.stringify(takeover.error));
     hold.open(); await slow;
     assert.deepEqual((await statusOf(t, t.b)).settings.domains.sort(), ['example.com', 'takeover.org']);
-    assert.deepEqual(t.state.rules.flatMap(rule => rule.condition.requestDomains ?? []).sort(), ['example.com', 'takeover.org']);
+    assert.deepEqual(t.state.rules.flatMap(rule => rule.condition.requestDomains ?? []).filter(domain => domain !== 'tabsira-selftest.test').sort(), ['example.com', 'takeover.org']);
 });

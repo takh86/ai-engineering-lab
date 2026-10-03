@@ -1,0 +1,6 @@
+VIOLATION seed 4023 ["final rules != plan(effective config) (state=partial; reasons=rules_mismatch)"] 
+   w4023_4 died after storage.getAll | session clock -3600000 | lease clock 25000 | w4023_3 died after dnr.getDynamicRules | w4023_3 died after dnr.getEnabledRulesets 
+   w4023_4 IMPORT ok | w4023_2 SAVE busy | w4023_3 SAVE busy
+time cap at trial 98
+{"REPAIR ok":65,"RESET unexpected":12,"RESET ok":41,"died":114,"SAVE unexpected":18,"START busy":15,"IMPORT ok":46,"RESET busy":16,"STATUS ok":78,"REPAIR busy":7,"SAVE busy":38,"IMPORT unexpected":12,"START ok":53,"IMPORT busy":23,"RESET locked_weakening":20,"SAVE locked_weakening":27,"SAVE storage_unavailable":2,"REPAIR unexpected":12,"START session_needs_rules":9,"SAVE stale":17,"SAVE ok":79,"IMPORT storage_unavailable":1,"START unexpected":8,"IMPORT locked_weakening":1,"RESET stale":3,"IMPORT stale":6,"START stale":1,"START storage_unavailable":1}
+done seeds 4000..+300 violations=1 in 240853ms clock=true

@@ -1,113 +1,40 @@
 <!doctype html>
 <html lang="ar" dir="rtl" data-title="opt_title">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tabsira</title>
-<link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
-<main>
-  <header class="brandbar"><img class="mark" src="brand/mark.svg" alt="" width="40" height="38"><span class="wordmark" data-i18n="extShortName"></span><span class="tag" data-i18n="popup_tagline"></span></header>
-  <h1 data-i18n="opt_title"></h1>
-
-  <section aria-labelledby="h-status">
-    <h2 id="h-status" data-i18n="opt_status"></h2>
-    <div class="status" id="status" role="status" aria-live="polite" data-state="unknown">
-      <svg class="state-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"></svg>
-      <div class="state-body"><span class="state-text" data-i18n="common_loading"></span><ul class="reasons" id="reasons" hidden></ul></div>
-    </div>
-    <p id="lock" class="muted"></p>
-    <p id="incognito" class="muted"></p>
-    <div class="actions">
-      <button id="repair" class="secondary" type="button" hidden data-i18n="common_repair"></button>
-      <a class="button secondary" id="selftest" href="https://tabsira-selftest.test/" target="_blank" rel="noopener" data-i18n="safe_test"></a>
-    </div>
-    <p class="hint" data-i18n="safe_test_hint"></p>
-  </section>
-
-  <form id="form" novalidate>
-    <section aria-labelledby="h-base">
-      <h2 id="h-base" data-i18n="opt_base_title"></h2>
-      <label class="inline"><input type="checkbox" id="baseList"><span data-i18n="opt_base_label"></span></label>
-      <small id="baseInfo"></small>
-      <small dir="ltr" class="latin">ShadowWhisperer (Unlicense) · Sinfonietta (MIT) — <a href="THIRD_PARTY_NOTICES.txt" target="_blank" rel="noopener">THIRD_PARTY_NOTICES.txt</a></small>
-      <label class="inline"><input type="checkbox" id="starterTerms"><span data-i18n="opt_starter_label"></span></label>
-      <details>
-        <summary data-i18n="opt_starter_show"></summary>
-        <ul class="terms" id="starterList" dir="auto"></ul>
-      </details>
-    </section>
-
-    <section aria-labelledby="h-sites">
-      <h2 id="h-sites" data-i18n="opt_sites_title"></h2>
-      <label for="domains" data-i18n="opt_sites_label"></label>
-      <textarea id="domains" dir="ltr" spellcheck="false" autocomplete="off" aria-describedby="domains-hint domains-err"></textarea>
-      <small id="domains-hint" data-i18n="opt_sites_hint"></small>
-      <p class="msg error" id="domains-err" role="alert"></p>
-    </section>
-
-    <section aria-labelledby="h-phrases">
-      <h2 id="h-phrases" data-i18n="opt_phrases_title"></h2>
-      <label for="words" data-i18n="opt_words_label"></label>
-      <textarea id="words" dir="auto" spellcheck="false" autocomplete="off" aria-describedby="phrases-hint words-err"></textarea>
-      <p class="msg error" id="words-err" role="alert"></p>
-      <label for="contains" data-i18n="opt_contains_label"></label>
-      <textarea id="contains" dir="auto" spellcheck="false" autocomplete="off" aria-describedby="phrases-hint contains-err"></textarea>
-      <p class="msg error" id="contains-err" role="alert"></p>
-      <small id="phrases-hint" data-i18n="opt_phrases_hint"></small>
-    </section>
-
-    <section aria-labelledby="h-allow">
-      <h2 id="h-allow" data-i18n="opt_allow_title"></h2>
-      <label for="allow" data-i18n="opt_allow_label"></label>
-      <textarea id="allow" dir="ltr" spellcheck="false" autocomplete="off" aria-describedby="allow-hint allow-err"></textarea>
-      <small id="allow-hint" data-i18n="opt_allow_hint"></small>
-      <p class="msg error" id="allow-err" role="alert"></p>
-    </section>
-
-    <button type="submit" data-i18n="opt_save"></button>
-    <p id="message" class="msg" role="status" aria-live="polite"></p>
-  </form>
-
-  <section aria-labelledby="h-session">
-    <h2 id="h-session" data-i18n="opt_session_title"></h2>
-    <p data-i18n="opt_session_body"></p>
-    <div class="actions" id="sessionButtons"></div>
-    <div class="confirm" id="sessionConfirm" role="alertdialog" aria-labelledby="sessionConfirmText" hidden>
-      <p id="sessionConfirmText"></p>
-      <button type="button" id="sessionYes" data-i18n="common_confirm"></button>
-      <button type="button" id="sessionNo" class="secondary" data-i18n="common_cancel"></button>
-    </div>
-    <a class="button secondary" href="help.html" data-i18n="common_help_now"></a>
-  </section>
-
-  <section aria-labelledby="h-backup">
-    <h2 id="h-backup" data-i18n="opt_backup_title"></h2>
-    <p data-i18n="opt_backup_body"></p>
-    <div class="actions">
-      <button type="button" id="export" class="secondary" data-i18n="opt_export"></button>
-      <button type="button" id="importButton" class="secondary" data-i18n="opt_import"></button>
-      <input type="file" id="importFile" accept="application/json,.json" hidden>
-    </div>
-    <p class="hint" data-i18n="opt_export_hint"></p>
-    <h2 data-i18n="opt_reset_title"></h2>
-    <button type="button" id="reset" class="danger" data-i18n="opt_reset"></button>
-    <div class="confirm" id="resetConfirm" role="alertdialog" aria-labelledby="resetConfirmText" hidden>
-      <p id="resetConfirmText" data-i18n="opt_reset_confirm"></p>
-      <button type="button" id="resetYes" class="danger" data-i18n="common_confirm"></button>
-      <button type="button" id="resetNo" class="secondary" data-i18n="common_cancel"></button>
-    </div>
-  </section>
-
-  <section aria-labelledby="h-privacy">
-    <h2 id="h-privacy" data-i18n="opt_privacy_title"></h2>
-    <p data-i18n="opt_privacy_body"></p>
-    <p data-i18n="opt_limits_body"></p>
-    <p class="muted" id="version"></p>
-  </section>
-</main>
-<script type="module" src="options.js"></script>
-</body>
-</html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tabsira</title><link rel="stylesheet" href="tokens.css"><link rel="stylesheet" href="style.css"></head>
+<body><main>
+<header class="brandbar"><img class="mark" src="brand/mark.svg" alt="" width="40" height="38"><span class="wordmark" data-i18n="extShortName"></span><a href="help.html" data-i18n="common_help_now"></a></header>
+<h1 data-i18n="opt_title"></h1>
+<p id="message" class="msg" role="status" aria-live="polite"></p>
+<section aria-labelledby="securityHeading"><h2 id="securityHeading" data-i18n="set_password"></h2><p id="securityStatus" role="status"></p><p data-i18n="set_password_hint"></p>
+<div id="unlockControls" hidden><label for="unlockPassword" data-i18n="set_password"></label><input id="unlockPassword" type="password" autocomplete="current-password" maxlength="256"><button type="button" id="unlock" data-i18n="set_unlock"></button>
+<details><summary data-i18n="set_recover"></summary><label for="recoveryCode" data-i18n="set_recovery_code"></label><input id="recoveryCode" type="text" autocomplete="off" spellcheck="false"><label for="recoveryPassword" data-i18n="set_password_new"></label><input id="recoveryPassword" type="password" autocomplete="new-password" minlength="8" maxlength="256"><button type="button" id="recover" data-i18n="set_recover"></button></details></div>
+<button type="button" id="lockAccess" hidden data-i18n="set_lock"></button>
+<div id="newPasswordControls" hidden><label for="newPassword" data-i18n="set_password_new"></label><input id="newPassword" type="password" autocomplete="new-password" minlength="8" maxlength="256"><label for="repeatPassword" data-i18n="set_password_repeat"></label><input id="repeatPassword" type="password" autocomplete="new-password" maxlength="256"><button type="button" id="setPassword" data-i18n="set_password_set"></button></div>
+<div id="recoveryResult" hidden><p data-i18n="set_recovery_hint"></p><label for="oneTimeCode" data-i18n="set_recovery_code"></label><input id="oneTimeCode" type="text" readonly autocomplete="off" spellcheck="false"></div></section>
+<section id="home" data-panel aria-labelledby="homeHeading"><h2 id="homeHeading" data-i18n="set_home"></h2>
+<div class="status" id="status" role="status" aria-live="polite" data-state="unknown"><svg class="state-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"></svg><div class="state-body"><span class="state-text" data-i18n="common_loading"></span><ul class="reasons" id="reasons" hidden></ul></div></div><p id="lock" class="muted"></p><p id="countdown" role="timer"></p><p id="incognito" class="muted"></p>
+<p class="hint" data-i18n="set_current_hint"></p><a class="button secondary" href="help.html" data-i18n="common_help_now"></a></section>
+<div id="privateSettings">
+<section id="myplan" data-panel hidden aria-labelledby="planHeading"><h2 id="planHeading" data-i18n="set_plan"></h2>
+<a class="button secondary" href="covenant.html" data-i18n="set_covenant"></a><p data-i18n="set_covenant_later"></p>
+<h3 data-i18n="set_duration"></h3><form id="commitForm"><label for="duration" data-i18n="set_duration"></label><input id="duration" type="number" min="1" max="525600" value="60" required><select id="durationUnit" data-i18n-attr="aria-label:set_duration_unit"><option value="1" data-i18n="set_minutes"></option><option value="60" data-i18n="set_hours"></option><option value="1440" data-i18n="set_days"></option><option value="10080" data-i18n="set_weeks"></option><option value="43200" data-i18n="set_months"></option></select><label for="exitDelay" data-i18n="set_exit_delay"></label><input id="exitDelay" type="number" min="60" max="525600" value="60" required><p data-i18n="set_commit_hint"></p><p id="exitPasswordWarning" data-i18n="set_exit_password_required"></p><button type="submit" data-i18n="set_commit"></button></form>
+<div class="confirm" id="commitConfirm" role="alertdialog" aria-labelledby="commitConfirmText" hidden><p id="commitConfirmText"></p><button type="button" id="commitYes" data-i18n="common_confirm"></button><button type="button" id="commitNo" data-i18n="common_cancel"></button></div>
+<div class="actions"><button id="requestExit" type="button" data-i18n="set_request_exit"></button><button id="cancelExit" type="button" hidden data-i18n="set_cancel_exit"></button></div><p id="exitState" role="status"></p><div id="confirmExitControls" hidden><label for="exitPassword" data-i18n="set_password"></label><input id="exitPassword" type="password" autocomplete="current-password" maxlength="256"><button id="confirmExit" type="button" data-i18n="set_confirm_exit"></button></div>
+<h3 data-i18n="set_schedule"></h3><p data-i18n="set_schedule_hint"></p><ul id="scheduleList"></ul><form id="scheduleForm"><fieldset><legend data-i18n="set_schedule"></legend><div class="actions" id="scheduleDays"></div><label for="scheduleStart" data-i18n="set_start"></label><input id="scheduleStart" type="time" value="22:00" required><label for="scheduleEnd" data-i18n="set_end"></label><input id="scheduleEnd" type="time" value="06:00" required><button type="submit" id="scheduleSubmit" data-i18n="set_add"></button><button type="button" id="scheduleCancel" hidden data-i18n="common_cancel"></button></fieldset></form>
+<h3 data-i18n="set_notes"></h3><p data-i18n="set_notes_hint"></p><label for="notes" data-i18n="set_notes"></label><textarea id="notes" maxlength="16000"></textarea><button type="button" id="saveNotes" data-i18n="set_save_note"></button></section>
+<section id="filter" data-panel hidden aria-labelledby="filterHeading"><h2 id="filterHeading" data-i18n="set_filter"></h2><p data-i18n="set_core"></p><small id="baseInfo"></small><small dir="ltr">ShadowWhisperer (Unlicense) · Sinfonietta (MIT) — <a href="THIRD_PARTY_NOTICES.txt" target="_blank" rel="noopener">THIRD_PARTY_NOTICES.txt</a></small>
+<div class="actions" role="tablist"><button type="button" role="tab" id="sitesTab" aria-selected="true" aria-controls="sitesFields" data-i18n="set_sites"></button><button type="button" role="tab" id="phrasesTab" aria-selected="false" aria-controls="phrasesFields" data-i18n="set_phrases"></button></div>
+<form id="form" novalidate>
+<div id="sitesFields" role="tabpanel" aria-labelledby="sitesTab"><h3 data-i18n="opt_sites_title"></h3><label for="domains" data-i18n="opt_sites_label"></label><textarea id="domains" dir="ltr" spellcheck="false" autocomplete="off" aria-describedby="domains-hint domains-err"></textarea><small id="domains-hint" data-i18n="opt_sites_hint"></small><p id="domains-err" class="msg error" role="alert"></p>
+<details id="basePreview"><summary data-i18n="set_preview"></summary><label for="domainSearch" data-i18n="set_search"></label><input id="domainSearch" type="search" dir="ltr" autocomplete="off"><p id="previewCount" role="status"></p><ul id="domainPreview" class="terms" dir="ltr"></ul><div class="actions"><button type="button" id="previewPrevious" data-i18n="common_back"></button><button type="button" id="previewNext" data-i18n="common_next"></button><button type="button" id="addSelected" data-i18n="set_add_selected"></button></div><p data-i18n="set_selection_limit"></p></details>
+<h3 data-i18n="opt_allow_title"></h3><label for="allow" data-i18n="opt_allow_label"></label><textarea id="allow" dir="ltr" spellcheck="false" autocomplete="off" aria-describedby="allow-hint allow-err"></textarea><small id="allow-hint" data-i18n="opt_allow_hint"></small><p id="allow-err" class="msg error" role="alert"></p></div>
+<div id="phrasesFields" role="tabpanel" aria-labelledby="phrasesTab" hidden><label class="inline"><input type="checkbox" id="starterTerms"><span data-i18n="opt_starter_label"></span></label><details><summary data-i18n="opt_starter_show"></summary><ul id="starterList" class="terms" dir="auto"></ul></details><label for="words" data-i18n="opt_words_label"></label><textarea id="words" dir="auto" autocomplete="off" spellcheck="false"></textarea><p id="words-err" class="msg error" role="alert"></p><label for="contains" data-i18n="opt_contains_label"></label><textarea id="contains" dir="auto" autocomplete="off" spellcheck="false"></textarea><p id="contains-err" class="msg error" role="alert"></p><small data-i18n="opt_phrases_hint"></small></div><button type="submit" data-i18n="opt_save"></button></form></section>
+<section id="more" data-panel hidden aria-labelledby="moreHeading"><h2 id="moreHeading" data-i18n="set_more"></h2>
+<form id="profileForm"><label for="language" data-i18n="set_language"></label><select id="language"><option value="ar">العربية</option><option value="en">English</option><option value="de">Deutsch</option></select><label for="religion" data-i18n="set_religion"></label><select id="religion"><option value="muslim" data-i18n="set_muslim"></option><option value="non-muslim" data-i18n="set_nonmuslim"></option></select><label class="inline"><input id="faith" type="checkbox"><span data-i18n="set_faith"></span></label><p data-i18n="set_faith_hint"></p><label for="theme" data-i18n="set_theme"></label><select id="theme"><option value="light" data-i18n="set_light"></option><option value="dark" data-i18n="set_dark"></option></select><button type="submit" data-i18n="opt_save"></button></form>
+<h3 data-i18n="set_prayer"></h3><p data-i18n="set_prayer_hint"></p><div id="prayerSettings"></div>
+<h3 data-i18n="opt_status"></h3><a class="button secondary" href="https://tabsira-selftest.test/" target="_blank" rel="noopener" data-i18n="safe_test"></a><p data-i18n="safe_test_hint"></p><button id="repair" type="button" hidden data-i18n="common_repair"></button>
+<h3 data-i18n="opt_backup_title"></h3><p data-i18n="opt_backup_body"></p><div class="actions"><button type="button" id="export" data-i18n="opt_export"></button><button type="button" id="importButton" data-i18n="opt_import"></button><input type="file" id="importFile" accept="application/json,.json" hidden></div><div class="confirm" id="importConfirm" role="alertdialog" aria-labelledby="importConfirmText" hidden><p id="importConfirmText"></p><p id="importExceptionsTitle" data-i18n="opt_import_confirm_exceptions" hidden></p><ul id="importExceptions" dir="ltr" hidden></ul><button type="button" id="importYes" data-i18n="common_confirm"></button><button type="button" id="importNo" class="secondary" data-i18n="common_cancel"></button></div><p data-i18n="opt_export_hint"></p><h3 data-i18n="opt_reset_title"></h3><button type="button" id="reset" data-i18n="opt_reset"></button><div id="resetConfirm" class="confirm" role="alertdialog" aria-labelledby="resetConfirmText" hidden><p id="resetConfirmText" data-i18n="opt_reset_confirm"></p><button type="button" id="resetYes" data-i18n="common_confirm"></button><button type="button" id="resetNo" data-i18n="common_cancel"></button></div>
+<h3 data-i18n="opt_privacy_title"></h3><p data-i18n="opt_privacy_body"></p><p data-i18n="opt_limits_body"></p><h3 data-i18n="set_news"></h3><p data-i18n="set_news_body"></p><p id="version"></p></section>
+</div>
+<nav class="bottom-nav" aria-label="Tabsira"><a href="#home" data-i18n="set_home" aria-current="page"></a><a href="#myplan" data-i18n="set_plan"></a><a href="#filter" data-i18n="set_filter"></a><a href="#more" data-i18n="set_more"></a></nav>
+</main><script type="module" src="options.js"></script></body></html>

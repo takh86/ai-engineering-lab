@@ -200,6 +200,27 @@ export async function runSuite({ browserName, executablePath, report, pkg }) {
         const starterHit = await visit(b.context, url('www.google.com', `/search?q=${encode('افلام اباحية')}`));
         const starterOk = await visit(b.context, url('www.google.com', `/search?q=${encode('essex hotels')}`));
         check('S5.7 starter term blocks; unrelated search stays allowed', starterHit.blocked && starterOk.real);
+        // R1.*: findings of the 1.0.1 pre-release review, real regex engine + real navigation
+        await save(options, { words: ['tabsira word'] });
+        for (const [name, query] of [['quoted', `q=%22tabsira+word%22`], ['".com" suffix', `q=tabsira+word.com`], ['comma', `q=tabsira%20word%2C`], ['hyphen before', `q=free-tabsira+word`], ['encoded parentheses', `q=%28tabsira+word%29`], ['site: operator', `q=site:tabsira+word`], ['question mark', `q=tabsira+word%3F`], ['lower-case hex comma', `q=free%2ctabsira+word`]]) {
+            const r = await visit(b.context, url('www.google.com', `/search?${query}`)); check(`R1.1 whole word blocked with punctuation around it: ${name}`, r.blocked, r.url.slice(0, 80));
+        }
+        for (const [name, query] of [['letter before', `q=xtabsira+word`], ['letter after', `q=tabsira+words`], ['digit after', `q=tabsira+word2`]]) {
+            const r = await visit(b.context, url('www.google.com', `/search?${query}`)); check(`R1.2 whole word still NOT blocked inside a longer word: ${name}`, r.real, r.url.slice(0, 80));
+        }
+        const noList = await save(options, { baseList: false, domains: ['r1-site.test'] });
+        const selftest = await visit(b.context, url('tabsira-selftest.test', '/'));
+        check('R1.3 safe-test domain is redirected to the stop page even with the built-in list OFF (own site configured)', noList.ok && selftest.blocked, selftest.url.slice(0, 80));
+        const tooLong = await save(options, { words: ['ع'.repeat(13)] });
+        check('R1.4 a 13-letter Arabic whole word is refused (does not fit the longest search parameter) instead of being saved as partial', !tooLong.ok && tooLong.error.code === 'phrase_too_complex', JSON.stringify(tooLong.error ?? {}));
+        const fits = await save(options, { words: ['ع'.repeat(12)] });
+        const fitsStatus = await status(options);
+        const youtube = await visit(b.context, url('www.youtube.com', `/results?search_query=${encode('ع'.repeat(12))}`));
+        check('R1.5 a 12-letter Arabic whole word is accepted, state active, and blocked on YouTube (narrow-boundary fallback)', fits.ok && fitsStatus.state === 'active' && youtube.blocked, JSON.stringify({ state: fitsStatus.state, reasons: fitsStatus.reasons }));
+        // The fallback is WEAKER and must say so: the status carries a note, and a quoted variant is (documented) not matched on YouTube.
+        const quotedYoutube = await visit(b.context, url('www.youtube.com', `/results?search_query=%22${encode('ع'.repeat(12))}%22`));
+        const noteShown = await options.evaluate(() => [...document.querySelectorAll('#reasons li.note')].length);
+        check('R1.8 the narrow-edge fallback is reported as a note (not shown as plain full protection); its quoted variant is NOT matched on YouTube (documented limit)', (fitsStatus.notes ?? []).some(n => n.code === 'phrases_narrow_edges' && n.count === 1) && !quotedYoutube.blocked, JSON.stringify({ notes: fitsStatus.notes, quotedBlocked: quotedYoutube.blocked }));
         await finish(b);
     }
 
@@ -290,13 +311,13 @@ export async function runSuite({ browserName, executablePath, report, pkg }) {
         await finish(b);
         // Extension update: same unpacked path, higher version, same profile (Chrome fires onInstalled "update").
         // The manifest version of the SAME extracted package is raised in place (path, hence extension ID, stays the same).
-        pkg.bumpLive('1.0.1');
+        pkg.bumpLive('1.0.2');
         b = await open({ profileDir: profile, extensionDir: liveDir });
         await sleep(2500);
         options = await openExtPage(b.context, b.extensionId, 'options.html');
         s = await status(options);
         const manifestVersion = await options.evaluate(() => chrome.runtime.getManifest().version);
-        check('S7.11 after an extension UPDATE (1.0.0 → 1.0.1, same profile): rules, base list and session are back', manifestVersion === '1.0.1' && s.state === 'active' && s.base.enabled && s.lock.until === untilBefore, JSON.stringify({ version: manifestVersion, state: s.state, base: s.base.enabled, reasons: s.reasons }));
+        check('S7.11 after an extension UPDATE (1.0.1 → 1.0.2, same profile): rules, base list and session are back', manifestVersion === '1.0.2' && s.state === 'active' && s.base.enabled && s.lock.until === untilBefore, JSON.stringify({ version: manifestVersion, state: s.state, base: s.base.enabled, reasons: s.reasons }));
         check('S7.12 blocking works after the update (real navigation)', (await visit(b.context, url('lock-site.test'))).blocked && (await visit(b.context, url('tabsira-selftest.test'))).blocked);
         // Wipe DNR state behind the extension's back, then ask for status (self-heal)
         await b.getWorker().evaluate(async () => { const rules = await chrome.declarativeNetRequest.getDynamicRules(); await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: rules.map(r => r.id) }); await chrome.declarativeNetRequest.updateEnabledRulesets({ disableRulesetIds: ['base_adult'] }); });
@@ -476,6 +497,14 @@ export async function runSuite({ browserName, executablePath, report, pkg }) {
         const rtl = await options.evaluate(() => { const range = document.createRange(); range.selectNodeContents(document.querySelector('h1')); const h = range.getBoundingClientRect(); const column = document.querySelector('main').getBoundingClientRect(); return { dir: getComputedStyle(document.body).direction, align: getComputedStyle(document.querySelector('p')).textAlign, hRight: Math.round(column.right - h.right), hLeft: Math.round(h.left - column.left), domainsDir: document.querySelector('#domains').dir }; });
         check('S12.5 RTL layout: Arabic text starts at the right edge; site list input is LTR', rtl.dir === 'rtl' && rtl.hRight < rtl.hLeft + 1 && rtl.domainsDir === 'ltr', JSON.stringify(rtl));
         await finish(b);
+        // A browser language we do not ship (French, Turkish) falls back to the default locale (Arabic): the page must be RTL with lang="ar".
+        for (const lang of ['fr', 'tr']) {
+            const c = await launch({ executablePath, extensionDir: testDir, lang });
+            const page = await openExtPage(c.context, c.extensionId, 'options.html');
+            const info = await page.evaluate(() => [document.documentElement.dir, document.documentElement.lang, document.querySelector('h1').textContent]);
+            check(`S12.7 browser language ${lang} (not shipped): Arabic fallback strings are laid out RTL with lang="ar"`, info[0] === 'rtl' && info[1] === 'ar' && /[\u0600-\u06FF]/u.test(info[2]), info.join(' / '));
+            await finish(c);
+        }
         for (const [lang, expectDir, expectText] of [['de', 'ltr', 'Tabsira-Einstellungen'], ['en', 'ltr', 'Tabsira settings']]) {
             const c = await launch({ executablePath, extensionDir: testDir, lang });
             const page = await openExtPage(c.context, c.extensionId, 'options.html');
@@ -543,16 +572,28 @@ export async function runSuite({ browserName, executablePath, report, pkg }) {
         check('S14.1 export downloads a settings file with only user settings (no lock/revision/attempts)', exported.format === 'tabsira-settings' && exported.settings.domains.includes('export-a.test') && !JSON.stringify(exported).includes('lock') && !JSON.stringify(exported).includes('revision'), JSON.stringify(Object.keys(exported.settings)));
         await save(options, { domains: ['export-a.test', 'extra-b.test'], words: ['export phrase'] });
         await options.setInputFiles('#importFile', file);
+        await options.waitForSelector('#importConfirm:not([hidden])');      // 1.0.1: an import shows what it adds and asks first
+        await options.click('#importYes');
         await options.waitForFunction(() => document.querySelector('#message').textContent.length > 0);
         check('S14.2 importing the exported file merges without losing newer settings', (await status(options)).settings.domains.sort().join() === 'export-a.test,extra-b.test');
         fs.writeFileSync(file, JSON.stringify({ format: 'tabsira-settings', version: 2, settings: { ...NO_LIST, domains: ['bad domain'] } }));
         await options.setInputFiles('#importFile', file);
         await options.waitForFunction(() => document.querySelector('#message').className.includes('error') || document.querySelector('#domains-err').textContent.length > 0);
         check('S14.3 an invalid import is refused with a specific message and changes nothing', (await status(options)).settings.domains.length === 2);
+        check('R1.6 an invalid import is reported in the message area (not under the "My sites" box) and says it refers to the file', (await options.textContent('#domains-err')) === '' && (await options.textContent('#message')).length > 10);
         fs.writeFileSync(file, 'not json at all');
+        // Clear the previous message first: its leftover "error" class would satisfy the wait before this import is processed.
+        await options.evaluate(() => { const box = document.querySelector('#message'); box.textContent = ''; box.className = 'msg'; });
         await options.setInputFiles('#importFile', file);
-        await options.waitForFunction(() => document.querySelector('#message').className.includes('error'));
+        await options.waitForFunction(() => { const box = document.querySelector('#message'); return box.className.includes('error') && box.textContent.length > 5; });
         check('S14.4 a non-Tabsira file is refused', (await options.textContent('#message')).length > 5);
+        fs.writeFileSync(file, JSON.stringify({ format: 'tabsira-settings', version: 2, settings: { ...NO_LIST, domains: ['export-a.test', 'extra-b.test'], allow: ['r1-exempt.test'] } }));
+        await options.setInputFiles('#importFile', file);
+        await options.waitForSelector('#importConfirm:not([hidden])');
+        const previewExceptions = await options.textContent('#importExceptions');
+        await options.click('#importNo');
+        const focusBack = await options.evaluate(() => document.activeElement?.id);
+        check('R1.7 an import that adds an exception lists it before applying; Cancel applies nothing and returns focus', previewExceptions.includes('r1-exempt.test') && (await status(options)).settings.allow.length === 0 && focusBack === 'importButton', JSON.stringify({ previewExceptions, focusBack }));
         fs.unlinkSync(file);
         await finish(b);
     }
@@ -796,10 +837,10 @@ export async function runSuite({ browserName, executablePath, report, pkg }) {
     }
 
     // ================= S16c: the late-DELETE scenario of the review of 0b46c1d, in REAL browsers (normal + private instance) =================
-    // The private instance had a session that has ended (its entry is aged in storage - 60 real minutes cannot be waited); the normal-window worker
-    // cleans up, selects the expired entry and freezes inside the real chrome.storage.local.remove; its lease expires; the private instance starts a
-    // NEW 120-minute session; the frozen removal then runs. Before the fix it reused the same storage key and wiped the new session, after which a save
-    // that deletes every blocked site was accepted.
+    // (1.0.1 design) The newest session entry is never deleted by clean-up; only entries DOMINATED by a longer one are. A dominated entry is injected
+    // next to the private instance's active session; the normal-window worker's clean-up selects it and freezes inside the real
+    // chrome.storage.local.remove; its lease expires; the private instance starts a LONGER session; the frozen removal then runs. The new session must be intact,
+    // and a save that deletes every blocked site must still be refused. (On 1.0.0 the premise was an expired key; see the unit test lock-cleanup.test.mjs.)
     if (want('S16c')) {
         const { chromium } = await import('playwright-core');
         const net = await import('node:net');
@@ -826,9 +867,9 @@ export async function runSuite({ browserName, executablePath, report, pkg }) {
         else {
             const sendPriv = message => priv.evaluate(m => chrome.runtime.sendMessage(m), message);
             const statusPriv = async () => (await sendPriv({ type: 'GET_STATUS' })).status;
-            const first = await sendPriv({ type: 'START_SESSION', minutes: 60 });
-            // age the private instance's finished session: every session entry in storage now ended a second ago
-            const aged = await normalWorker.evaluate(async () => { const all = await chrome.storage.local.get(null); const patch = {}; for (const key of Object.keys(all)) if (key === 'lock' || key.startsWith('lock:')) patch[key] = { until: Date.now() - 1000 }; await chrome.storage.local.set(patch); return Object.keys(patch); });
+            const first = await sendPriv({ type: 'START_SESSION', minutes: 120 });
+            // a valid but dominated (shorter) session entry, as a late/stale writer would leave behind
+            const aged = await normalWorker.evaluate(async () => { const all = await chrome.storage.local.get(null); const end = Math.max(0, ...Object.entries(all).filter(([k]) => k.startsWith('lock:')).map(([, v]) => v.until)); await chrome.storage.local.set({ 'lock:900-1:injected': { until: end - 300000 } }); return [end]; });
             const afterExpiry = await status(options);
             await normalWorker.evaluate(() => {
                 const original = chrome.storage.local.remove.bind(chrome.storage.local);
@@ -852,9 +893,9 @@ export async function runSuite({ browserName, executablePath, report, pkg }) {
             const weak = await send(options, { type: 'SAVE_SETTINGS', baseRevision: weakStatus.revision, settings: { ...NO_LIST, domains: [] } });   // deletes every blocked site
             const final = await statusPriv();
             const keepBlocked = await visit(b.context, url('clean-keep.test'));
-            check('S16c.1 precondition: the private instance\'s first session was recorded, then aged to "ended"; the cleanup froze inside the real removal', first.ok && aged.length >= 1 && !afterExpiry.lock.active && frozen, JSON.stringify({ first: first.ok, aged, ended: !afterExpiry.lock.active, frozen }));
-            check('S16c.2 while the frozen worker\'s lease is valid the private instance fails closed ("busy"); after expiry it starts a NEW 120-minute session', !early.ok && early.error.code === 'busy' && second.ok, JSON.stringify({ early: early.ok ? 'ok' : early.error?.code, second: second.ok ? 'ok' : second.error?.code }));
-            check('S16c.3 the frozen removal then runs: the NEW session is intact (≈120 min left, active)', after.lock.active && after.lock.until - Date.now() > 119 * 60000, JSON.stringify({ active: after.lock.active, minutesLeft: Math.round((after.lock.until - Date.now()) / 60000) }));
+            check('S16c.1 precondition: the private instance\'s session is active and a dominated session entry exists; the cleanup froze inside the real removal', first.ok && aged.length >= 1 && afterExpiry.lock.active && frozen, JSON.stringify({ first: first.ok, aged, active: afterExpiry.lock.active, frozen }));
+            check('S16c.2 while the frozen worker\'s lease is valid the private instance fails closed ("busy"); after expiry it starts a LONGER session', !early.ok && early.error.code === 'busy' && second.ok, JSON.stringify({ early: early.ok ? 'ok' : early.error?.code, second: second.ok ? 'ok' : second.error?.code }));
+            check('S16c.3 the frozen removal then runs: the newer session is intact (active, ≈120 min left, ended later than the first one)', after.lock.active && after.lock.until - Date.now() > 119 * 60000 && after.lock.until > aged[0], JSON.stringify({ active: after.lock.active, minutesLeft: Math.round((after.lock.until - Date.now()) / 60000), longerThanFirst: after.lock.until > aged[0] }));
             check('S16c.4 a save that deletes every blocked site is still refused, the sites and rules stay, navigation is still blocked', !weak.ok && weak.error.code === 'locked_weakening' && JSON.stringify([...final.settings.domains].sort()) === JSON.stringify(['clean-keep.test', 'clean-second.test']) && keepBlocked.blocked, JSON.stringify({ weak: weak.ok ? 'ACCEPTED' : weak.error?.code, domains: final.settings.domains, blocked: keepBlocked.blocked }));
             await cdp.close().catch(() => {}); await finish(b);
         }
@@ -939,6 +980,92 @@ export async function runSuite({ browserName, executablePath, report, pkg }) {
             check('S16d.3 WITHOUT opening Popup/Options, GET_STATUS or REPAIR, protection is restored automatically (watchdog wake-up); time recorded', recoveredAfterSec !== null, JSON.stringify({ recoveredAfterSec, observed }));
             check('S16d.4 afterwards the stored sites and the session are intact and the rules equal the stored settings', final.state === 'active' && final.lock.active && JSON.stringify([...final.settings.domains].sort()) === JSON.stringify(['life-keep.test', 'life-new.test']) && oldLoads, JSON.stringify({ state: final.state, lock: final.lock.active, domains: final.settings.domains, oldSiteLoads: oldLoads }));
             note('S16d', `protection restored automatically after ${recoveredAfterSec} s (first checked 10 s after the worker was terminated, then every 10 s; real navigations only)`);
+            await cdp.close().catch(() => {}); await finish(b);
+        }
+    }
+
+    // ================= S18: the two Owner scenarios of the 1.0.1 review, in REAL browsers =================
+    // (1) START_SESSION frozen inside the real storage write of the session record (after its ownership check); its lease expires; the other
+    //     (private-window) instance either saves WEAKER settings or starts its own session; then the old write is released.
+    // (2) A legacy (v0) store holding an ACTIVE session: SAVE / IMPORT arrive directly (no status call, so nothing reconciled first).
+    // The gate that freezes the write is injected into the real worker (documented; this is NOT a spontaneous browser stop).
+    if (want('S18')) {
+        const { chromium } = await import('playwright-core');
+        const net = await import('node:net');
+        const freePort = () => new Promise(resolve => { const srv = net.createServer(); srv.listen(0, '127.0.0.1', () => { const { port: p } = srv.address(); srv.close(() => resolve(p)); }); });
+        const allLocks = page => page.evaluate(async () => Object.entries(await chrome.storage.local.get(null)).filter(([k]) => k.startsWith('lock:')).map(([, v]) => v.until));
+        // ---- scenario 2: legacy store with an active session ----
+        for (const variant of ['SAVE', 'IMPORT']) {
+            const b = await open();
+            const options = await openExtPage(b.context, b.extensionId, 'options.html');
+            const until = Date.now() + 3 * 3600_000;
+            await options.evaluate(u => chrome.storage.local.set({ config: { domains: ['legacy-keep.test'], keywords: [], lockedUntil: u } }), until);
+            const settings = { ...NO_LIST, domains: ['legacy-keep.test', 'legacy-added.test'] };
+            const reply = variant === 'SAVE'
+                ? await send(options, { type: 'SAVE_SETTINGS', baseRevision: 1, settings })
+                : await send(options, { type: 'IMPORT_SETTINGS', baseRevision: 1, text: JSON.stringify({ format: 'tabsira-settings', version: 2, settings }) });
+            const ends = await allLocks(options);
+            check(`S18.2a legacy store with an active session: ${variant} straight away is accepted and the old session end is stored in a lock key first`, reply.ok && Math.max(0, ...ends) >= until, JSON.stringify({ ok: reply.ok, err: reply.error?.code, locks: ends.length }));
+            const after = await status(options);
+            const weaken = await send(options, { type: 'SAVE_SETTINGS', baseRevision: after.revision, settings: { ...NO_LIST } });
+            check(`S18.2b after ${variant}: the session is active and deleting every site is still refused (locked_weakening)`, after.lock.active && !weaken.ok && weaken.error.code === 'locked_weakening', JSON.stringify({ lock: after.lock.active, err: weaken.error?.code }));
+            const added = await visit(b.context, url('legacy-added.test')); const kept = await visit(b.context, url('legacy-keep.test'));
+            check(`S18.2c after ${variant}: both sites are really blocked by the browser (real DNR navigation)`, added.blocked && kept.blocked);
+            await finish(b);
+        }
+        // ---- scenario 1: START_SESSION frozen at the session record write ----
+        for (const variant of ['weaker-save', 'newer-session']) {
+            const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'tabsira-e2e-start-'));
+            let b = await open({ profileDir: profile });
+            let options = await openExtPage(b.context, b.extensionId, 'options.html');
+            await onboard(options); await save(options, { domains: ['start-keep.test', 'start-other.test'] });
+            const extId = b.extensionId;
+            await finish(b); await sleep(1200);
+            const prefsFile = path.join(profile, 'Default', 'Preferences');
+            const prefs = JSON.parse(fs.readFileSync(prefsFile, 'utf8')); prefs.extensions.settings[extId].incognito = true; fs.writeFileSync(prefsFile, JSON.stringify(prefs));
+            const port = await freePort();
+            b = await open({ profileDir: profile, extraArgs: [`--remote-debugging-port=${port}`] });
+            await sleep(1500);
+            options = await openExtPage(b.context, b.extensionId, 'options.html');
+            const normalWorker = b.getWorker();
+            const cdp = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
+            const seen = new Set(cdp.contexts().flatMap(c => c.pages()));
+            await options.evaluate(u => chrome.windows.create({ url: u, incognito: true }), `chrome-extension://${b.extensionId}/options.html`).catch(() => {});
+            await sleep(2800);
+            let priv = null; for (const ctx of cdp.contexts()) for (const p of ctx.pages()) if (!seen.has(p) && p.url().startsWith('chrome-extension://')) priv = p;
+            if (!priv) { skip(`S18.1 (${variant})`, 'a private-window settings page was not observable in this browser'); await cdp.close().catch(() => {}); await finish(b); continue; }
+            const sendPriv = message => priv.evaluate(m => chrome.runtime.sendMessage(m), message);
+            const statusPriv = async () => (await sendPriv({ type: 'GET_STATUS' })).status;
+            await normalWorker.evaluate(() => {
+                const original = chrome.storage.local.set.bind(chrome.storage.local);
+                globalThis.__gate = { hit: false, release: null, restore: () => { chrome.storage.local.set = original; } };
+                chrome.storage.local.set = items => {
+                    if (items && Object.keys(items).some(k => k.startsWith('lock:')) && !globalThis.__gate.hit) { globalThis.__gate.hit = true; return new Promise(resolve => { globalThis.__gate.release = () => resolve(original(items)); }); }
+                    return original(items);
+                };
+            });
+            const oldStart = send(options, { type: 'START_SESSION', minutes: 60 });
+            let frozen = false; for (let i = 0; i < 100 && !frozen; i++) { frozen = await normalWorker.evaluate(() => globalThis.__gate.hit); if (!frozen) await sleep(50); }
+            await sleep(21500);                                                           // the frozen holder's 20 s lease is over
+            const cur = await statusPriv();
+            let other;
+            if (variant === 'weaker-save') other = await sendPriv({ type: 'SAVE_SETTINGS', baseRevision: cur.revision, settings: { ...NO_LIST, domains: [] } });
+            else other = await sendPriv({ type: 'START_SESSION', minutes: 60 });
+            const otherEnd = (await statusPriv()).lock.until;
+            await normalWorker.evaluate(() => { globalThis.__gate.release(); globalThis.__gate.restore(); });   // the old session write now happens
+            const late = await oldStart;
+            await sleep(600);
+            const after = await statusPriv();
+            const keepNav = await visit(b.context, url('start-keep.test'));
+            if (variant === 'weaker-save') {
+                check('S18.1a frozen START_SESSION, lease expired, other instance saved WEAKER (empty) settings: the old start does NOT return success', frozen && other.ok && !late.ok && ['busy', 'stale', 'session_start_inconsistent'].includes(late.error.code), JSON.stringify({ frozen, other: other.ok ? 'ok' : other.error?.code, late: late.ok ? 'ok' : late.error?.code }));
+                check('S18.1b the newer weaker settings stay effective (not overwritten by the old start); nothing is blocked any more, honestly reported', after.settings.domains.length === 0 && keepNav.real && after.state !== 'active', JSON.stringify({ domains: after.settings.domains, state: after.state, reasons: after.reasons }));
+            } else {
+                check('S18.1c frozen START_SESSION, lease expired, other instance started its OWN session: the old start fails and the newer session is neither deleted nor shortened', frozen && other.ok && !late.ok && after.lock.active && after.lock.until >= otherEnd && after.state === 'active', JSON.stringify({ frozen, other: other.ok ? 'ok' : other.error?.code, late: late.ok ? 'ok' : late.error?.code, otherEnd, until: after.lock.until, state: after.state }));
+                const weaken = await sendPriv({ type: 'SAVE_SETTINGS', baseRevision: after.revision, settings: { ...NO_LIST } });
+                check('S18.1d after the late write, deleting every site is still refused and the sites are still blocked', !weaken.ok && weaken.error.code === 'locked_weakening' && keepNav.blocked, JSON.stringify({ err: weaken.error?.code, blocked: keepNav.blocked }));
+            }
+            note('S18', `${variant}: late start finished as ${late.ok ? 'ok' : late.error?.code}`);
             await cdp.close().catch(() => {}); await finish(b);
         }
     }

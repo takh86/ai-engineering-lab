@@ -14,6 +14,8 @@ const SHARED_SUFFIXES = new Set([
     'com.iq', 'com.ly', 'com.tn', 'com.dz', 'co.ma', 'com.ma', 'com.pk', 'com.bd', 'com.ng', 'co.ke',
     'com.gh', 'co.tz', 'co.ug', 'com.ph', 'com.vn', 'co.id', 'co.th', 'in.th', 'com.pl', 'com.ru',
     'co.at', 'or.at', 'com.de', 'com.fr', 'com.es', 'com.pt', 'com.gr', 'com.cy', 'com.mt',
+    'org.sa', 'net.sa', 'net.eg', 'net.ae', 'org.ae', 'ac.ae', 'net.pk', 'org.pk', 'edu.pk', 'org.bd', 'net.my', 'org.my', 'ac.id', 'web.id',
+    'uk.com', 'co.com',
     // Hosts where every customer gets a subdomain: blocking the suffix blocks unrelated sites.
     'github.io', 'gitlab.io', 'pages.dev', 'netlify.app', 'vercel.app', 'herokuapp.com',
     'blogspot.com', 'wordpress.com', 'tumblr.com', 'weebly.com', 'wixsite.com', 'web.app',
@@ -43,7 +45,7 @@ export function normalizeDomain(raw) {
         throw new TabsiraError('domain_has_path');
     }
     let host = url.hostname.toLowerCase().replace(/\.$/u, '');
-    if (host.startsWith('www.')) host = host.slice(4);
+    while (host.startsWith('www.')) host = host.slice(4);
     const labels = host.split('.');
     if (host.length > 253 || labels.length < 2 || !labels.every(label => LABEL.test(label))) {
         throw new TabsiraError('domain_invalid');

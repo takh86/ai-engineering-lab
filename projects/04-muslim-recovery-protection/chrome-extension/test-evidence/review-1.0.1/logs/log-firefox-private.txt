@@ -1,0 +1,15 @@
+# Mozilla Firefox 157.0 private windows on Linux 6.18.44-fc-v51 (x64)
+# package dist/tabsira-firefox-1.0.1.zip sha256 82d1e64ebf8c90da85e57257a6f20877b433a558c9a20eb7f3c45d79bc6ea47b
+PASS  F9.0 setup: onboarding done; host permission granted to the temporary add-on
+PASS  F9.1 commitment session started (60 min)
+PASS  F9.2 status reports that private windows are allowed for the extension (incognitoAllowed=true)
+PASS  F9.3 a real PRIVATE window (PrivateBrowsingUtils.isWindowPrivate) on a blocked site shows the Tabsira stop page
+PASS  F9.4 private window: an unlisted site loads normally
+PASS  F9.5 the settings page in the private window sees the SAME commitment and rules
+PASS  F9.6 commitment cannot be weakened from the private window (removal and exception both refused)
+PASS  F9.7 stronger protection added from the private window is enforced in it
+PASS  F9.8 afterwards the normal instance still has session and rules (one shared state)
+PASS  F9.9 without "Run in Private Windows": status honestly reports incognitoAllowed=false
+PASS  F9.10 documented limit: in a private window WITHOUT the switch the extension is not applied and the site loads
+
+SUMMARY {"PASS":11}

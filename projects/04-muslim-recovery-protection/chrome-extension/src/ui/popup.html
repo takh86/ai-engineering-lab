@@ -9,18 +9,36 @@
 </head>
 <body>
 <main class="popup">
-  <header class="brandbar"><img class="mark" src="brand/mark.svg" alt="" width="40" height="38"><span class="wordmark" data-i18n="extShortName"></span><span class="tag" data-i18n="popup_tagline"></span></header>
-  <div class="status" id="status" role="status" aria-live="polite" data-state="unknown">
+  <header class="brandbar"><img class="mark" src="brand/mark.svg" alt="" width="40" height="38"><h1 class="wordmark" data-i18n="extShortName"></h1></header>
+  <p class="tag" data-popup="tagline"></p>
+  <div class="popup-hero">
+    <div class="shield-large" aria-hidden="true">
+      <svg viewBox="0 0 64 64" focusable="false"><path class="shield-body" d="M32 5c8 6 15 8 23 10v16c0 13-9 22-23 29C18 53 9 44 9 31V15c8-2 15-4 23-10Z"/><path class="shield-center" d="M32 21c4 3 8 4 12 5v8c0 6-5 11-12 15-7-4-12-9-12-15v-8c4-1 8-2 12-5Z"/></svg>
+    </div>
+    <div class="status" id="status" role="status" aria-live="polite" data-state="unknown">
       <svg class="state-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"></svg>
       <div class="state-body"><span class="state-text" data-i18n="common_loading"></span><ul class="reasons" id="reasons" hidden></ul></div>
     </div>
-  <p id="lock" class="muted"></p>
+    <div class="countdown-ring" id="commitment-ring" hidden>
+      <svg viewBox="0 0 200 200" aria-hidden="true" focusable="false"><circle class="countdown-track" cx="100" cy="100" r="87"/><circle class="countdown-progress" id="countdown-progress" cx="100" cy="100" r="87" pathLength="100" stroke-dasharray="100" stroke-dashoffset="0"/></svg>
+      <div class="countdown-value"><output id="countdown" aria-labelledby="countdown-label" aria-live="off">00:00:00</output><small id="countdown-label" data-popup="commitment"></small></div>
+    </div>
+    <p id="lock" class="muted"></p>
+  </div>
   <div class="actions">
     <a class="button" id="help" href="help.html" target="_blank" rel="noopener" data-i18n="common_help_now"></a>
-    <button class="secondary" id="settings" type="button" data-i18n="common_settings"></button>
+    <button class="secondary" id="block-site" type="button" aria-describedby="site-hint" data-popup="blockSite"></button>
     <button class="secondary" id="repair" type="button" hidden data-i18n="common_repair"></button>
   </div>
-  <p class="hint" data-i18n="popup_limits"></p>
+  <p class="hint" id="site-hint" data-popup="siteHint"></p>
+  <p class="msg" id="site-message" role="status" aria-live="polite"></p>
+  <nav class="popup-nav" aria-label="" id="popup-nav">
+    <a class="button secondary" href="options.html#home" target="_blank" rel="noopener" data-popup="home"></a>
+    <a class="button secondary" href="recovery.html" target="_blank" rel="noopener" data-popup="recovery"></a>
+    <a class="button secondary" href="covenant.html" target="_blank" rel="noopener" data-popup="covenant"></a>
+    <button class="secondary" id="settings" type="button" data-popup="preferences"></button>
+  </nav>
+  <p class="hint" data-popup="limits"></p>
 </main>
 <script type="module" src="popup.js"></script>
 </body>

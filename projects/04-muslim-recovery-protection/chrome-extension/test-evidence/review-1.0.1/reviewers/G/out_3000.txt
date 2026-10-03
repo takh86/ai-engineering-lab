@@ -1,0 +1,3 @@
+time cap at trial 285
+{"SAVE unexpected":69,"SAVE ok":237,"RESET stale":14,"REPAIR ok":203,"SAVE stale":18,"died":290,"RESET unexpected":29,"IMPORT busy":52,"STATUS ok":233,"START ok":145,"SAVE locked_weakening":74,"RESET ok":119,"IMPORT ok":135,"RESET locked_weakening":52,"SAVE busy":128,"REPAIR busy":50,"IMPORT stale":15,"START session_needs_active_protection":7,"IMPORT unexpected":38,"RESET busy":49,"REPAIR unexpected":23,"START unexpected":36,"START session_needs_rules":23,"START busy":41,"START stale":3,"IMPORT locked_weakening":1,"IMPORT storage_unavailable":1,"RESET storage_unavailable":1}
+done seeds 3000..+300 violations=0 in 240296ms clock=false

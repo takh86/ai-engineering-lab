@@ -1,41 +1,13 @@
 <!doctype html>
 <html lang="ar" dir="rtl" data-title="ob_title">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tabsira</title>
-<link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
-<main>
-  <header class="brandbar"><img class="mark" src="brand/mark.svg" alt="" width="40" height="38"><span class="wordmark" data-i18n="extShortName"></span><span class="tag" data-i18n="popup_tagline"></span></header>
-  <h1 data-i18n="ob_title"></h1>
-  <ol class="steps" id="dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li></ol>
-  <p class="tag" id="progress" role="status" aria-live="polite"></p>
-  <section data-step="1"><h2 data-i18n="ob1_title"></h2><p data-i18n="ob1_body"></p></section>
-  <section data-step="2" hidden><h2 data-i18n="ob2_title"></h2><p data-i18n="ob2_body"></p></section>
-  <section data-step="3" hidden><h2 data-i18n="ob3_title"></h2><p data-i18n="ob3_body"></p></section>
-  <section data-step="4" hidden><h2 data-i18n="ob4_title"></h2><p data-i18n="ob4_body"></p></section>
-  <section data-step="5" hidden>
-    <h2 data-i18n="ob5_title"></h2>
-    <label class="inline"><input type="checkbox" id="baseList" checked><span data-i18n="ob5_base"></span></label>
-    <label class="inline"><input type="checkbox" id="starterTerms" checked><span data-i18n="ob5_starter"></span></label>
-    <p id="permission" role="status" aria-live="polite"></p>
-    <button type="button" id="grant" class="secondary" hidden data-i18n="ob5_grant"></button>
-    <p class="msg" id="message" role="status" aria-live="polite"></p>
-    <div class="actions">
-      <button type="button" id="finish" data-i18n="ob5_start"></button>
-      <a class="button secondary" id="selftest" href="https://tabsira-selftest.test/" target="_blank" rel="noopener" hidden data-i18n="safe_test"></a>
-      <a class="button secondary" id="toSettings" href="options.html" hidden data-i18n="common_settings"></a>
-    </div>
-    <p class="hint" data-i18n="safe_test_hint"></p>
-  </section>
-  <div class="actions">
-    <button type="button" id="next" data-i18n="common_next"></button>
-    <button type="button" id="back" class="secondary" data-i18n="common_back"></button>
-  </div>
-</main>
-<script type="module" src="onboarding.js"></script>
-</body>
-</html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tabsira</title><link rel="stylesheet" href="tokens.css"><link rel="stylesheet" href="style.css"></head>
+<body><main>
+<header class="brandbar"><img class="mark" src="brand/mark.svg" alt="" width="40" height="38"><span class="wordmark" data-i18n="extShortName"></span></header>
+<h1 data-i18n="set_setup_title"></h1><ol class="steps" id="dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li></ol><p id="progress" role="status" aria-live="polite"></p><p id="message" class="msg" role="status" aria-live="polite"></p>
+<section data-step="1"><h2 data-i18n="ob1_title"></h2><p data-i18n="ob1_body"></p><p data-i18n="opt_privacy_body"></p><label for="language" data-i18n="set_language"></label><select id="language"><option value="ar">العربية</option><option value="en">English</option><option value="de">Deutsch</option></select></section>
+<section data-step="2" hidden><h2 data-i18n="set_profile_title"></h2><label for="religion" data-i18n="set_religion"></label><select id="religion"><option value="" data-i18n="set_choose"></option><option value="muslim" data-i18n="set_muslim"></option><option value="non-muslim" data-i18n="set_nonmuslim"></option></select><label class="inline"><input id="faith" type="checkbox"><span data-i18n="set_faith"></span></label><p data-i18n="set_faith_hint"></p><label for="theme" data-i18n="set_theme"></label><select id="theme"><option value="light" data-i18n="set_light"></option><option value="dark" data-i18n="set_dark"></option></select></section>
+<section data-step="3" hidden><h2 data-i18n="set_protection_title"></h2><p data-i18n="set_core"></p><label class="inline"><input id="starterTerms" type="checkbox" checked><span data-i18n="ob5_starter"></span></label><p id="permission" role="status"></p><button type="button" id="grant" data-i18n="ob5_grant"></button><p data-i18n="opt_limits_body"></p></section>
+<section data-step="4" hidden><h2 data-i18n="set_optional_title"></h2><div id="prayerPrompt" hidden><p data-i18n="set_prayer_hint"></p><div id="prayerSettings"></div></div><label class="inline"><input id="covenantNow" type="checkbox"><span data-i18n="set_covenant_now"></span></label><p data-i18n="set_covenant_later"></p><h3 data-i18n="set_password"></h3><p data-i18n="set_password_hint"></p><p data-i18n="set_setup_password"></p><div id="passwordControls"><label for="newPassword" data-i18n="set_password_new"></label><input id="newPassword" type="password" autocomplete="new-password" minlength="8" maxlength="256"><label for="repeatPassword" data-i18n="set_password_repeat"></label><input id="repeatPassword" type="password" autocomplete="new-password" maxlength="256"><button type="button" id="setPassword" data-i18n="set_password_set"></button></div><div id="recoveryResult" hidden><p data-i18n="set_recovery_hint"></p><label for="oneTimeCode" data-i18n="set_recovery_code"></label><input id="oneTimeCode" type="text" readonly autocomplete="off" spellcheck="false"><label class="inline"><input id="codeSaved" type="checkbox"><span data-i18n="set_code_saved"></span></label></div><p id="passwordState" role="status"></p></section>
+<section data-step="5" hidden><h2 data-i18n="ob5_title"></h2><p data-i18n="set_core"></p><button type="button" id="finish" data-i18n="ob5_start"></button><div id="completed" hidden><p data-i18n="set_setup_done"></p><a class="button secondary" id="selftest" href="https://tabsira-selftest.test/" target="_blank" rel="noopener" data-i18n="safe_test"></a><a class="button secondary" id="toSettings" href="options.html" data-i18n="common_settings"></a><a class="button secondary" id="toCovenant" href="covenant.html" hidden data-i18n="set_covenant_now"></a><p class="hint" data-i18n="safe_test_hint"></p></div></section>
+<div class="actions"><button type="button" id="next" data-i18n="common_next"></button><button type="button" id="back" class="secondary" data-i18n="common_back"></button></div>
+</main><script type="module" src="onboarding.js"></script></body></html>

@@ -1,0 +1,80 @@
+{
+ "firstLaunchReadyMs": 808,
+ "rssOff_MB": 861,
+ "activationMs": 108,
+ "activationState": "active",
+ "rssOn_MB": 862,
+ "saveWithBaseOn": {
+  "n": 15,
+  "min": 30,
+  "median": 69,
+  "max": 155
+ },
+ "disableBase": {
+  "n": 8,
+  "min": 36,
+  "median": 48,
+  "max": 101
+ },
+ "enableBase": {
+  "n": 8,
+  "min": 60,
+  "median": 78,
+  "max": 150
+ },
+ "getStatusWarm": {
+  "n": 20,
+  "min": 8,
+  "median": 12,
+  "max": 31
+ },
+ "save5000domains": {
+  "ok": false,
+  "ms": 32,
+  "err": "too_many_domains"
+ },
+ "getStatusColdAfterWorkerStop": {
+  "n": 8,
+  "min": 84,
+  "median": 108,
+  "max": 186
+ },
+ "storage": {
+  "keys": 3,
+  "by": {
+   "cfg": 2,
+   "ep": 1
+  },
+  "bytes": 395
+ },
+ "stateAfterRestart": {
+  "state": "active",
+  "reasons": [],
+  "base": true
+ },
+ "restartReadyMs": {
+  "n": 5,
+  "min": 589,
+  "median": 640,
+  "max": 808
+ },
+ "firstStatusAfterRestartMs": {
+  "n": 5,
+  "min": 102,
+  "median": 151,
+  "max": 180
+ },
+ "rssAfterRestart_MB": {
+  "n": 5,
+  "min": 875,
+  "median": 881,
+  "max": 888
+ },
+ "env": {
+  "chromium": "141.0.7390.37 (Playwright chromium-1194, headless=new)",
+  "node": "v22.22.0",
+  "cpus": "4x Intel(R) Xeon(R) Processor @ 2.10GHz",
+  "memGB": 16,
+  "baseDomains": 242750
+ }
+}

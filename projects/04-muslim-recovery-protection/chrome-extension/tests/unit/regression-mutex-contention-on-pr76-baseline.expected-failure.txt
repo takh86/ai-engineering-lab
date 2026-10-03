@@ -1,0 +1,27 @@
+✖ holder survives a later rival still choosing a ticket (3.229526ms)
+✔ holder rejects a rival with an earlier ordered ticket (1.174687ms)
+✔ holder rejects an expired lease (0.587784ms)
+✔ holder rejects a missing entry (0.494924ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 176.646707
+
+✖ failing tests:
+
+test at tests/unit/mutex-contention.test.mjs:7:1
+✖ holder survives a later rival still choosing a ticket (3.229526ms)
+  Error [TabsiraError]: busy
+      at Object.assertOwner (file:///workspace/scratch/bcf19308400d/tabsira-integration-101/projects/04-muslim-recovery-protection/chrome-extension/src/background/coordination.js:76:145)
+      at async file:///workspace/scratch/bcf19308400d/tabsira-integration-101/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/mutex-contention.test.mjs:12:9
+      at async Object.run (file:///workspace/scratch/bcf19308400d/tabsira-integration-101/projects/04-muslim-recovery-protection/chrome-extension/src/background/coordination.js:93:42)
+      at async TestContext.<anonymous> (file:///workspace/scratch/bcf19308400d/tabsira-integration-101/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/mutex-contention.test.mjs:10:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'busy',
+    params: {}
+  }

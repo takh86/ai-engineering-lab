@@ -24,6 +24,7 @@ export function normalizePhrase(raw) {
     const length = [...text].length;
     if (length < PHRASE_MIN || length > PHRASE_MAX) throw new TabsiraError('phrase_length', { min: PHRASE_MIN, max: PHRASE_MAX });
     if (/\p{Cc}/u.test(text)) throw new TabsiraError('phrase_control_chars');
+    if (/[\ud800-\udfff]/u.test(text.replace(/[\ud800-\udbff][\udc00-\udfff]/gu, ''))) throw new TabsiraError('phrase_invalid');   // lone surrogate: not encodable
     if (([...text.matchAll(/[\p{L}\p{N}]/gu)]).length < 2) throw new TabsiraError('phrase_no_letters');
     return text;
 }
@@ -47,10 +48,16 @@ const hex = char => `%${char.charCodeAt(0).toString(16).toUpperCase().padStart(2
 // encodeURIComponent leaves these unescaped, but search engines are free to escape them.
 const OPTIONALLY_ESCAPED = new Set(["!", "'", '(', ')', '*', '~']);
 const SPACE = '(?:\\+|%20)+';
-// Word boundaries are deliberately minimal (a space as + or %20, or the parameter edge): every extra
-// alternative costs browser regex memory, and in real Chromium that costs about one Arabic letter each.
-const BEFORE = '(?:\\+|%20)';
-const AFTER = '(?:\\+|%20|&|#|$)';
+// Whole-word boundaries. Browser regex memory is tight (a few Arabic letters per rule), so there are two forms:
+//  * wide   - a space, `. , _ - : ; ?` (raw), any `%2x`/`%3x` escape (space, quote, comma, dot, dash, slash, colon, semicolon, question
+//             mark, parentheses ...) or the parameter edge. So "xvideos.com", "\"xvideos\"", "hentai-xvideos", `site:xvideos.com` match as the
+//             word `xvideos`. NOT edges (each costs regex memory that long Arabic phrases need): raw ( ) [ ] | and the Arabic marks ؟ ، ؛;
+//  * narrow - only a space (+ or %20) or the parameter edge (the 1.0.0 behaviour). Used only for a phrase that does not fit the wide
+//             form for some search parameter (long Arabic phrases on YouTube/Yandex), so such a phrase is still protected, just
+//             less broadly. It is never dropped.
+const WORD_EDGE = { wide: '[+.,_:;?-]|%[23][0-9A-F]', narrow: '\\+|%20' };
+const BEFORE = { wide: `(?:${WORD_EDGE.wide})`, narrow: `(?:${WORD_EDGE.narrow})` };
+const AFTER = { wide: `(?:${WORD_EDGE.wide}|&|#|$)`, narrow: `(?:${WORD_EDGE.narrow}|&|#|$)` };
 
 function encodedToken(token) {
     const encoded = encodeURIComponent(token);
@@ -71,14 +78,16 @@ export function phraseFragment(phrase) {
 
 /**
  * Builds the regexFilter for one search parameter.
- * "word": phrase must start/end at a separator inside that parameter (whole words).
+ * "word": phrase must start/end at a separator inside that parameter (whole words, wide boundary);
+ * "word_narrow": the same with the narrow boundary (fallback for phrases that do not fit the wide form).
  * "contains": phrase may appear anywhere inside the parameter value (broader, more false blocks).
  * The match is confined to `[?&]param=...` up to the next `&` or `#`.
  */
 export function buildPhraseRegex(mode, param, fragments) {
     const alternatives = fragments.join('|');
     if (mode === 'contains') return `[?&]${param}=[^&#]*(?:${alternatives})`;
-    return `[?&]${param}=(?:[^&#]*${BEFORE})?(?:${alternatives})${AFTER}`;
+    const form = mode === 'word_narrow' ? 'narrow' : 'wide';
+    return `[?&]${param}=(?:[^&#]*${BEFORE[form]})?(?:${alternatives})${AFTER[form]}`;
 }
 
 /**
@@ -106,12 +115,32 @@ export async function packPhrases(phrases, mode, supports, param = LONGEST_PARAM
     return { chunks, unsupported };
 }
 
-/** 1-based positions of phrases the browser cannot express as a rule on their own for `param`. */
-export async function findUnsupported(phrases, mode, supports, param = 'q') {
+/**
+ * Whole-word phrases for one parameter: wide-boundary rules where they fit, the narrow boundary for the rest.
+ * Returns { chunks, narrow, unsupported } (chunks/narrow: arrays of phrase groups, one rule each).
+ */
+export async function packWord(phrases, supports, param = LONGEST_PARAM) {
+    const wide = await packPhrases(phrases, 'word', supports, param);
+    const fallback = await packPhrases(wide.unsupported, 'word_narrow', supports, param);
+    return { chunks: wide.chunks, narrow: fallback.chunks, unsupported: fallback.unsupported };
+}
+
+/**
+ * 1-based positions of phrases the browser cannot express as a rule on their own, for at least one of `params`
+ * (every search parameter that planRules uses). For whole words the narrow fallback counts as expressible.
+ */
+export async function findUnsupported(phrases, mode, supports, params = ['q']) {
     const bad = [];
     for (let i = 0; i < phrases.length; i++) {
-        const regex = buildPhraseRegex(mode, param, [phraseFragment(phrases[i])]);
-        if (!(await supports(regex))) bad.push(i + 1);
+        const fragment = phraseFragment(phrases[i]);
+        const forms = mode === 'word' ? ['word', 'word_narrow'] : [mode];
+        let ok = true;
+        for (const param of params) {
+            let any = false;
+            for (const form of forms) if (await supports(buildPhraseRegex(form, param, [fragment]))) { any = true; break; }
+            if (!any) { ok = false; break; }
+        }
+        if (!ok) bad.push(i + 1);
     }
     return bad;
 }

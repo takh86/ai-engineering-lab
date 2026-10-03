@@ -1,7 +1,35 @@
 # Changelog
 
+## 1.1.0 — final feature review candidate (2026-10-03)
+
+- Mandatory licensed core; additional weekly schedules and password-confirmed delayed commitment exit.
+- Optional encrypted local personal vault and independent password/recovery code.
+- Unified AR/EN/DE setup, optional faith, local opt-in prayer notifications.
+- Need-based help, covenant and five-stage recovery with explicit optional review saving.
+- Approved light/dark identity, actual popup countdown and current-site blocking.
+- Separate review/Red Team regressions, packaged-import checks and new installed-extension CI acceptance suite.
+- Account/cloud/email services and store publication remain outside this local candidate.
+
+
 All notable changes to the Tabsira browser extension. Format: [Keep a Changelog](https://keepachangelog.com/);
 versions follow `package.json`. The built-in list version is the version of the extension that ships it.
+
+## [1.0.1] — release candidate (pre-release review; not published)
+
+A version that includes fixes for the findings of the independent pre-release review (`docs/RELEASE-REVIEW-1.0.1.md`). **The build of 1.0.0 that was submitted to the Chrome Web Store
+earlier does not contain these fixes**; this package supersedes it. Uploading it, or withdrawing the pending review, is the Owner's decision.
+- **Fixed (A-2/G-2a):** whole-word phrase matching missed quotes, `.com`, commas, hyphens, parentheses and `site:` around the phrase (starter terms included); wider word edges, with a narrow fallback for phrases that do not fit.
+- **Fixed (A-1/G-3):** a save could report success while the phrase was not enforced on YouTube/Yandex (checked against `q` only); every search parameter is now checked, and a warning replaces the success message whenever the resulting state is not active.
+- **Fixed (A-6/B-2):** the "safe test" gave a false negative (and a real DNS lookup) with the built-in list off; the safe-test domain is now also covered by a user rule whenever any protection is on.
+- **Fixed (A-3, A-5, E-1, E-2, B-1):** import errors no longer point at the wrong text box; a double click on "Start blocking" no longer shows an error; the German wordmark no longer splits; keyboard focus is kept when a button is hidden/disabled; an import now shows what it adds (including exceptions) and asks first.
+- **Fixed (A-4/G-8):** a lone surrogate in a phrase gave "unexpected error".
+- **Fixed (A-8, G-9b):** repeated `www.` prefixes; more shared suffixes refused as sites.
+- **Fixed (G-4, C-6b, C-3, C-4, C-6a/G-5, G-7b, C-2/G-6):** one mechanism, trust in stored time/validity values: a lease that claims to outlive a lease length is ignored (a clock jump plus a killed worker could lock all writes and the watchdog out for the clock error); a storage error while registering no longer leaves a live lock entry; one validity rule for session entries (an invalid entry can no longer cause deletion of a valid session) and the newest session entry is never deleted by clock alone; an out-of-range epoch is flagged instead of bricking the store; the v0 session end is written before the migrated record.
+- **START_SESSION and legacy sessions (Owner scenarios):** a start that is frozen at its session-record write and resumes after another controller changed the settings is reported as `session_start_inconsistent` (never success on weaker/empty protection); the grow-only session entry is never deleted by a failed start (a late delete could take a newer session with it, including at equal end times). A legacy (v0) session end is copied to a lock key inside the write lock before ANY write that would stop it being read (save, import, onboarding, reset, start, migration); a legacy store whose content is unreadable still honours its session end (RESET stays refused).
+- **Phrase edges, status note:** a whole word that only fits the narrow edge is reported in the status as a note (count), never as plain full protection.
+- Documentation: honest limits for page-initiated navigation (G-1), URL-pattern phrase matching, engine coverage; privacy policy now names the internal bookkeeping records.
+- Real-browser suite: new checks R1.1–R1.5.
+- Not changed (open, see the review report): G-1 stop page for page-initiated navigation (Owner decision), C-1 unfenced rule write window, C-5, C-7, G-7a, D-1 Edge/Bing, D-3, D-4, B-3.
 
 ## [1.0.0] — unreleased (release candidate V1.1, not published)
 
