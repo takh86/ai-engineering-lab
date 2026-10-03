@@ -1,0 +1,246 @@
+{
+  "meta": {
+    "browser": "Chromium",
+    "version": "141.0.7390.37",
+    "os": "Linux 6.17.0-1022-azure (x64)",
+    "node": "v22.23.3",
+    "date": "2026-10-03T10:04:59.238Z",
+    "target": "chromium",
+    "zip": "dist/tabsira-chromium-1.1.0.zip",
+    "zipSha256": "2f8eaa576a020d01b62758ac04a3402d4ecf231d7d08ec8b5da6a7bb8090aa63",
+    "files": 69,
+    "manifestVersion": "1.1.0",
+    "variants": {
+      "release": "unmodified extraction of the ZIP",
+      "test": "manifest + declarativeNetRequestFeedback only",
+      "optional": "manifest: host access optional + declarativeNetRequestFeedback",
+      "live": "copy of release; manifest version raised in place for the update test"
+    }
+  },
+  "summary": {
+    "PASS": 44
+  },
+  "results": [
+    {
+      "id": "fresh install: prayer notifications disabled",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "faith choice independent of language",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "onboarding activates core protection",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "additional domain can be added",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "exception cannot bypass core",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "additional domain really redirects",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "benign page remains available",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "weekly overnight schedule saves",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "overnight overlap rejected",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "ar: profile saves",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "ar: popup.html localized",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "ar: popup has no safe-test action",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "ar: options.html localized",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "ar: help.html localized",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "ar: recovery.html localized",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "ar: covenant.html localized",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "en: profile saves",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "en: popup.html localized",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "en: popup has no safe-test action",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "en: options.html localized",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "en: help.html localized",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "en: recovery.html localized",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "en: covenant.html localized",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "de: profile saves",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "de: popup.html localized",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "de: popup has no safe-test action",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "de: options.html localized",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "de: help.html localized",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "de: recovery.html localized",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "de: covenant.html localized",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "independent password returns one-time recovery code",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "private notes saved",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "custom commitment starts",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "early exit requires explicit request",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "waiting period cannot be skipped",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "access can be locked",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "worker rejects private reads while locked",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "locked status redacts configuration",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "password recovery succeeds",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "recovery preserves commitment",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "recovery preserves encrypted private data",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "blocked page cannot read private vault",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "no personal text logged",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "extension has no console errors",
+      "status": "PASS",
+      "detail": ""
+    }
+  ],
+  "notes": []
+}
