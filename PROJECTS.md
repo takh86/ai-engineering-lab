@@ -87,7 +87,4 @@ This project must remain generic and independent from any private, internship, o
 
 **Parts:**
 - `android/` — experimental DNS-only VPN app (Kotlin/Compose). It never reports "Protected".
-- `chrome-extension/` — **Tabsira**, a local-only Chrome/Edge/Firefox extension that blocks sites and search phrases the user chooses. Built outside the M1–M6 plan; it is part of project 04, not a separate project.
-
-The Owner is currently working on the extension and will return to the Android app later.
-
+- `chrome-extension/` — **Tabsira**, a local-only Chrome/Edge/Firefox extension that blocks sites and search phrases the user chooses. Built outside the M1–M6 plan at the Owner's direction (see `projects/04-muslim-recovery-protection/docs/tabsira-v1-contract.md`); its relationship to the milestones is not yet recorded in `docs/decisions.md`.

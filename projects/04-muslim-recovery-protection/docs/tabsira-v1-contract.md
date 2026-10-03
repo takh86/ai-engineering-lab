@@ -1,5 +1,7 @@
 # Tabsira browser extension V1 — scope record
 
+> Update 2026-10-03: PR #74 has since been merged into `main` (`1d845d0`). The instructions below to not merge or publish were the Owner's at the time; the extension is still not published.
+
 Date: 2026-10-02 (updated after the Owner's second instruction the same day — "V1.1 decisions" below). Owner instruction: complete the
 Tabsira extension (PR #73 prototype) into a usable V1 with store-ready packages, **without merging or publishing**. This record is the bounded scope for the V1 work; it
 supersedes `chrome-personal-v0-contract.md` for the extension only and changes nothing about the Android app,

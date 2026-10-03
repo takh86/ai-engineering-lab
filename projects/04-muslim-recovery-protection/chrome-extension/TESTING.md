@@ -23,6 +23,8 @@ Package under test (frozen code commit `608251e` (logic identical to `f6b0eb6`; 
 `tabsira-chromium-1.0.0.zip` SHA-256 `2e1c886f2e0318855213ec5d8b49fadb971bc2f4b79ab028bb44ab0a6ac56460`,
 `tabsira-firefox-1.0.0.zip` SHA-256 `2a022b1529d1400a6cfa3d0b466a6c828ea2431428e0241a94c75d70818ca68e`.
 
+**After the freeze (2026-10-03).** Commit `c0d4e29` changed `src/background/controller.js` (phrase validation against the longest search parameter) and `scripts/fetch-base-list-sources.mjs`. A fresh build of the current tree therefore has different package SHA-256 values (Chromium `cb411b19…`, Firefox `2f6ff103…`); the SHA-256 values and the real-browser evidence in this file and in `test-evidence/` were **not** re-run on it and describe the earlier packages only.
+
 **Name change (display name «تبصرة Tabsira», commit after `969e482`).** Only the `extName` string in the three locale files changed, so the packages above are the **current** ones. The full real-browser run was repeated **for Chromium 141 only** on this package (155 PASS, 2 NOT_RUN = S7.14, S8.5 as before; `test-evidence/e2e-chromium.json`). The Chrome for Testing, Edge, Firefox and Firefox-private evidence files, and `SUMMARY.md`, still record the previous SHA-256 values (`c58ecb74…`, `c5dade24…`); they were **not** re-run for the name change.
 
 Linux x64 sandbox, headless (`--headless=new` for Chromium-family). Test sites resolve to a local server (`--host-resolver-rules` for Chromium-family, a local HTTP proxy
@@ -79,7 +81,7 @@ NOT RUN, with reasons: **S7.14** device-clock change (the OS clock cannot be cha
 (Chromium refuses: "You cannot remove required permissions"; the missing-permission state itself is covered by S8.1–S8.4); **F1.3b** Arabic UI inside Firefox (needs the Arabic language pack;
 Arabic/RTL rendering is verified in the three Chromium-family browsers).
 Every check, result and detail: [`test-evidence/SUMMARY.md`](test-evidence/SUMMARY.md) and the JSON files beside it.
-Unit/static: `npm test` → 86 tests, 0 failures (core, controller with fault injection, concurrency, late-write, late-delete (`lock-cleanup`), records and watchdog tests, adversarial inputs, tokens/contrast, messages, locales, manifest/CSP/permissions, list provenance, byte-reproducible ZIPs).
+Unit/static: `npm test` → 86 tests, 0 failures on the frozen commit (87 on the current tree after `c0d4e29` added one regression test) (core, controller with fault injection, concurrency, late-write, late-delete (`lock-cleanup`), records and watchdog tests, adversarial inputs, tokens/contrast, messages, locales, manifest/CSP/permissions, list provenance, byte-reproducible ZIPs).
 
 ### Regression evidence (tests that fail before the fix)
 

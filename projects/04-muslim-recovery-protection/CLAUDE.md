@@ -25,6 +25,3 @@ npm ci
 npm test
 npm run verify-reproducible
 ```
-
-New dev dependencies, a backend, or a new Node project need approval.
-

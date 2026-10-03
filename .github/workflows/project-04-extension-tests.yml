@@ -17,7 +17,7 @@ permissions:
 
 concurrency:
   group: project-04-extension-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
@@ -41,7 +41,7 @@ jobs:
           node-version: "22"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Unit, static and build tests
         run: npm test
