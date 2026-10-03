@@ -103,6 +103,16 @@ test('build output: every file the manifest and pages reference exists; base rul
             const html = fs.readFileSync(path.join(dir, file), 'utf8');
             for (const m of html.matchAll(/(?:src|href)="([^":#]+)"/gu)) assert.ok(fs.existsSync(path.join(dir, m[1])), `${target}/${file}: ${m[1]}`);
         }
+        // UI files are flattened during packaging. Check the installed module graph,
+        // rather than only source paths, to catch broken UI-to-core imports.
+        for (const file of fs.readdirSync(dir, { recursive: true }).filter(f => f.endsWith('.js'))) {
+            const source = fs.readFileSync(path.join(dir, file), 'utf8');
+            for (const match of source.matchAll(/(?:from\s*|import\s*\()\s*['"](\.[^'"]+)['"]/gu)) {
+                const resolved = path.resolve(dir, path.dirname(file), match[1]);
+                assert.ok(resolved.startsWith(`${dir}${path.sep}`), `${target}/${file}: import escapes package`);
+                assert.ok(fs.existsSync(resolved), `${target}/${file}: missing ${match[1]}`);
+            }
+        }
         const rules = JSON.parse(fs.readFileSync(path.join(dir, 'rulesets', 'base_adult.json'), 'utf8'));
         assert.equal(rules.length, 1);
         assert.equal(rules[0].condition.requestDomains.length, 242750 + 1);   // the list + the reserved self-test domain
@@ -143,4 +153,3 @@ test('base list: ONLY the two explicitly licensed sources, pinned to commits and
     // the shipped notice carries the full MIT text of Sinfonietta (condition of the licence)
     assert.ok(read('data', 'base-list', 'THIRD_PARTY_NOTICES.md').includes(read('data', 'base-list', 'licenses', 'LICENSE-Sinfonietta-MIT.txt').trim()));
 });
-

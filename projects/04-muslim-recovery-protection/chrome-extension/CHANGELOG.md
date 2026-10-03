@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.0 — final feature review candidate (2026-10-03)
+
+- Mandatory licensed core; additional weekly schedules and password-confirmed delayed commitment exit.
+- Optional encrypted local personal vault and independent password/recovery code.
+- Unified AR/EN/DE setup, optional faith, local opt-in prayer notifications.
+- Need-based help, covenant and five-stage recovery with explicit optional review saving.
+- Approved light/dark identity, actual popup countdown and current-site blocking.
+- Separate review/Red Team regressions, packaged-import checks and new installed-extension CI acceptance suite.
+- Account/cloud/email services and store publication remain outside this local candidate.
+
+
 All notable changes to the Tabsira browser extension. Format: [Keep a Changelog](https://keepachangelog.com/);
 versions follow `package.json`. The built-in list version is the version of the extension that ships it.
 

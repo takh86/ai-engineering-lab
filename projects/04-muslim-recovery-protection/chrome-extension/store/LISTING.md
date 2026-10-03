@@ -1,120 +1,49 @@
-# Store listing text (ready to paste) — Tabsira / تبصرة
+# Tabsira 1.1.0 — store copy candidate
 
-Status: **prepared, not submitted.** Nothing here has been uploaded. Account creation, fees, upload and
-publication need the Owner (see `SUBMISSION-CHECKLIST.md`). Arabic, English and German copy needs a native
-review before submission. Icon, screenshots and promo tiles use the **Owner-approved identity**; the mark and lockup are the Owner-supplied vector **reconstruction** (not the designer's master SVG) — see `docs/brand/ASSETS.md`.
+Prepared for review; not submitted or published. Native Arabic/German review and current browser verification are required before a store submission. Branding follows the owner's approved identity. Screenshots from older releases must be replaced with actual 1.1.0 screens.
 
-## Single purpose (Chrome Web Store "Privacy practices" → Single purpose)
+## Single purpose
 
-> Tabsira lets an adult block websites and search phrases they choose, and shows a short, respectful help
-> page when a blocked page is requested.
+Voluntary browser protection with practical support when an adult encounters a blocked page or wants help with an unwanted online habit.
 
-(One purpose: self-chosen blocking with help at the moment of blocking. The commitment session, exceptions,
-import/export and help page all serve that one purpose.)
+## English
 
-## Name and summary
+Tabsira combines a bundled adult-domain list, additional site/search rules, practical help and an optional Muslim faith experience. After setup the licensed core stays active; exceptions affect additional rules only. Weekly schedules support overnight periods. Custom commitments prevent weaker protection; early exit requires your chosen delay of at least an hour and password confirmation.
 
-| | Arabic (default) | English | Deutsch |
-|---|---|---|---|
-| Name | تبصرة Tabsira | تبصرة Tabsira | تبصرة Tabsira |
-| Summary (≤132) | حجب مواقع وعبارات بحث تختارها بنفسك، ومساعدة قصيرة وقت الرغبة. محلي بالكامل: بلا حسابات ولا تتبع. | Block sites and search phrases you choose, with short, respectful help in the moment. Fully local: no accounts, no tracking. | Blockiere Websites und Suchbegriffe, die du wählst – mit kurzer, respektvoller Hilfe im Moment. Komplett lokal, ohne Konto. |
+The popup shows actual status and a live commitment countdown. Choose “Block this site” to add the current site's domain. Need-based help offers 30 suggestions, custom ideas, favorites and an optional timer. A five-stage recovery journey offers small next steps and an optional private review. You can write a personal covenant and notes.
 
-## Long description — English
+Arabic, English and German. Faith content is optional, regardless of interface language. Prayer notifications are separately off by default, use a location you enter manually, and are calculated locally. An independent optional password encrypts personal records locally; retain the displayed recovery code yourself. No accounts, analytics, browsing records, cloud service or email recovery.
 
-Tabsira is a small tool for adults who have decided to protect themselves online. You choose what to block;
-Tabsira blocks it and, instead of an error page, shows a calm page with a one-minute pause and a prompt to take
-one helpful step.
+Honest limits: classification can be wrong; the core cannot be exempted. Tabsira does not scan page content, control other browsers/apps or prevent its owner disabling it. Private browsing needs browser permission. Search updates without a new navigation may not be caught. Sleep, denied permissions or astronomical calculation gaps can prevent a prayer notification. It supports self-help, not clinical treatment.
 
-**What it does**
-- Blocks sites you add (including their subdomains, on exact domain boundaries).
-- Optional built-in list of adult sites, bundled inside the extension (snapshot of two community-maintained lists with explicit
-  Unlicense/MIT licences: ShadowWhisperer and Sinfonietta). It is automated and community-made and can block a site by mistake — use **Exceptions**.
-- Blocks search phrases (Arabic and English) in the search box of Google, Bing, DuckDuckGo, Yahoo, YouTube,
-  Yandex, Brave, Ecosia and Qwant. Whole-word or partial matching.
-- **Commitment session (60/90/120 min):** during the session nothing that would weaken protection is possible
-  from inside the extension (deleting a rule, turning off the list, adding an exception, importing weaker
-  settings). You can always add stronger protection. When it ends, it only allows editing again; it removes nothing.
-- **Help me now:** a one-minute pause that never opens a blocked site. No blame, no diagnosis, no promises.
-- Arabic (RTL), English and German interface.
+## العربية
 
-**Privacy:** no accounts, no analytics, no browsing history, nothing sent anywhere. Settings stay on your device
-and are not encrypted. Tabsira does not record what was blocked.
+«تبصرة» تجمع قائمة أساسية مضمّنة لمواقع البالغين مع قواعد إضافية للمواقع والبحث ومساعدة عملية ومحتوى إيماني اختياري. بعد الإعداد تبقى القائمة الأساسية مفعّلة؛ الاستثناءات تخص القواعد الإضافية فقط. تدعم جداول أسبوعية تمتد عبر منتصف الليل. الالتزام بمدة تختارها يمنع تخفيف الحماية؛ الإنهاء المبكر يحتاج طلبًا وانتظار المدة المختارة، ساعة على الأقل، ثم تأكيد كلمة المرور.
 
-**Honest limits:** it complements other protections (for example a phone app or family DNS) and does not
-replace them. It does not scan images or page content. The extension can be disabled or removed in the browser.
-It works only in this browser, and private browsing must be enabled manually. Searches that change the page
-without loading a new one are not caught. It is a self-help tool, not treatment, and does not promise recovery.
+تعرض النافذة حالة الحماية الفعلية والوقت المتبقي. «احجب هذا الموقع» تضيف نطاق الموقع الحالي. اختر احتياجك لتحصل على اقتراح من ٣٠ فكرة، مع أفكارك الخاصة والمفضلة ومؤقت اختياري. رحلة من خمس مراحل بعد التعثر تساعدك على خطوة صغيرة ومراجعة خاصة اختيارية. يمكنك كتابة وثيقة عهد وملاحظات.
 
-## Long description — العربية
+واجهة عربية وإنجليزية وألمانية. المحتوى الإيماني اختياري مهما كانت اللغة. إشعارات الصلاة مغلقة افتراضيًا وتحتاج اختيارًا مستقلًا؛ تُحسب محليًا من موقع تدخله يدويًا. كلمة مرور اختيارية مستقلة تشفّر البيانات الشخصية محليًا؛ احتفظ برمز الاسترداد الذي يظهر لك. لا حسابات ولا تحليلات ولا سجل تصفح ولا خادم أو استرداد بالبريد.
 
-«تبصرة» أداة صغيرة للبالغين الذين قرروا حماية أنفسهم على الإنترنت. أنت تختار ما يُحجب؛ وعند الحجب بدل صفحة خطأ
-تعرض تبصرة صفحة هادئة فيها دقيقة توقف واقتراح خطوة واحدة مفيدة.
+حدود واضحة: قد يخطئ التصنيف، ولا يمكن استثناء القائمة الأساسية. لا تفحص الإضافة محتوى الصفحات ولا تتحكم في التطبيقات الأخرى ولا تمنع صاحب الجهاز من تعطيلها. التصفح الخفي يحتاج صلاحية المتصفح. البحث دون تحميل جديد قد لا يُحجب. النوم أو رفض الصلاحية أو تعذر الحساب قد يمنع إشعار الصلاة. أداة مساعدة ذاتية وليست علاجًا.
 
-**ماذا تفعل**
-- تحجب المواقع التي تضيفها ونطاقاتها الفرعية على حدود النطاق الصحيحة.
-- قائمة أساسية اختيارية لمواقع البالغين مضمّنة في الإضافة (لقطة من قائمتين يصونهما المجتمع بترخيصين صريحين Unlicense/MIT: ShadowWhisperer وSinfonietta).
-  التصنيف آلي مجتمعي وقد يحجب موقعًا بالخطأ — استخدم **الاستثناءات**.
-- تحجب عبارات البحث (عربية وإنجليزية) في Google وBing وDuckDuckGo وYahoo وYouTube وYandex وBrave وEcosia وQwant،
-  بمطابقة كلمات كاملة أو جزئية.
-- **جلسة الالتزام (٦٠/٩٠/١٢٠ دقيقة):** خلالها لا يمكن من داخل الإضافة فعل ما يخفّف الحماية (حذف قاعدة، إيقاف
-  القائمة، إضافة استثناء، استيراد إعدادات أضعف). يمكنك دائمًا إضافة حماية أقوى. وعند انتهائها تسمح بالتعديل فقط ولا تزيل شيئًا.
-- **ساعدني الآن:** دقيقة توقف لا تفتح الموقع المحجوب أبدًا. بلا لوم ولا تشخيص ولا وعود.
-- واجهة بالعربية (من اليمين لليسار) والإنجليزية والألمانية.
+## Deutsch
 
-**الخصوصية:** لا حسابات ولا تحليلات ولا سجل تصفح ولا إرسال لأي جهة. تبقى الإعدادات على جهازك وهي غير مشفّرة.
-لا تسجّل تبصرة ما الذي حُجب.
+Tabsira verbindet eine integrierte Liste für Erwachsenen-Websites, zusätzliche Website-/Suchregeln, praktische Hilfe und einen optionalen muslimischen Glaubensmodus. Nach der Einrichtung bleibt die lizenzierte Kernliste aktiv; Ausnahmen gelten nur für zusätzliche Regeln. Wochenzeitpläne unterstützen Zeiträume über Mitternacht. Selbstverpflichtungen verhindern schwächeren Schutz. Ein vorzeitiger Ausstieg benötigt einen Antrag, deine gewählte Wartefrist von mindestens einer Stunde und Passwortbestätigung.
 
-**حدود صريحة:** تكمّل حمايات أخرى (مثل تطبيق الجوال أو DNS العائلي) ولا تحلّ محلها. لا تفحص الصور ولا محتوى الصفحات.
-يمكن تعطيل الإضافة أو حذفها من المتصفح. تعمل في هذا المتصفح فقط، والتصفح الخفي يحتاج تفعيلًا يدويًا. لا تلتقط البحث الذي
-يغيّر الصفحة دون تحميل جديد. هي أداة مساعدة ذاتية وليست علاجًا ولا تَعِد بالتعافي.
+Das Popup zeigt den tatsächlichen Schutzstatus und die verbleibende Zeit. „Diese Website sperren“ ergänzt die aktuelle Domain. Bedürfnisbezogene Hilfe bietet 30 Ideen, eigene Vorschläge, Favoriten und einen optionalen Timer. Ein fünfstufiger Weg nach einem Rückschlag hilft mit kleinen Schritten und einem freiwilligen privaten Rückblick. Persönliche Vereinbarung und Notizen sind optional.
 
-## Long description — Deutsch
+Arabisch, Englisch und Deutsch. Glaubensinhalte sind unabhängig von der Sprache optional. Gebetsbenachrichtigungen sind standardmäßig aus und benötigen eine eigene Aktivierung. Zeiten werden lokal aus manuell eingegebenen Ortsdaten berechnet. Ein unabhängiges optionales Passwort verschlüsselt persönliche Einträge lokal; bewahre den angezeigten Wiederherstellungscode selbst auf. Keine Konten, Analyse, Browseraufzeichnungen, Cloud-Dienste oder E-Mail-Wiederherstellung.
 
-Tabsira ist ein kleines Werkzeug für Erwachsene, die sich online selbst schützen möchten. Du wählst, was blockiert
-wird; statt einer Fehlerseite zeigt Tabsira eine ruhige Seite mit einer Minute Pause und der Aufforderung, einen
-hilfreichen Schritt zu gehen.
+Grenzen: Die Einstufung kann falsch sein; die Kernliste hat keine Ausnahmen. Tabsira prüft keine Seiteninhalte, kontrolliert keine anderen Apps/Browser und verhindert keine Deaktivierung durch den Gerätebesitzer. Privates Surfen benötigt Browserfreigabe. Suche ohne neue Navigation wird möglicherweise nicht erfasst. Ruhezustand, fehlende Berechtigungen oder astronomische Lücken können Gebetshinweise verhindern. Selbsthilfe, keine Behandlung.
 
-**Was es tut**
-- Blockiert Websites, die du hinzufügst (inklusive Subdomains, an exakten Domain-Grenzen).
-- Optionale integrierte Liste für Erwachsenen-Websites, in der Erweiterung enthalten (Snapshot aus zwei von der Community gepflegten
-  Listen mit ausdrücklicher Unlicense/MIT-Lizenz). Sie ist automatisiert und von der Community und kann eine Seite fälschlich blockieren – nutze **Ausnahmen**.
-- Blockiert Suchbegriffe (Arabisch und Englisch) im Suchfeld von Google, Bing, DuckDuckGo, Yahoo, YouTube, Yandex,
-  Brave, Ecosia und Qwant – als ganzes Wort oder als Teilübereinstimmung.
-- **Selbstverpflichtung (60/90/120 Min.):** In dieser Zeit ist innerhalb der Erweiterung nichts möglich, was den
-  Schutz schwächt (Regel löschen, Liste ausschalten, Ausnahme hinzufügen, schwächere Einstellungen importieren).
-  Stärkeren Schutz kannst du immer hinzufügen. Nach Ablauf wird nur das Bearbeiten wieder erlaubt; nichts wird entfernt.
-- **Hilf mir jetzt:** eine Minute Pause, die nie eine blockierte Seite öffnet. Ohne Vorwurf, Diagnose oder Versprechen.
-- Oberfläche auf Arabisch (RTL), Englisch und Deutsch.
+## Permission explanations
 
-**Datenschutz:** keine Konten, keine Analysen, kein Verlauf, nichts wird irgendwohin gesendet. Einstellungen bleiben auf
-deinem Gerät und sind nicht verschlüsselt. Tabsira speichert nicht, was blockiert wurde.
-
-**Ehrliche Grenzen:** ergänzt andere Schutzmaßnahmen (z. B. Handy-App oder Familien-DNS), ersetzt sie nicht. Prüft keine
-Bilder oder Seiteninhalte. Die Erweiterung kann im Browser deaktiviert oder entfernt werden. Wirkt nur in diesem Browser;
-privates Surfen muss manuell erlaubt werden. Suchen, die die Seite ohne neues Laden ändern, werden nicht erfasst. Ein
-Selbsthilfe-Werkzeug, keine Behandlung, ohne Heilungsversprechen.
-
-## Permission justifications (paste into the store form)
-
-| Permission | Why it is needed (user-facing, plain) |
+| Permission | Purpose |
 |---|---|
-| `storage` | Saves your block list, exceptions, phrases, switches and the end time of a commitment session in this browser only, so rules survive restarts. |
-| `declarativeNetRequest` | Lets the browser itself apply the block rules (redirect a blocked page to Tabsira’s help page). Tabsira never sees the pages you visit; rules are evaluated by the browser. |
-| Host access `http://*/*`, `https://*/*` | Required by the browser for a redirect action: Tabsira can only redirect a blocked page for any site you choose if it has host access. It is **not** used to read, modify or collect page content. There are no content scripts. |
-| `alarms` | A local once-a-minute timer that wakes Tabsira to check that the browser's block rules still match your saved settings, and to rebuild them if a browser or extension restart left them out of date. No data is read or sent. (No install warning.) |
-| *(not requested)* | `tabs`, `webNavigation`, `webRequest`, `history`, `cookies`, `activeTab`, `scripting`, `downloads`, `declarativeNetRequestFeedback` — deliberately not used. |
+| storage | Local protection configuration, preferences and optional private records; no cloud sync. |
+| declarativeNetRequest + HTTP/HTTPS host access | Browser applies navigation rules and redirects blocked pages; no content scripts or browsing log. |
+| alarms | Repair watchdog, schedule/commitment boundaries and explicitly enabled prayer reminders. |
+| activeTab (optional) | Requested on “Block this site”; current domain is validated and stored as a rule. |
+| notifications (optional) | Requested only on explicit prayer-notification activation. |
 
-**Remote code:** none. All code and the block list are inside the package. No `eval`, no external scripts (CSP: `script-src 'self'`).
-
-**Data usage disclosure (Chrome "Data usage"):** do not check any "collected data" category — nothing is collected or transmitted.
-Certify: not sold; not used for unrelated purposes; not used for creditworthiness/lending.
-
-**Firefox (`data_collection_permissions`):** `{"required": ["none"]}` (already in the Firefox manifest).
-
-## Notes for store reviewers
-
-- The only large file is `rulesets/base_adult.json`, generated at build time from `data/base-list/adult-domains.txt.gz`
-  (source, licence and SHA-256 in `data/base-list/PROVENANCE.json`). It is one DNR rule whose `requestDomains` lists the snapshot.
-- Safe test: open `https://tabsira-selftest.test/` (a reserved `.test` name, never resolves). With blocking set up, the Tabsira
-  stop page appears. Never use real adult sites to test.
-- Build from source: `npm ci && npm run build` (Node ≥ 20.11, no runtime dependencies). Output ZIPs are byte-reproducible.
+No tabs/history/geolocation/webRequest/scripting/content scripts/remote code. Data is not transmitted or sold. Firefox manifest declares required collection `none`. Local personal inputs are user-saved data, not analytics; disclose them accurately in store forms and link the current reviewed privacy policy.
