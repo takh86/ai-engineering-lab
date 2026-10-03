@@ -27,6 +27,7 @@ try {
  check('setup Muslim choice preselects optional faith',await onboarding.isChecked('#faith'));
  await onboarding.click('#next');
  await onboarding.click('#next');
+ await onboarding.waitForSelector('#prayerPrompt', {state:'visible'});
  check('eligible setup exposes separate prayer controls',await onboarding.isVisible('#prayerPrompt'));
  await onboarding.click('#next');
  await onboarding.click('#finish');
