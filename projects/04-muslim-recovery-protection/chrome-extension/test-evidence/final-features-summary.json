@@ -1,0 +1,43 @@
+{
+  "version": "1.1.0",
+  "productSourceLocalCommit": "e0b3a3134c0cf85b416ae29311f2096bc9732ced",
+  "productSourceGitHubCommit": "4047f32e1ffdce953130402e79c75b912fd3ad79",
+  "latestVerifiedGitHubCommit": "96983d4da8ffde419eccd480b595c9ec0457c4ad",
+  "workflowRun": 37115823692,
+  "workflowURL": "https://github.com/takh86/ai-engineering-lab/actions/runs/37115823692",
+  "unitStatic": {
+    "pass": 147,
+    "fail": 0
+  },
+  "controllerRegressions": {
+    "pass": 10,
+    "fail": 0,
+    "adapter": "simulated WebExtension APIs"
+  },
+  "workerCapabilities": {
+    "status": "PASS",
+    "adapter": "simulated WebExtension APIs"
+  },
+  "installedBrowser": {
+    "summary": {
+      "PASS": 57
+    },
+    "browser": "Chromium",
+    "version": "141.0.7390.37",
+    "os": "Linux 6.17.0-1022-azure (x64)"
+  },
+  "packageSHA256": {
+    "chromium": "2f8eaa576a020d01b62758ac04a3402d4ecf231d7d08ec8b5da6a7bb8090aa63",
+    "firefox": "7489c0df23645c0f4208ab3593e7062aafc19d354a81e72f8e1d4a3d557ba352"
+  },
+  "unverified": [
+    "Firefox runtime/signed build",
+    "Chrome stable/Edge",
+    "Windows/macOS",
+    "new features in private windows",
+    "activeTab permission prompt",
+    "real OS prayer notification delivery",
+    "real user devices"
+  ],
+  "publication": "review candidate; no main merge/store publication"
+}

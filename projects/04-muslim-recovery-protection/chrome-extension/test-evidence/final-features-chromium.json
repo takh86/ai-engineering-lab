@@ -4,7 +4,7 @@
     "version": "141.0.7390.37",
     "os": "Linux 6.17.0-1022-azure (x64)",
     "node": "v22.23.3",
-    "date": "2026-10-03T10:04:59.238Z",
+    "date": "2026-10-03T10:16:21.614Z",
     "target": "chromium",
     "zip": "dist/tabsira-chromium-1.1.0.zip",
     "zipSha256": "2f8eaa576a020d01b62758ac04a3402d4ecf231d7d08ec8b5da6a7bb8090aa63",
@@ -18,7 +18,7 @@
     }
   },
   "summary": {
-    "PASS": 44
+    "PASS": 57
   },
   "results": [
     {
@@ -32,7 +32,27 @@
       "detail": ""
     },
     {
-      "id": "onboarding activates core protection",
+      "id": "setup non-Muslim choice leaves faith off",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "setup Muslim choice preselects optional faith",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "eligible setup exposes separate prayer controls",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "onboarding UI activates core protection",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "setup does not enable prayer automatically",
       "status": "PASS",
       "detail": ""
     },
@@ -168,6 +188,51 @@
     },
     {
       "id": "de: covenant.html localized",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "help Next shows another idea",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "help Previous restores previous idea",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "custom help step appears",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "custom help library explicitly persists",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "stage-two faith stays in recovery journey",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "care stage has no prayer action",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "postponed recovery does not save review",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "postponed recovery clears draft",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "covenant explicitly persists",
       "status": "PASS",
       "detail": ""
     },

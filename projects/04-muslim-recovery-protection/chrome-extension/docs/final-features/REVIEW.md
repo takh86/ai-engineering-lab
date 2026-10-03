@@ -22,7 +22,7 @@ node tests/review/controller-regressions.mjs
 node tests/review/worker-capabilities.mjs
 ```
 
-Installed release-ZIP acceptance: **44/44 PASS** on Chromium141.0.7390.37/Ubuntu24.04, [run37115158569](https://github.com/takh86/ai-engineering-lab/actions/runs/37115158569). ZIP hashes match the local build exactly. Expanded setup/help/recovery/covenant click checks are in the next workflow; check its result before updating readiness.
+Installed release-ZIP acceptance: **57/57 PASS** on Chromium141.0.7390.37/Ubuntu24.04, [run37115823692](https://github.com/takh86/ai-engineering-lab/actions/runs/37115823692). ZIP hashes match the local build exactly. Expanded setup/help/recovery/covenant click checks also passed. Tested GitHub head: `96983d4da8ffde419eccd480b595c9ec0457c4ad`. An earlier visibility assertion was corrected to wait for the asynchronous setup panel; product code was unchanged.
 
 Local browser attempt: **NOT_RUN**, persistent Chromium profile failed `socket(): Operation not permitted`. CI provides actual installed-browser evidence instead. Local failure is retained separately and never counted as a pass. Historical1.0.0 browser results do not certify1.1.0.
 
