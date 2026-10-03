@@ -219,6 +219,15 @@ async function saveSchedules(next) {
     if (reply.ok) {
         scheduleRevision = reply.status?.revision ?? scheduleRevision;
         schedules = reply.schedules ?? reply.status?.schedules?.items ?? next; renderSchedules(); clearScheduleEditor();
+    } else if (['stale', 'stale_revision'].includes(reply.error?.code)) {
+        // Refresh the authoritative rows, never replay the stale write or overwrite the editor draft.
+        const latest = await send({ type: 'GET_SCHEDULES' });
+        if (latest.ok) {
+            schedules = latest.schedules; scheduleRevision = latest.revision; renderSchedules();
+            if (latest.status) render(latest.status);
+            // If another tab removed the edited row, keep the entered days/times as a new draft.
+            if (editingSchedule && !schedules.some(item => item.id === editingSchedule)) clearScheduleEditor();
+        } else showError(latest.error);
     }
     return reply;
 }
