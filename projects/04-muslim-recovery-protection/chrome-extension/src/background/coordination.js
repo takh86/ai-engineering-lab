@@ -72,8 +72,12 @@ export function createWriteMutex(api, { leaseMs = 20000, waitMs = 15000, pollMs 
         const mine = all[key];
         const now = api.clock();
         if (!mine || mine.choosing || !(mine.exp > now)) { held = false; throw new TabsiraError('busy'); }
+        // Only a rival that is really AHEAD (smaller ticket) takes the lock away. A rival that is merely `choosing` has not drawn a ticket yet and,
+        // by the bakery invariant, will draw one above ours: it read our entry before we passed the wait loop in register(), which only returns once
+        // no rival is choosing. Treating it as a conflict aborted the holder whenever the protection, feature and prayer controllers and the
+        // watchdog overlapped inside one worker (about one run in three in real Chromium).
         const rivals = entriesOf(all, now);
-        if (rivals.some(entry => entry.choosing || (entry.ticket > 0 && before(entry, { id: me, ticket: mine.ticket })))) { held = false; throw new TabsiraError('busy'); }
+        if (rivals.some(entry => entry.ticket > 0 && before(entry, { id: me, ticket: mine.ticket }))) { held = false; throw new TabsiraError('busy'); }
         await api.storage.set({ [key]: { ...mine, exp: now + leaseMs } });
     }
 

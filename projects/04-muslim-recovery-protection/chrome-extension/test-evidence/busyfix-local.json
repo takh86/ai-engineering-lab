@@ -1,0 +1,12 @@
+{
+  "unit": {
+    "pass": 193,
+    "fail": 0
+  },
+  "newTests": "independently authored4; baseline1fail3pass,fixed4pass",
+  "nativeBrowser": "NOT_RUN locally; reviewer78/78 claim not independently verified",
+  "chromiumSha256": "eba26dd6b2e9cdc95dde09e422a2befa98cf77c01ee94625c63960c733c9b7b0",
+  "firefoxSha256": "fc984586f21d52b152a267aa385644478e9b3268fa9f8609c1a477823acb4769",
+  "reproducible": true,
+  "remoteMutation": false
+}
