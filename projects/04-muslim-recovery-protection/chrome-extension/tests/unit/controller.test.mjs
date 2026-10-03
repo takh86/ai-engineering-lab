@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createController } from '../../src/background/controller.js';
+import { buildPhraseRegex, phraseFragment } from '../../src/core/phrases.js';
 import { isTrustedSender, validateMessage } from '../../src/background/messages.js';
 import { createFakeBrowser, storedConfig, corruptConfig } from './fake-browser.mjs';
 
@@ -56,6 +57,17 @@ test('save persists config and installs rules; stale revision is rejected; unsup
     const tooLong = await t.save({ contains: ['fine', 'ع'.repeat(60)] });
     assert.equal(code(tooLong), 'phrase_too_complex'); assert.deepEqual(tooLong.error.params, { line: 2, list: 'contains' });
     assert.ok(!JSON.stringify(tooLong).includes('ع'));
+});
+
+test('a phrase that fits the "q" parameter but not the longest one is refused at save, not left silently unprotected', async () => {
+    const t = setup(); await t.onboard(false, false);
+    const phrase = 'ع'.repeat(30);
+    const fits = param => buildPhraseRegex('contains', param, [phraseFragment(phrase)]).length;
+    assert.ok(fits('q') < fits('search_query'));
+    t.api.dnr.isRegexSupported = async ({ regex }) => ({ isSupported: regex.length <= fits('q') });
+    const result = await t.save({ contains: [phrase] });
+    assert.equal(code(result), 'phrase_too_complex'); assert.deepEqual(result.error.params, { line: 1, list: 'contains' });
+    assert.deepEqual(storedConfig(t.state).contains, []);
 });
 
 test('exception beats base/user block by priority; conflicting entries are refused', async () => {

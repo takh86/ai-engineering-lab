@@ -1,6 +1,7 @@
 import { TabsiraError, toErrorPayload } from '../core/errors.js';
 import { defaultConfig, parseSettings, migrate, weakeningReasons, settingsOf, exportSettings, mergeImport, LIMITS } from '../core/config.js';
 import { findUnsupported } from '../core/phrases.js';
+import { LONGEST_PARAM } from '../core/engines.js';
 import { STARTER_TERMS } from '../core/starter-terms.js';
 import { planRules, rulesMatch, BASE_RULESET_ID } from '../core/rules.js';
 import { isActive, SESSION_MINUTES, lockKey, mergeLocks } from '../core/lock.js';
@@ -275,7 +276,7 @@ export function createController(api, { mutex: mutexOptions } = {}) {
             if (reasons.length) throw new TabsiraError('locked_weakening', { reasons });
         }
         for (const mode of ['words', 'contains']) {
-            const bad = await findUnsupported(settings[mode], mode === 'words' ? 'word' : 'contains', supports, 'q');
+            const bad = await findUnsupported(settings[mode], mode === 'words' ? 'word' : 'contains', supports, LONGEST_PARAM);
             if (bad.length) throw new TabsiraError('phrase_too_complex', { line: bad[0], list: mode });
         }
         await commit({ config: next, expected: state.raw, persist: true });

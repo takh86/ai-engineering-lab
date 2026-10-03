@@ -8,7 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -40,7 +40,7 @@ export function verifyPinned(label, bytes, blob, digest) {
     if (sha256(bytes) !== digest) throw new Error(`${label}: sha256 ${sha256(bytes)} != pinned ${digest}`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
     const out = path.resolve(process.argv[2] ?? '.base-list-inputs');
     fs.mkdirSync(out, { recursive: true });
     for (const source of SOURCES) {
