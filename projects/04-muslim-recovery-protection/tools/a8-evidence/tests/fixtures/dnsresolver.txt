@@ -1,0 +1,11 @@
+SYNTHETIC TOOL FIXTURE ONLY - not device evidence
+NetId: 100
+Private DNS mode: strict
+Private DNS servers:
+  192.0.2.53 family.cloudflare-dns.com success
+  2001:db8::53 family.cloudflare-dns.com validated
+NetId: 101
+Private DNS mode: off
+Private DNS validation: failed
+search suffix: fixture.private.example.test
+Some unknown hostname or subscriber data must never reach the extract.

@@ -1,0 +1,12 @@
+SYNTHETIC TOOL FIXTURE ONLY - not device evidence
+Active default network: 100
+NetworkAgentInfo{network{100} ni{[type: WIFI[], state: CONNECTED/CONNECTED, extra: "Synthetic Home WiFi"]}
+  LinkProperties{InterfaceName: wlan0 LinkAddresses: [192.0.2.10/24, 2001:db8:1234::a/64, fe80::a%wlan0/64] Routes: [0.0.0.0/0 -> 192.0.2.1 wlan0, ::/0 -> fe80::1%wlan0] DnsAddresses: [192.0.2.53, 2001:db8::53] UsePrivateDns: true PrivateDnsServerName: family.cloudflare-dns.com ValidatedPrivateDnsAddresses: [192.0.2.53, 2001:db8::53]}
+  NetworkCapabilities: [ Transports: WIFI SSID: "Synthetic Home WiFi", BSSID: 02:00:5e:10:00:01, MAC: 02-00-5e-10-00-02, OwnerUid: 12345 ]
+  SSID: "Synthetic, quoted \"network\"", BSSID=0200.5e10.0003
+  subscriberId=001010123456789 IMEI=123456789012345 ICCID=8901000000000000001
+  serial=SYNTHETIC_USB owner=fixture@example.test phone=+15550123456
+  unknown field: sensitive vendor text; ipv6=[2001:DB8:0:0:0:0:0:1]:853 ::ffff:192.0.2.44
+NetworkAgentInfo{network{101} ni{[type: MOBILE[LTE], state: CONNECTED/CONNECTED]}
+  LinkProperties{ UsePrivateDns: false PrivateDnsServerName: null ValidatedPrivateDnsAddresses: [] }
+  NetworkCapabilities: [ Transports: CELLULAR ]

@@ -1,0 +1,29 @@
+name: Project 04 A8 evidence tool tests
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "projects/04-muslim-recovery-protection/tools/a8-evidence/**"
+      - ".github/workflows/project-04-a8-evidence-tool.yml"
+  pull_request:
+    paths:
+      - "projects/04-muslim-recovery-protection/tools/a8-evidence/**"
+      - ".github/workflows/project-04-a8-evidence-tool.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-tool-tests:
+    name: Synthetic tool tests (PowerShell 5.1 and 7)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Run synthetic tests on Windows PowerShell 5.1
+        shell: powershell
+        run: ./projects/04-muslim-recovery-protection/tools/a8-evidence/tests/Test-A8Evidence.ps1
+      - name: Run synthetic tests on PowerShell 7
+        shell: pwsh
+        run: ./projects/04-muslim-recovery-protection/tools/a8-evidence/tests/Test-A8Evidence.ps1
