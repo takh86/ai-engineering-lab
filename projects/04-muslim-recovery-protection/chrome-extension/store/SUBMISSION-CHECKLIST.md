@@ -31,7 +31,7 @@ This is a store-release checklist, separate from feature implementation. The 1.1
 
 ## Firefox (AMO)
 - [ ] Developer account (free). Upload `dist/tabsira-firefox-1.1.0.zip` (**unsigned** — AMO signs it; do not call it a signed release before then).
-- [ ] Select the data-collection declaration “none” (already in the manifest) and the source-code submission if asked: this repo + `npm ci && npm run build` (Node ≥ 20.11).
+- [ ] Select the data-collection declaration “none” (already in the manifest) and the source-code submission if asked: this repo + `npm ci && npm run build` (Node ≥ 22).
 - [ ] Reviewer note: the large `rulesets/base_adult.json` is generated data (provenance in `data/base-list/PROVENANCE.json`), not code.
 - [ ] After approval, test the signed XPI once on a clean Firefox profile (permissions prompt, permanent install, restart persistence).
 

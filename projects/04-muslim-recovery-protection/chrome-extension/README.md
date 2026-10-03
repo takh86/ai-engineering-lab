@@ -24,7 +24,7 @@ The built-in list is automated community classification and can contain errors. 
 
 ## Build and verification
 
-Requires Node >=20.11. No runtime npm dependency; Playwright is a development dependency only.
+Requires Node >=22 (`npm test` passes a glob to `node --test`, which older Node versions do not expand; CI runs Node 22). No runtime npm dependency; Playwright is a development dependency only.
 
 ```sh
 npm ci

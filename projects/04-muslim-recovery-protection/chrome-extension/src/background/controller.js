@@ -307,9 +307,14 @@ export function createController(api, { mutex: mutexOptions, featureController }
             const reasons = weakeningReasons(state.config, next);
             if (reasons.length) throw new TabsiraError('locked_weakening', { reasons });
         }
+        // Only phrases added by this save are checked. A phrase that was accepted earlier and is rejected now (a browser
+        // update lowered the regex memory limit, a longer parameter name was added) must not block unrelated saves or,
+        // during a session, make every strengthening change impossible; computeStatus reports it as partial protection.
         for (const mode of ['words', 'contains']) {
-            const bad = await findUnsupported(settings[mode], mode === 'words' ? 'word' : 'contains', supports, PARAM_GROUPS.map(group => group.param));
-            if (bad.length) throw new TabsiraError('phrase_too_complex', { line: bad[0], list: mode });
+            const known = new Set(state.config[mode]);
+            const added = settings[mode].map((phrase, index) => ({ phrase, line: index + 1 })).filter(item => !known.has(item.phrase));
+            const bad = await findUnsupported(added.map(item => item.phrase), mode === 'words' ? 'word' : 'contains', supports, PARAM_GROUPS.map(group => group.param));
+            if (bad.length) throw new TabsiraError('phrase_too_complex', { line: added[bad[0] - 1].line, list: mode });
         }
         await commit({ config: next, expected: state.raw, persist: true });
     }

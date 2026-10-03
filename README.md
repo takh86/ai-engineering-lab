@@ -79,6 +79,7 @@ See [`docs/QUALITY_GATES.md`](docs/QUALITY_GATES.md).
 | 01 | Task Management API | Spec-driven backend development | Requirements, API design, review | Implementation + tests |
 | 02 | Job Application Tracker | Production engineering | Architecture, data model, operations | Feature delivery + review |
 | 03 | Requirements Reviewer | AI product engineering | Product logic, eval criteria | AI integration + experiments |
+| 04 | Muslim Recovery Protection (Android app + Tabsira browser extension) | Safety-critical product engineering, truthful claims | Threat model, scope gating, device testing | Implementation, test and evidence drafting |
 
 See [`PROJECTS.md`](PROJECTS.md).
 

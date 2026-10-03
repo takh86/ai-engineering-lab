@@ -17,3 +17,11 @@ Build from android/:
 ```powershell
 .\gradlew clean assembleDebug testDebugUnitTest --no-daemon
 ```
+
+The Tabsira browser extension lives in chrome-extension/ (Node >= 22, no runtime dependencies; one dev dependency, playwright-core). Build and test from chrome-extension/:
+
+```powershell
+npm ci
+npm test
+npm run verify-reproducible
+```

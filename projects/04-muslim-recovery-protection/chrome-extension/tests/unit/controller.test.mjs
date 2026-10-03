@@ -59,6 +59,22 @@ test('save persists config and installs rules; stale revision is rejected; unsup
     assert.ok(!JSON.stringify(tooLong).includes('ع'));
 });
 
+test('a saved phrase the browser later rejects does not block unrelated saves, but a new over-long phrase is still refused with its line', async () => {
+    const t = setup(); await t.onboard(false, false);
+    const saved = 'ع'.repeat(30);
+    assert.ok((await t.save({ contains: [saved] })).ok);
+    t.api.dnr.isRegexSupported = async ({ regex }) => ({ isSupported: regex.length <= 200 });   // the limit drops after the phrase was saved
+    const later = t.restart();   // a fresh controller: the regex-support cache does not survive a service-worker restart
+    const save = async settings => {
+        const status = (await later.handle(validateMessage({ type: 'GET_STATUS' }))).status;
+        return later.handle(validateMessage({ type: 'SAVE_SETTINGS', baseRevision: status.revision, settings: { ...noList, ...settings } }));
+    };
+    assert.ok((await save({ contains: [saved], domains: ['example.com'] })).ok);
+    assert.deepEqual(storedConfig(t.state).contains, [saved]);
+    const tooLong = await save({ contains: [saved, 'ع'.repeat(60)], domains: ['example.com'] });
+    assert.equal(code(tooLong), 'phrase_too_complex'); assert.deepEqual(tooLong.error.params, { line: 2, list: 'contains' });
+});
+
 test('exception excludes additional blocks only; conflicting entries are refused', async () => {
     const t = setup(); await t.onboard(true, false);
     assert.ok((await t.save({ baseList: true, domains: ['example.com'], allow: ['ok.example.com'] })).ok);

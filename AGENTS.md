@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This repository is a portfolio of independent projects. Root files (`README.md`, `PROJECTS.md`, `CONTRIBUTING.md`) explain the lab; `docs/` holds shared workflow and quality guidance, `templates/` holds reusable document outlines, and `assets/` holds branding. The active implementation is `projects/04-muslim-recovery-protection/`: its `docs/` records the problem, requirements, architecture, and decisions. Android source and resources live under `android/app/src/main/`; unit tests live under `android/app/src/test/`. Follow a project's own README when its layout differs from the generic lab template.
+This repository is a portfolio of independent projects. Root files (`README.md`, `PROJECTS.md`, `CONTRIBUTING.md`) explain the lab; `docs/` holds shared workflow and quality guidance, `templates/` holds reusable document outlines, and `assets/` holds branding. The active implementation is `projects/04-muslim-recovery-protection/`: its `docs/` records the problem, requirements, architecture, and decisions. Android source and resources live under `android/app/src/main/`; unit tests live under `android/app/src/test/`. The Tabsira browser extension (JavaScript ES modules, Node >= 22) lives under `chrome-extension/` with unit tests in `chrome-extension/tests/unit/`. Follow a project's own README when its layout differs from the generic lab template.
 
 ## Build, Test, and Development Commands
 
@@ -15,6 +15,16 @@ From `projects/04-muslim-recovery-protection/android/`, run:
 ```
 
 These build the debug APK, run local JUnit tests, and run Android lint, respectively. `.\gradlew clean assembleDebug testDebugUnitTest --no-daemon` is the project's documented clean verification command. No repository-wide build command exists.
+
+For the extension, run from `projects/04-muslim-recovery-protection/chrome-extension/`:
+
+```powershell
+npm ci
+npm test
+npm run verify-reproducible
+```
+
+`npm test` runs the unit, static and build tests; `npm run verify-reproducible` checks that the Chromium and Firefox packages build byte-for-byte identically. `npm run test:e2e` needs real browsers and is not run in CI. CI runs them, plus a Chromium e2e run, on pull requests (`.github/workflows/project-04-tabsira-final-features.yml`).
 
 ## Coding Style & Naming Conventions
 
