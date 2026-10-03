@@ -3,9 +3,10 @@ import { STARTER_TERMS } from './starter-terms.js';
 import { packPhrases, phraseFragment, buildPhraseRegex } from './phrases.js';
 
 // Precedence (higher priority wins in declarativeNetRequest):
-//   3  exception (allow)   - beats everything for the listed domain and its subdomains
-//   2  user sites / phrases - the user's own blocks
-//   1  built-in base list   - static ruleset, may be switched off
+// Exceptions exclude domains only from dynamic additional rules.
+// The static bundled list has no exception or off switch after setup.
+//   2  user sites / phrases
+//   1  mandatory built-in base list
 // An exception and a user block for the same site cannot coexist (rejected when saving).
 export const PRIORITY = Object.freeze({ BASE: 1, USER: 2, ALLOW: 3 });
 export const RULE_ID = Object.freeze({ USER_DOMAINS: 1, ALLOW: 2, PHRASE_FIRST: 100 });
@@ -41,11 +42,7 @@ export async function planRules(config, supports) {
     const rules = [];
     if (config.domains.length) {
         rules.push({ id: RULE_ID.USER_DOMAINS, priority: PRIORITY.USER, action: redirect(),
-            condition: { requestDomains: [...config.domains].sort(), resourceTypes: MAIN_FRAME } });
-    }
-    if (config.allow.length) {
-        rules.push({ id: RULE_ID.ALLOW, priority: PRIORITY.ALLOW, action: { type: 'allow' },
-            condition: { requestDomains: [...config.allow].sort(), resourceTypes: MAIN_FRAME } });
+            condition: { requestDomains: [...config.domains].sort(), excludedRequestDomains: [...config.allow].sort(), resourceTypes: MAIN_FRAME } });
     }
     const phrases = effectivePhrases(config);
     const unsupported = new Set();
@@ -58,17 +55,17 @@ export async function planRules(config, supports) {
             rejected.forEach(phrase => unsupported.add(phrase));
             for (const chunk of chunks) {
                 rules.push({ id: id++, priority: PRIORITY.USER, action: redirect(), condition: {
-                    requestDomains: group.domains, resourceTypes: MAIN_FRAME, isUrlFilterCaseSensitive: false,
+                    requestDomains: group.domains, excludedRequestDomains: [...config.allow].sort(), resourceTypes: MAIN_FRAME, isUrlFilterCaseSensitive: false,
                     regexFilter: buildPhraseRegex(mode, group.param, chunk.map(phraseFragment))
                 } });
             }
         }
     }
-    return { rules, baseListEnabled: config.baseList, unsupported: [...unsupported] };
+    return { rules, baseListEnabled: config.onboarded ? true : config.baseList, unsupported: [...unsupported] };
 }
 
 // ---- canonical comparison with what the browser reports back ----
-const SORTED_ARRAYS = new Set(['requestDomains', 'resourceTypes']);
+const SORTED_ARRAYS = new Set(['requestDomains', 'excludedRequestDomains', 'resourceTypes']);
 function canon(value, key) {
     if (Array.isArray(value)) {
         const items = value.map(item => canon(item));

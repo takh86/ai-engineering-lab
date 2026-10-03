@@ -22,6 +22,8 @@ export function createBrowserApi(ext = globalThis.browser ?? globalThis.chrome) 
             updateEnabledRulesets: options => ext.declarativeNetRequest.updateEnabledRulesets(options),
             isRegexSupported: options => ext.declarativeNetRequest.isRegexSupported(options)
         },
+        alarms: { getAll: () => ext.alarms.getAll(), create: (name, options) => ext.alarms.create(name, options), clear: name => ext.alarms.clear(name) },
+        notifications: { create: (id, options) => ext.notifications.create(id, options) },
         baseMeta: () => fetch(ext.runtime.getURL('base-list-meta.json')).then(response => response.json()),
         permissions: { contains: query => ext.permissions.contains(query) },
         // null = the browser cannot say (treated as "unknown", never as "allowed").
@@ -30,7 +32,7 @@ export function createBrowserApi(ext = globalThis.browser ?? globalThis.chrome) 
         },
         setBadge: async text => {
             await ext.action.setBadgeText({ text });
-            if (text) await ext.action.setBadgeBackgroundColor({ color: '#b45309' });
+            if (text) await ext.action.setBadgeBackgroundColor({ color: '#1456C5' });
         },
         // Chrome only: keep settings out of content scripts. Firefox has no such call and no content scripts here.
         restrictStorage: async () => {

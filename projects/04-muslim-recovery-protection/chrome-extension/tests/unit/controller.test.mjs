@@ -58,12 +58,14 @@ test('save persists config and installs rules; stale revision is rejected; unsup
     assert.ok(!JSON.stringify(tooLong).includes('ع'));
 });
 
-test('exception beats base/user block by priority; conflicting entries are refused', async () => {
+test('exception excludes additional blocks only; conflicting entries are refused', async () => {
     const t = setup(); await t.onboard(true, false);
     assert.ok((await t.save({ baseList: true, domains: ['example.com'], allow: ['ok.example.com'] })).ok);
     const allow = t.state.rules.find(r => r.action.type === 'allow');
     const block = t.state.rules.find(r => r.condition.requestDomains?.includes('example.com'));
-    assert.ok(allow.priority > block.priority);
+    assert.equal(allow, undefined, 'core has no allow-rule bypass');
+    assert.deepEqual(block.condition.excludedRequestDomains, ['ok.example.com']);
+    assert.equal(t.state.baseEnabled, true);
     assert.equal(code(await t.save({ baseList: true, domains: ['a.ok.example.com'], allow: ['ok.example.com'] })), 'conflict_domain_allow');
 });
 
@@ -75,7 +77,7 @@ test('commitment: refuses every weakening path, allows stronger changes, ends on
     const rev = () => storedConfig(t.state).revision;
     const base = { baseList: true, starterTerms: true, domains: ['example.com'], words: ['alpha beta'], contains: ['gamma'], allow: ['fine.example.net'] };
     const attempt = over => t.send({ type: 'SAVE_SETTINGS', baseRevision: rev(), settings: { ...base, ...over } });
-    for (const [over, why] of [[{ domains: [] }, 'domain_removed'], [{ baseList: false }, 'base_list_disabled'], [{ starterTerms: false }, 'starter_terms_disabled'],
+    for (const [over, why] of [[{ domains: [] }, 'domain_removed'], [{ starterTerms: false }, 'starter_terms_disabled'],
         [{ words: [] }, 'phrase_removed'], [{ contains: [] }, 'phrase_removed'], [{ allow: ['fine.example.net', 'new.example.org'] }, 'exception_added']]) {
         const r = await attempt(over);
         assert.equal(code(r), 'locked_weakening'); assert.ok(r.error.params.reasons.includes(why), why);
@@ -102,11 +104,11 @@ test('commitment cannot start around inactive protection or with nothing configu
     const t = setup();
     assert.equal(code(await t.send({ type: 'START_SESSION', minutes: 60 })), 'session_needs_rules');
     await t.onboard(false, false);
-    assert.equal(code(await t.send({ type: 'START_SESSION', minutes: 60 })), 'session_needs_rules');
+    assert.ok((await t.send({ type: 'START_SESSION', minutes: 60 })).ok, 'mandatory core is enough to commit');
     await t.save({ domains: ['example.com'] });
     t.state.hosts = false;
     assert.equal(code(await t.send({ type: 'START_SESSION', minutes: 60 })), 'session_needs_active_protection');
-    assert.equal(lockUntil(t), 0);
+    assert.ok(lockUntil(t) > 0, 'refusal does not erase the previous valid commitment');
 });
 
 test('commitment survives service-worker restart and config/lock live in separate keys', async () => {
@@ -131,8 +133,9 @@ test('storage failure after rules were installed restores rules and settings', a
 
 test('base-ruleset switch failing after dynamic rules changed rolls the dynamic rules back', async () => {
     const t = setup(); await t.onboard(false, false); await t.save({ domains: ['example.com'] });
+    t.state.baseEnabled = false; // simulate ruleset loss so repair of mandatory core must switch it on
     t.state.fail['rulesets.update'] = true;
-    const r = await t.save({ baseList: true, domains: ['example.org'] });
+    const r = await t.send({ type: 'SAVE_SETTINGS', baseRevision: storedConfig(t.state).revision, settings: { ...noList, baseList: true, domains: ['example.org'] } });
     assert.equal(code(r), 'apply_failed');
     assert.deepEqual(t.state.rules[0].condition.requestDomains, ['example.com']);
     assert.equal(t.state.baseEnabled, false);
@@ -244,7 +247,7 @@ test('messages: strict schema, trusted senders only, nothing sensitive echoed', 
     const good = { id: 'test-extension', url: 'chrome-extension://test-extension/options.html', frameId: 0 };
     assert.ok(isTrustedSender(good, ctx));
     assert.ok(isTrustedSender({ ...good, url: 'chrome-extension://test-extension/options.html#sec' }, ctx));
-    for (const sender of [{ ...good, id: 'other' }, { ...good, url: 'https://evil.test/' }, { ...good, url: 'chrome-extension://test-extension/blocked.html' },
+    for (const sender of [{ ...good, id: 'other' }, { ...good, url: 'https://evil.test/' },
         { ...good, url: 'chrome-extension://test-extension/options.html.evil' }, { ...good, frameId: 3 }, { id: 'test-extension' }, undefined]) {
         assert.ok(!isTrustedSender(sender, ctx));
     }

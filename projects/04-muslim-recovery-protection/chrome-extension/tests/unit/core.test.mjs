@@ -114,7 +114,7 @@ test('stored config: strict validation and prototype (v0) migration', () => {
     assert.equal(migrate(undefined).fresh, true);
     const v0 = migrate({ domains: ['example.com'], keywords: ['Test Phrase'], lockedUntil: 12345 });
     assert.deepEqual(v0.config.contains, ['test phrase']);
-    assert.equal(v0.config.baseList, false);
+    assert.equal(v0.config.baseList, true);
     assert.equal(v0.lock.until, 12345);
     assert.ok(v0.migrated && v0.config.onboarded);
     const good = { ...defaultConfig(), onboarded: true };
@@ -158,9 +158,9 @@ test('import/export: round trip, merge-only, rejects malformed, unknown version 
     assert.ok(!exported.includes('lock') && !exported.includes('revision'));
 });
 
-test('lock: only 60/90/120, never shortens, expiry only re-enables editing', () => {
+test('lock: bounded customizable minutes, never shortens, expiry only re-enables editing', () => {
     const now = 1000;
-    assert.equal(extend(emptyLock(), 45, now), null);
+    assert.equal(extend(emptyLock(), 9, now), null);
     const first = extend(emptyLock(), 90, now);
     assert.equal(first.until, now + 90 * 60000);
     assert.equal(extend(first, 60, now).until, first.until);
@@ -173,10 +173,11 @@ test('rules: precedence, one rule per list, deterministic ids, comparison ignore
     const plan = await planRules(config, supports);
     const byId = Object.fromEntries(plan.rules.map(r => [r.id, r]));
     assert.equal(byId[1].priority, PRIORITY.USER);
-    assert.equal(byId[2].priority, PRIORITY.ALLOW);
-    assert.ok(PRIORITY.ALLOW > PRIORITY.USER && PRIORITY.USER > PRIORITY.BASE);
+    assert.equal(byId[2], undefined, 'no global allow rule can override core');
+    assert.deepEqual(byId[1].condition.excludedRequestDomains, ['ok.a.com']);
+    assert.ok(PRIORITY.USER > PRIORITY.BASE);
     assert.deepEqual(byId[1].condition.requestDomains, ['a.com', 'b.com']);
-    assert.equal(plan.rules.length, 2 + PARAM_GROUPS.length);
+    assert.equal(plan.rules.length, 1 + PARAM_GROUPS.length);
     assert.ok(plan.rules.every(r => r.action.type === 'allow' || r.action.redirect.extensionPath === '/blocked.html'));
     assert.ok(plan.rules.every(r => r.condition.resourceTypes.join() === 'main_frame'));
     const again = await planRules(config, supports);
@@ -193,7 +194,7 @@ test('rules: starter terms are whole-word, deduplicated with user words, and swi
     const withStarter = await planRules({ ...defaultConfig(), onboarded: true, starterTerms: true, baseList: false, words: [STARTER_TERMS[0]] }, supports);
     const without = await planRules({ ...defaultConfig(), onboarded: true, starterTerms: false, baseList: false }, supports);
     assert.equal(without.rules.length, 0);
-    assert.ok(withStarter.rules.length > 0 && withStarter.baseListEnabled === false);
+    assert.ok(withStarter.rules.length > 0 && withStarter.baseListEnabled === true);
     assert.equal(new Set(STARTER_TERMS).size, STARTER_TERMS.length);
 });
 

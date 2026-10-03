@@ -4,6 +4,10 @@ import { findUnsupported } from '../core/phrases.js';
 import { STARTER_TERMS } from '../core/starter-terms.js';
 import { planRules, rulesMatch, BASE_RULESET_ID } from '../core/rules.js';
 import { isActive, SESSION_MINUTES, lockKey, mergeLocks } from '../core/lock.js';
+import { normalizeDomain } from '../core/domains.js';
+import { parseSchedules, scheduleState, schedulesWeaken } from '../core/schedules.js';
+import { validMinutes, validExitDelay, commitmentStatus } from '../core/commitment.js';
+import { PARAM_GROUPS } from '../core/rules.js';
 import { createWriteMutex } from './coordination.js';
 import { configKey, newestConfig, listConfigRecords, obsoleteKeys } from '../core/records.js';
 
@@ -20,7 +24,7 @@ const EMPTY_SETTINGS = Object.freeze({ baseList: false, starterTerms: false, dom
  * the last good one and the next reconcile makes the browser match it again.
  * No function here logs, and no error carries user-entered text.
  */
-export function createController(api, { mutex: mutexOptions } = {}) {
+export function createController(api, { mutex: mutexOptions, featureController } = {}) {
     let queue = Promise.resolve();
     const mutex = createWriteMutex(api, mutexOptions);   // cross-instance (normal + private window) write coordination
     const supportCache = new Map();
@@ -49,17 +53,23 @@ export function createController(api, { mutex: mutexOptions } = {}) {
         const raw = { key: newest?.key ?? null, config: newest?.value };   // exactly what is stored, for the stale check / restore
         const locks = mergeLocks(all);
         const invalidConfigKeys = listConfigRecords(all).invalidKeys;
-        let lock = { until: locks.until };
+        let lock = { until: locks.until, exitDelay: locks.exitDelay };
         try {
             const result = migrate(newest?.value, lock);
-            if (result.migrated) lock = { until: Math.max(lock.until, result.lock.until), v0: result.lock.until };
-            else lock = { until: locks.until };
+            if (result.migrated) lock = { ...lock, until: Math.max(lock.until, result.lock.until), v0: result.lock.until };
+            else lock = { until: locks.until, exitDelay: locks.exitDelay };
             if (locks.invalidKeys.length || invalidConfigKeys.length) return { kind: 'corrupt', reason: 'config_corrupt', lock, raw, lockKeys: locks, invalidLockKeys: [...locks.invalidKeys, ...invalidConfigKeys] };
             return { kind: result.fresh ? 'fresh' : 'ok', config: result.config, lock, migrated: result.migrated, raw, lockKeys: locks, snapshot: all };
         } catch { return { kind: 'corrupt', reason: 'config_corrupt', lock, raw, lockKeys: locks, invalidLockKeys: [...locks.invalidKeys, ...invalidConfigKeys] }; }
     }
 
-    const activeSettings = config => (config.onboarded ? config : { ...config, ...EMPTY_SETTINGS });
+    const activeSettings = (config, lock) => {
+        if (!config.onboarded) return { ...config, ...EMPTY_SETTINGS };
+        const schedule = scheduleState(config.schedules, api.now());
+        return schedule.configured && !schedule.active && !isActive(lock, api.now())
+            ? { ...config, ...EMPTY_SETTINGS, baseList: true } : { ...config, baseList: true };
+    };
+    const planned = async config => planRules(activeSettings(config, mergeLocks(await api.storage.getAll())), supports);
 
     async function snapshot() {
         const [rules, enabled] = await Promise.all([api.dnr.getDynamicRules(), api.dnr.getEnabledRulesets()]);
@@ -102,7 +112,7 @@ export function createController(api, { mutex: mutexOptions } = {}) {
      * when the lease is gone. The session end time is never written here.
      */
     async function commit({ config, expected, persist }) {
-        const plan = await planRules(activeSettings(config), supports);
+        const plan = await planned(config);
         const before = await snapshot();
         let myKey = null;
         try {
@@ -136,7 +146,7 @@ export function createController(api, { mutex: mutexOptions } = {}) {
                 await attempt(async () => {
                     const current = await readState();
                     if (current.kind !== 'ok') return;
-                    const rebuilt = await planRules(activeSettings(current.config), supports);
+                    const rebuilt = await planned(current.config);
                     await setDynamicRules(rebuilt.rules);
                     await setBaseEnabled(rebuilt.baseListEnabled);
                 });
@@ -169,16 +179,18 @@ export function createController(api, { mutex: mutexOptions } = {}) {
         status.onboarded = state.config.onboarded;
         status.settings = settingsOf(state.config);
         status.lock = { active: isActive(state.lock, now), until: state.lock.until };
+        status.commitment = commitmentStatus(state.config, state.lock, now);
+        status.schedules = { items: state.config.schedules, ...scheduleState(state.config.schedules, now) };
         let actual, plan;
         try {
             const [snap, hosts, incognito] = await Promise.all([snapshot(), api.permissions.contains({ origins: [...HOST_ORIGINS] }), api.isIncognitoAllowed()]);
             actual = snap;
             status.permissions.hosts = !!hosts;
             status.incognitoAllowed = incognito;
-            plan = await planRules(activeSettings(state.config), supports);
+            plan = await planned(state.config);
         } catch { status.reasons.push('api_error'); return status; }
         status.base.enabled = actual.baseEnabled;
-        try { const meta = await api.baseMeta(); status.base = { ...status.base, domainCount: meta.domainCount ?? 0, version: meta.version ?? null, date: meta.upstreamDate ?? null }; } catch { /* metadata is informational */ }
+        try { const meta = await api.baseMeta(); status.base = { ...status.base, domainCount: meta.domainCount ?? 0, version: meta.version ?? null, date: meta.upstreamDate ?? null, mandatory: state.config.onboarded, previewAvailable: true }; } catch { /* metadata is informational */ }
         status.counts = {
             dynamicRules: actual.rules.length, domains: state.config.domains.length, allow: state.config.allow.length,
             words: state.config.words.length, contains: state.config.contains.length,
@@ -227,7 +239,7 @@ export function createController(api, { mutex: mutexOptions } = {}) {
     async function reconcileTask() {
         const state = await readState();
         if (state.kind === 'ok') {
-            const plan = await planRules(activeSettings(state.config), supports);
+            const plan = await planned(state.config);
             const actual = await snapshot();
             const matches = rulesMatch(actual.rules, plan.rules) && actual.baseEnabled === plan.baseListEnabled;
             if (!matches || state.migrated) {
@@ -246,18 +258,10 @@ export function createController(api, { mutex: mutexOptions } = {}) {
     const reconcile = () => serialize(() => guarded(reconcileTask)).catch(() => statusNow().catch(() => null));
 
     /** Records a session end time under a NEW key (write-once); the effective end is the maximum over all keys, so this can only lengthen. */
-    async function writeLock(until) {
+    async function writeLock(until, exitDelay = 60) {
         await mutex.assertOwner();
-        await api.storage.set({ [lockKey(mutex.token(), api.instanceId)]: { until } });
+        await api.storage.set({ [lockKey(mutex.token(), api.instanceId)]: { until, exitDelay } });
         if (mergeLocks(await api.storage.getAll()).until < until) throw new TabsiraError('apply_failed');
-    }
-
-    async function pinConfig(state) {
-        await mutex.assertOwner();
-        if (!(await storedMatches(state.raw))) throw new TabsiraError('stale');
-        await api.storage.set({ [configKey(mutex.epoch(), api.instanceId)]: state.raw.config });
-        const effective = newestConfig(await api.storage.getAll());
-        if (effective?.key !== configKey(mutex.epoch(), api.instanceId)) throw new TabsiraError('stale');
     }
 
     // ---- operations ----
@@ -269,14 +273,16 @@ export function createController(api, { mutex: mutexOptions } = {}) {
     }
 
     async function applySettings(state, settings) {
-        const next = { ...state.config, ...settings, revision: state.config.revision + 1, onboarded: true };
+        const next = { ...state.config, ...settings, baseList: true, revision: state.config.revision + 1, onboarded: true };
         if (isActive(state.lock, api.now())) {
             const reasons = weakeningReasons(state.config, next);
             if (reasons.length) throw new TabsiraError('locked_weakening', { reasons });
         }
         for (const mode of ['words', 'contains']) {
-            const bad = await findUnsupported(settings[mode], mode === 'words' ? 'word' : 'contains', supports, 'q');
-            if (bad.length) throw new TabsiraError('phrase_too_complex', { line: bad[0], list: mode });
+            for (const group of PARAM_GROUPS) {
+                const bad = await findUnsupported(settings[mode], mode === 'words' ? 'word' : 'contains', supports, group.param);
+                if (bad.length) throw new TabsiraError('phrase_too_complex', { line: bad[0], list: mode });
+            }
         }
         await commit({ config: next, expected: state.raw, persist: true });
     }
@@ -309,7 +315,8 @@ export function createController(api, { mutex: mutexOptions } = {}) {
             await applySettings(state, { ...settingsOf(state.config), baseList, starterTerms });
             return { status: await statusNow() };
         },
-        async START_SESSION({ minutes }) {
+        async START_SESSION({ minutes, exitDelay = 60 }) {
+            if (!validMinutes(minutes) || !validExitDelay(exitDelay)) throw new TabsiraError('bad_request');
             const state = await requireWritable();
             if (state.kind === 'fresh' || !state.config.onboarded) throw new TabsiraError('session_needs_rules');
             const now = api.now();
@@ -320,10 +327,72 @@ export function createController(api, { mutex: mutexOptions } = {}) {
             }
             // Pin: a copy of the effective configuration under THIS holder's epoch. Every configuration write that began earlier (a frozen
             // worker that resumes later) carries a lower epoch and is dominated by it, so nothing started before the session can land in it.
-            await pinConfig(state);
-            // Grow-only: only ever raises this instance's own key; the effective end time is the maximum over all keys.
+            const delay = isActive(state.lock, now) ? Math.max(exitDelay, state.lock.exitDelay, state.config.commitment.exitDelay) : exitDelay;
             const target = Math.max(state.lock.until, now + minutes * 60000);
-            if (target > state.lock.until) await writeLock(target);
+            const next = { ...state.config, commitment: { ...state.config.commitment, exitDelay: delay,
+                request: target > state.lock.until || delay > state.config.commitment.exitDelay ? null : state.config.commitment.request } };
+            await commit({ config: next, expected: state.raw, persist: true });
+            // Grow-only: only ever raises this instance's own key; the effective end time is the maximum over all keys.
+            if (target > state.lock.until) await writeLock(target, delay);
+            await reconcileTask();
+            return { status: await statusNow() };
+        },
+        async GET_SCHEDULES() {
+            const state = await requireWritable();
+            return { schedules: state.config.schedules, revision: state.config.revision, status: await statusNow() };
+        },
+        async SAVE_SCHEDULES({ schedules, baseRevision }) {
+            const state = await requireWritable();
+            if (baseRevision !== undefined) checkRevision(state, baseRevision);
+            const parsed = parseSchedules(schedules);
+            if (isActive(state.lock, api.now()) && schedulesWeaken(state.config.schedules, parsed)) {
+                throw new TabsiraError('locked_weakening', { reasons: ['schedule_reduced'] });
+            }
+            await commit({ config: { ...state.config, schedules: parsed, revision: state.config.revision + 1, onboarded: true, baseList: true }, expected: state.raw, persist: true });
+            return { status: await statusNow() };
+        },
+        async BLOCK_CURRENT_SITE({ domain }) {
+            const state = await requireWritable();
+            const normalized = normalizeDomain(domain);
+            const settings = settingsOf(state.config);
+            // An explicit current-site block strengthens additional rules by removing covering exceptions.
+            settings.allow = settings.allow.filter(exception => !(normalized === exception || normalized.endsWith(`.${exception}`)));
+            settings.domains = [...new Set([...settings.domains, normalized])];
+            await applySettings(state, parseSettings(settings));
+            return { status: await statusNow() };
+        },
+        async REQUEST_EARLY_EXIT() {
+            const state = await requireWritable();
+            if (!isActive(state.lock, api.now())) throw new TabsiraError('session_expired');
+            const current = state.config.commitment;
+            if (current.request?.until === state.lock.until) return { status: await statusNow() };
+            const delay = Math.max(current.exitDelay, state.lock.exitDelay);
+            const request = { readyAt: api.now() + delay * 60000, until: state.lock.until, keys: Object.keys(state.lockKeys.keys) };
+            await commit({ config: { ...state.config, commitment: { ...current, exitDelay: delay, request } }, expected: state.raw, persist: true });
+            return { status: await statusNow() };
+        },
+        async CANCEL_EARLY_EXIT() {
+            const state = await requireWritable();
+            await commit({ config: { ...state.config, commitment: { ...state.config.commitment, request: null } }, expected: state.raw, persist: true });
+            return { status: await statusNow() };
+        },
+        async CONFIRM_EARLY_EXIT(_message, proof) {
+            const state = await requireWritable();
+            const request = state.config.commitment.request;
+            if (!isActive(state.lock, api.now())) throw new TabsiraError('session_expired');
+            if (!request || request.until !== state.lock.until) throw new TabsiraError('exit_not_requested');
+            if (api.now() < request.readyAt) throw new TabsiraError('exit_waiting');
+            if (!proof || !sameJson(request, proof.request)) throw new TabsiraError('exit_not_requested');
+            if (!proof.generation || (await featureController.getPasswordGeneration()) !== proof.generation) throw new TabsiraError('password_invalid');
+            // Natural expiry always wins, including while the password is being checked.
+            if (!isActive(state.lock, api.now())) throw new TabsiraError('session_expired');
+            const commitment = { ...state.config.commitment, request: null,
+                releases: [...new Set([...state.config.commitment.releases, ...request.keys])] };
+            // A fresh fenced config record is the cancellation tombstone. Stale confirmation writes are
+            // dominated by a later cancellation/start; it never deletes or overwrites any lock name.
+            await commit({ config: { ...state.config, commitment }, expected: state.raw, persist: true });
+            if (api.now() >= request.until) throw new TabsiraError('session_expired');
+            await reconcileTask();
             return { status: await statusNow() };
         },
         async RESET({ baseRevision }) {
@@ -344,8 +413,26 @@ export function createController(api, { mutex: mutexOptions } = {}) {
     async function handle(message) {
         try {
             const operation = operations[message.type];
-            const readOnly = message.type === 'GET_STATUS' || message.type === 'GET_EXPORT';
-            const result = await serialize(() => (readOnly ? operation(message) : guarded(() => operation(message))));
+            if (!operation) throw new TabsiraError('bad_request');
+            const readOnly = ['GET_STATUS', 'GET_EXPORT', 'GET_SCHEDULES'].includes(message.type);
+            const result = await serialize(async () => {
+                let proof;
+                if (message.type === 'CONFIRM_EARLY_EXIT') {
+                    // The security verifier shares the cross-instance write mutex. Verify outside
+                    // it, then bind that result to both the request and credential generation under it.
+                    const state = await requireWritable();
+                    const request = state.config.commitment.request;
+                    if (!isActive(state.lock, api.now())) throw new TabsiraError('session_expired');
+                    if (!request || request.until !== state.lock.until) throw new TabsiraError('exit_not_requested');
+                    if (api.now() < request.readyAt) throw new TabsiraError('exit_waiting');
+                    if (!featureController?.getPasswordGeneration) throw new TabsiraError('password_invalid');
+                    const generation = await featureController.getPasswordGeneration();
+                    if (!generation || !(await featureController.verifyPassword(message.password))
+                        || (await featureController.getPasswordGeneration()) !== generation) throw new TabsiraError('password_invalid');
+                    proof = { request, generation };
+                }
+                return readOnly ? operation(message) : guarded(() => operation(message, proof));
+            });
             return { ok: true, ...result };
         } catch (error) {
             let status = null;
@@ -359,7 +446,7 @@ export function createController(api, { mutex: mutexOptions } = {}) {
     // (its end time is stored separately) still blocks it.
     async function resetCorruptTask(state) {
         if (state.lock && isActive(state.lock, api.now())) throw new TabsiraError('locked_weakening', { reasons: ['reset'] });
-        await commit({ config: { ...defaultConfig(), onboarded: true, baseList: false, starterTerms: false, revision: 1 }, expected: state.raw, persist: true });
+        await commit({ config: { ...defaultConfig(), onboarded: true, baseList: true, starterTerms: false, revision: 1 }, expected: state.raw, persist: true });
         if (state.invalidLockKeys?.length) { await mutex.assertOwner(); await api.storage.remove(state.invalidLockKeys); }
         return { status: await statusNow() };
     }

@@ -3,6 +3,8 @@ import { normalizeDomainList, isSameOrSubdomain } from './domains.js';
 import { normalizePhraseList } from './phrases.js';
 import { ALL_ENGINE_DOMAINS } from './engines.js';
 import { emptyLock } from './lock.js';
+import { parseSchedules } from './schedules.js';
+import { defaultCommitment, parseCommitment } from './commitment.js';
 
 export const SCHEMA_VERSION = 2;
 export const LIMITS = Object.freeze({ domains: 1000, allow: 300, words: 60, contains: 40, importBytes: 262144 });
@@ -12,7 +14,8 @@ const STORED_KEYS = ['v', 'revision', 'onboarded', ...USER_KEYS];
 
 export const defaultConfig = () => ({
     v: SCHEMA_VERSION, revision: 0, onboarded: false,
-    baseList: true, starterTerms: true, domains: [], allow: [], words: [], contains: []
+    baseList: true, starterTerms: true, domains: [], allow: [], words: [], contains: [],
+    schedules: [], commitment: defaultCommitment()
 });
 
 const exactKeys = (object, keys) => object && typeof object === 'object' && !Array.isArray(object)
@@ -44,13 +47,17 @@ export function parseSettings(raw) {
 
 /** Strict validation of the stored object. Anything unexpected is "corrupt", never silently repaired. */
 export function parseStored(raw) {
-    if (!exactKeys(raw, STORED_KEYS) || raw.v !== SCHEMA_VERSION
+    const extended = exactKeys(raw, [...STORED_KEYS, 'schedules', 'commitment']);
+    if ((!exactKeys(raw, STORED_KEYS) && !extended) || raw.v !== SCHEMA_VERSION
         || !Number.isSafeInteger(raw.revision) || raw.revision < 0 || typeof raw.onboarded !== 'boolean') {
         throw new TabsiraError('config_corrupt');
     }
     try {
         const settings = parseSettings(Object.fromEntries(USER_KEYS.map(key => [key, raw[key]])));
-        return { v: SCHEMA_VERSION, revision: raw.revision, onboarded: raw.onboarded, ...settings };
+        return { v: SCHEMA_VERSION, revision: raw.revision, onboarded: raw.onboarded, ...settings,
+            baseList: raw.onboarded ? true : settings.baseList,
+            schedules: extended ? parseSchedules(raw.schedules) : [],
+            commitment: extended ? parseCommitment(raw.commitment) : defaultCommitment() };
     } catch (error) {
         if (error instanceof TabsiraError) throw new TabsiraError('config_corrupt');
         throw error;
@@ -61,7 +68,7 @@ export function parseStored(raw) {
  * Migrates what is in storage to the current schema.
  * Returns { config, lock, migrated } or throws TabsiraError('config_corrupt').
  * v0 is the Chrome prototype shape { domains, keywords, lockedUntil }; its substring keywords become
- * "contains" phrases so behaviour is unchanged, and its base list / starter terms stay off.
+ * "contains" phrases, keeps starter terms off, and upgrades to the mandatory bundled list.
  */
 export function migrate(storedConfig, storedLock) {
     if (storedConfig === undefined) return { config: defaultConfig(), lock: emptyLock(), migrated: false, fresh: true };
@@ -72,10 +79,11 @@ export function migrate(storedConfig, storedLock) {
                 domains: storedConfig.domains, contains: Array.isArray(storedConfig.keywords) ? storedConfig.keywords : []
             });
             const until = Number.isSafeInteger(storedConfig.lockedUntil) && storedConfig.lockedUntil > 0 ? storedConfig.lockedUntil : 0;
-            return { config: { v: SCHEMA_VERSION, revision: 1, onboarded: true, ...settings }, lock: { until }, migrated: true, fresh: false };
+            return { config: { v: SCHEMA_VERSION, revision: 1, onboarded: true, ...settings, baseList: true, schedules: [], commitment: defaultCommitment() }, lock: { until }, migrated: true, fresh: false };
         } catch { throw new TabsiraError('config_corrupt'); }
     }
-    return { config: parseStored(storedConfig), lock: storedLock, migrated: false, fresh: false };
+    return { config: parseStored(storedConfig), lock: storedLock,
+        migrated: !Object.hasOwn(storedConfig, 'schedules') || (storedConfig.onboarded && !storedConfig.baseList), fresh: false };
 }
 
 const covers = (phrase, bySubstring) => bySubstring.some(shorter => phrase.includes(shorter));

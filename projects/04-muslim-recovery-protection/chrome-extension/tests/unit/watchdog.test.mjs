@@ -11,7 +11,7 @@ test('service worker: registers the watchdog alarm, checks on every start, and r
     globalThis.chrome = {
         runtime: { id: fake.api.id, getURL: p => `${fake.api.baseUrl}${p}`, onMessage: { addListener: fn => listeners.message.push(fn) }, onStartup: noop, onInstalled: noop },
         permissions: { onAdded: noop, onRemoved: noop, contains: fake.api.permissions.contains },
-        alarms: { get: async () => created.at(-1), create: async (name, info) => { created.push({ name, ...info }); }, onAlarm: { addListener: fn => listeners.alarm.push(fn) } },
+        alarms: { getAll: async () => created, clear: async () => true, get: async () => created.at(-1), create: async (name, info) => { created.push({ name, ...info }); }, onAlarm: { addListener: fn => listeners.alarm.push(fn) } },
         storage: { local: { get: async keys => (keys === null ? fake.api.storage.getAll() : fake.api.storage.get(keys)), set: fake.api.storage.set, remove: fake.api.storage.remove, setAccessLevel: async () => {} } },
         declarativeNetRequest: { ...fake.api.dnr }, extension: { isAllowedIncognitoAccess: async () => true },
         action: { setBadgeText: async () => {}, setBadgeBackgroundColor: async () => {} }, tabs: { create: async () => {} }

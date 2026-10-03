@@ -1,3 +1,4 @@
+import { mergeLocks } from './lock.js';
 // Append-only, fenced storage layout for the configuration (and the write epoch).
 //
 // storage.local has no atomic compare-and-set, and a worker can be frozen at ANY point between its last ownership check and
@@ -73,8 +74,15 @@ export function obsoleteKeys(snapshot, { now = 0, leaseNow = 0, selfMutexKey = n
         .map(entry => ({ key: entry.key, n: Number(entry.match[1]), id: entry.match[2] }))
         .sort((a, b) => b.n - a.n || keyOrder(b.id, a.id));
     for (const entry of epochs.slice(1)) stale.push(entry.key);
-    const locks = Object.entries(snapshot).filter(([key, value]) => (key === 'lock' || key.startsWith('lock:')) && value && typeof value === 'object' && Number.isSafeInteger(value.until))
-        .map(([key, value]) => ({ key, until: value.until })).sort((a, b) => b.until - a.until || keyOrder(b.key, a.key));
+    // Released lock names are immutable cancellation targets. They cannot dominate a new,
+    // shorter commitment, and removing them can never reach a future unique lock name.
+    const merged = mergeLocks(snapshot);
+    for (const [key, value] of Object.entries(snapshot)) {
+        if ((key === 'lock' || key.startsWith('lock:')) && value && Number.isSafeInteger(value.until)
+            && !merged.invalidKeys.includes(key) && !Object.hasOwn(merged.keys, key)) stale.push(key);
+    }
+    const locks = Object.entries(merged.keys).map(([key, until]) => ({ key, until }))
+        .sort((a, b) => b.until - a.until || keyOrder(b.key, a.key));
     locks.forEach((entry, index) => { if (index > 0 || entry.until <= now) stale.push(entry.key); });
     for (const [key, value] of Object.entries(snapshot)) {
         if (key.startsWith('mx:') && key !== selfMutexKey && value && typeof value === 'object' && Number.isFinite(value.exp) && value.exp < leaseNow - 3_600_000) stale.push(key);
