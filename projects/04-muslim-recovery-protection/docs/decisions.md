@@ -281,6 +281,9 @@ need their own evidence and gate. No M1 non-goal or historical evidence is retro
 
 ## D14 — Recovery-first product baseline; discovery before build
 
+> **Sequencing note (2026-09-27):** D14's recovery-first product scope remains approved, but its
+> mandatory pre-build discovery sequence is superseded by D15 below.
+
 **Status (updated 2026-09-27): APPROVED by the Owner.** The Owner recorded **D14 = APPROVE**
 after two Red-Team review cycles and a final verification pass (PR #69 comment 5854294320).
 The bounded tracker synchronization was separately authorized and executed. OD1–OD9, OD11 and OD13 are decided. OD10, OD12 and OD14 remain evidence-gated/open. The Owner also selected a **Conservative Gate** for D14-sensitive technical exploration: screen-content/Web Guard work must first explicitly reopen/amend H9 and pass a dedicated security/privacy/Play review; uninstall-resistance work must first explicitly reopen/amend H5 under the same discipline.
@@ -317,6 +320,36 @@ than further filter engineering.
 - The GitHub milestone/issue trackers were synchronized only **after** the Owner recorded
   D14 = APPROVE and separately authorized the bounded synchronization. The earlier premature
   mutation remains documented below as a governance mistake and correction.
+
+## D15 — Build → Release → Measure → Iterate supersedes the pre-build discovery gate
+
+**Status:** **APPROVED by the Owner on 2026-09-27.** Canonical decision record: issue #63 comment
+5856122834.
+
+**Decision:** Cancel M2-04 / E1–E3 as mandatory pre-build gates. Do not run the planned interviews,
+survey, landing-page experiments or concierge study before building. Instead, freeze the MVP,
+approve M3-01, build and verify the product, pass security/privacy/Google-Play gates, release through
+a controlled Google Play rollout, then learn from real released-product evidence and iterate.
+
+**Why:** The Owner explicitly prefers learning by building and shipping a real product rather than
+spending the next phase on pre-build research. The Lab goal also includes demonstrating full
+engineering ownership through implementation, verification, release and iteration.
+
+**Consequences:**
+- #63–#67 close unexecuted/superseded. They are historical protocols, not failed experiments and
+  must never be cited as market evidence.
+- M3 no longer waits for #67 GO. #43 is the immediate M3 entry gate.
+- Production code still requires an Owner-approved M3-01 task contract.
+- D15 changes product-validation sequencing only. Architecture, testing, security/privacy,
+  truthful-claim, sensitive-permission, Play-policy and human-release gates remain mandatory.
+- D13 / AB1–AB7 remain binding. #61 becomes a bounded **technical-only** L1 viability spike and
+  requires its own approved task contract before execution.
+- The D14 Conservative Gate remains unchanged for Web Guard/screen-content and uninstall-resistance.
+- No analytics/telemetry SDK, backend, user-level tracking, sensitive data collection or monitoring
+  is approved by D15. Any new measurement implementation requires its own privacy/data decision.
+- M6 becomes the controlled Google Play release and real-world iteration loop for Germany DE/AR.
+- OD10 no longer depends on E1/E2; it remains open for a later business-model decision and/or
+  released-product evidence.
 
 ## AI contribution
 
