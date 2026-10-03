@@ -1,7 +1,39 @@
 // Shared helpers for every extension page. No logging, no storage of page content, no network.
+import { settingsText, SUPPORTED_LANGUAGES } from './settings-copy.js';
+
 const ext = globalThis.browser ?? globalThis.chrome;
 
-export const t = (key, ...substitutions) => ext.i18n.getMessage(key, substitutions.map(String)) || key;
+let language = SUPPORTED_LANGUAGES.includes(ext?.i18n?.getUILanguage?.().split('-')[0]) ? ext.i18n.getUILanguage().split('-')[0] : 'ar';
+let messages = null;
+let profile = null;
+export const uiLanguage = () => language;
+export const featureT = (key, ...substitutions) => settingsText(language, key, substitutions);
+export const t = (key, ...substitutions) => {
+    if (key.startsWith('set_')) return featureT(key, ...substitutions);
+    const entry = messages?.[key];
+    if (!entry) return ext.i18n.getMessage(key, substitutions.map(String)) || key;
+    let text = entry.message;
+    for (const [name, item] of Object.entries(entry.placeholders ?? {})) {
+        const value = item.content.replace(/\$(\d+)/gu, (_, n) => String(substitutions[Number(n) - 1] ?? ''));
+        text = text.replace(new RegExp(`\\$${name}\\$`, 'giu'), value);
+    }
+    return text.replace(/\$(\d+)/gu, (_, n) => String(substitutions[Number(n) - 1] ?? ''));
+};
+
+export async function setPageLanguage(value) {
+    language = SUPPORTED_LANGUAGES.includes(value) ? value : 'ar';
+    try {
+        const response = await fetch(ext.runtime.getURL(`_locales/${language}/messages.json`));
+        if (!response.ok) throw new Error('unavailable');
+        messages = await response.json();
+    } catch { messages = null; }
+    document.documentElement.lang = language;
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+    document.title = t(document.documentElement.dataset.title ?? 'extShortName');
+    applyI18n();
+}
+
+export async function getPublicProfile() { return send({ type: 'GET_PUBLIC_PROFILE' }); }
 
 export function applyI18n(root = document) {
     for (const node of root.querySelectorAll('[data-i18n]')) node.textContent = t(node.dataset.i18n);
@@ -13,11 +45,16 @@ export function applyI18n(root = document) {
     }
 }
 
-export function initPage() {
-    document.documentElement.lang = ext.i18n.getUILanguage();
-    document.documentElement.dir = ext.i18n.getMessage('@@bidi_dir') === 'ltr' ? 'ltr' : 'rtl';
-    document.title = t(document.documentElement.dataset.title ?? 'extShortName');
+export async function initPage() {
+    // Paint a browser-language fallback while the worker resolves the persisted choice.
+    document.documentElement.lang = language;
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     applyI18n();
+    const reply = await getPublicProfile();
+    profile = reply.ok ? reply.profile : null;
+    if (profile?.theme) document.documentElement.dataset.theme = profile.theme;
+    await setPageLanguage(profile?.language ?? language);
+    return { profile, security: reply.security ?? { enabled: false, locked: true } };
 }
 
 export async function send(message) {
@@ -39,7 +76,7 @@ export function errorText(error) {
     const code = error?.code ?? 'unexpected';
     const params = error?.params ?? {};
     const key = `err_${code}`;
-    if (!ext.i18n.getMessage(key)) return t('err_unexpected');
+    if (!(messages?.[key] ?? ext.i18n.getMessage(key))) return t('set_unavailable');
     let text;
     if (code === 'phrase_length') text = t(key, params.min, params.max);
     else if (code === 'too_many_domains' || code === 'too_many_phrases') text = t(key, params.max);
@@ -47,7 +84,7 @@ export function errorText(error) {
     return params.line ? text + t('err_line', params.line) : text;
 }
 
-const formatTime = ms => new Date(ms).toLocaleString(ext.i18n.getUILanguage(), { dateStyle: 'short', timeStyle: 'short' });
+const formatTime = ms => new Date(ms).toLocaleString(language, { dateStyle: 'short', timeStyle: 'short' });
 export const formatDate = value => value ?? '—';
 
 // Status glyphs (drawn, not coloured emoji): state is conveyed by icon + text + colour, never colour alone.
