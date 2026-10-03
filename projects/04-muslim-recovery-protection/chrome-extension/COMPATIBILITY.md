@@ -4,7 +4,7 @@ Both Chromium-family MV3 and Firefox MV3 development packages are generated. Bui
 
 | Target | Manifest minimum | 1.1.0 runtime evidence |
 |---|---|---|
-| Chromium | 120 | See final review/CI; local persistent launch blocked by environment socket permission |
+| Chromium | 120 | Installed ZIP:44/44 PASS on Chromium141.0.7390.37/GitHub Linux; expanded click checks in CI |
 | Google Chrome stable / Edge / Brave / Opera | Chromium-family | Not yet independently verified for 1.1.0 |
 | Firefox | 128 | Package/static checks only; new features not runtime verified |
 | Private/incognito windows | Chromium split / Firefox default | Concurrency simulated; new 1.1.0 real-browser coverage pending |

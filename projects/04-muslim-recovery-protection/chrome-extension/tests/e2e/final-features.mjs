@@ -93,7 +93,7 @@ try {
  await covenant.getByLabel(label('thenText'),{exact:true}).fill('I choose a small helpful step');
  await covenant.getByRole('button',{name:label('saveCovenant'),exact:true}).click();
  await covenant.waitForFunction(async()=> (await chrome.runtime.sendMessage({type:'GET_PRIVATE_DATA'})).data?.covenant?.purpose==='private-covenant-ui-marker');
- check('covenant explicitly persists',(await send(options,{type:'GET_PRIVATE_DATA'})).data.covenant.plan.includes('Dann werde ich'));
+ check('covenant explicitly persists',(await send(options,{type:'GET_PRIVATE_DATA'})).data.covenant.plan.includes('dann werde ich'));
  await covenant.close();
  const password='Tabsira-private-test-987';
  const secured=await send(options,{type:'SET_PASSWORD',password});
