@@ -1,0 +1,56 @@
+{
+  "repo": "/workspace/scratch/bcf19308400d/tabsira-product/projects/04-muslim-recovery-protection/chrome-extension",
+  "coverage": "Node real controllers with fake browser APIs, no browser/DNR claim",
+  "results": [
+    {
+      "name": "RT1 valid password confirms mature explicit early exit (actual feature controller)",
+      "result": "PASS",
+      "ms": 303
+    },
+    {
+      "name": "RT2 released older long lock cannot delete shorter new commitment (verifier stub isolates protection)",
+      "result": "PASS",
+      "ms": 5
+    },
+    {
+      "name": "RT3 eligible opted-in prayer alarm delivers notification (actual feature controller)",
+      "result": "PASS",
+      "ms": 39
+    },
+    {
+      "name": "RT4 valid large private records remain readable after encrypted save/restart/recovery",
+      "result": "PASS",
+      "ms": 808
+    },
+    {
+      "name": "RT5 locked gates/private status redaction/page capabilities/recovery preserve commitment",
+      "result": "PASS",
+      "ms": 552
+    },
+    {
+      "name": "RT6 frozen valid confirmation rejects cancel",
+      "result": "PASS",
+      "ms": 234
+    },
+    {
+      "name": "RT6 frozen valid confirmation rejects new-session",
+      "result": "PASS",
+      "ms": 241
+    },
+    {
+      "name": "RT6 frozen valid confirmation rejects rotate-password",
+      "result": "PASS",
+      "ms": 372
+    },
+    {
+      "name": "RT6 frozen valid confirmation rejects natural-expiry",
+      "result": "PASS",
+      "ms": 227
+    },
+    {
+      "name": "RT7 ciphertext corruption fails closed without weakening protection or revealing private text",
+      "result": "PASS",
+      "ms": 355
+    }
+  ]
+}

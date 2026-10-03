@@ -8,6 +8,12 @@
   "extDescription": {
     "message": "Blockiere Websites und Suchbegriffe, die du wählst – mit kurzer, respektvoller Hilfe im Moment. Komplett lokal, ohne Konto."
   },
+  "ui_dir": {
+    "message": "ltr"
+  },
+  "ui_lang": {
+    "message": "de"
+  },
   "common_back": {
     "message": "Zurück"
   },
@@ -103,7 +109,7 @@
     }
   },
   "popup_limits": {
-    "message": "Blockiert nur die Websites und Begriffe, die du festlegst. Bilder und Seiteninhalte werden nicht geprüft."
+    "message": "Blockiert nur die Websites und Begriffe, die du festlegst. Bilder und Seiteninhalte werden nicht geprüft. Über einen Link in einer Seite zeigt der Browser evtl. seine eigene Blockseite statt dieser Hilfe."
   },
   "popup_tagline": {
     "message": "Ein Raum für deine Entscheidung"
@@ -278,7 +284,7 @@
     "message": "Erlaubte Websites (fälschlich blockiert) – eine pro Zeile"
   },
   "opt_allow_hint": {
-    "message": "Eine Ausnahme hat Vorrang vor der integrierten Liste und deinen Websites. Suchmaschinen können nicht ausgenommen werden. Eine Ausnahme schwächt den Schutz und ist daher während einer Selbstverpflichtung nicht erlaubt."
+    "message": "Ausnahmen gelten nur für zusätzliche Domains und Begriffe; sie umgehen nie die Basisliste. Suchmaschinen erlauben keine Ausnahmen. Neue Ausnahmen schwächen den Schutz und sind während einer Verpflichtung gesperrt."
   },
   "opt_phrases_title": {
     "message": "Suchbegriffe"
@@ -290,7 +296,7 @@
     "message": "Teilübereinstimmung – ein Begriff pro Zeile (breiter, kann harmlose Suchen blockieren)"
   },
   "opt_phrases_hint": {
-    "message": "Es wird nur im Suchparameter (q, p, search_query oder text) von Google, Bing, DuckDuckGo, Yahoo, YouTube, Yandex, Brave, Ecosia und Qwant geprüft, mit + oder %20 als Leerzeichen, ohne Beachtung der Groß-/Kleinschreibung. Arabische Diakritika und Tatwil werden entfernt; Alef-/Ya-Varianten werden nicht vereinheitlicht. Ein einzelner arabischer Begriff ist durch Browser-Grenzen auf etwa 12–14 Buchstaben begrenzt (weniger mit Leerzeichen). Suchen ohne neues Laden der Seite werden nicht erfasst."
+    "message": "Es wird nur im Suchparameter (q, p, search_query oder text) von Google, Bing, DuckDuckGo, Yahoo, YouTube, Yandex, Brave, Ecosia und Qwant geprüft, mit + oder %20 als Leerzeichen, ohne Beachtung der Groß-/Kleinschreibung. Arabische Diakritika und Tatwil werden entfernt; Alef-/Ya-Varianten werden nicht vereinheitlicht. Ein einzelner arabischer Begriff ist durch Browser-Grenzen auf etwa 10–14 Buchstaben begrenzt (weniger mit Leerzeichen). Im Modus „ganzes Wort“ wird ein Begriff meist auch mit Anführungszeichen, Punkt oder Bindestrich darum erkannt, lange Begriffe aber mit engeren Wortgrenzen (nur Leerzeichen), worauf der Status hinweist; ein als %XX geschriebener Buchstabe wird nicht erkannt. Suchen ohne neues Laden der Seite werden nicht erfasst."
   },
   "opt_save": {
     "message": "Änderungen speichern"
@@ -313,7 +319,7 @@
     }
   },
   "opt_session_confirm": {
-    "message": "Eine Selbstverpflichtung von $P1$ Minuten starten? Bis zum Ende kannst du keine Regeln löschen, die Liste ausschalten oder Ausnahmen hinzufügen.",
+    "message": "Eine Verpflichtung für $P1$ Minuten starten? Regeln und Zeitpläne können währenddessen nicht geschwächt werden. Ein vorzeitiges Ende erfordert Antrag, gewählte Wartezeit und Passwortbestätigung.",
     "placeholders": {
       "p1": {
         "content": "$1"
@@ -338,6 +344,40 @@
   "opt_export_hint": {
     "message": "Die Exportdatei enthält die gewählten Websites und Begriffe als unverschlüsselten Klartext. Bewahre sie privat auf."
   },
+  "opt_saved_partial": {
+    "message": "Gespeichert, aber der Schutz ist nicht vollständig aktiv. Siehe Status oben."
+  },
+  "opt_import_confirm": {
+    "message": "Diese Datei fügt $P1$ Websites, $P2$ Begriffe und $P3$ Ausnahmen hinzu. Zusammenführen?",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      },
+      "p3": {
+        "content": "$3"
+      }
+    }
+  },
+  "opt_import_confirm_exceptions": {
+    "message": "Ausnahmen in der Datei (diese Websites werden nicht mehr blockiert):"
+  },
+  "err_in_file": {
+    "message": " – das betrifft die importierte Datei; an deinen Einstellungen wurde nichts geändert."
+  },
+  "note_phrases_narrow_edges": {
+    "message": "Hinweis: $P1$ lange Begriffe nutzen auf manchen Suchmaschinen engere Wortgrenzen (nur Leerzeichen oder Parameterrand). Varianten in Anführungszeichen oder mit „.com“ werden dafür nicht erkannt.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_import_locked": {
+    "message": "Eine Selbstverpflichtung ist aktiv: Ausnahmen können jetzt nicht hinzugefügt werden, diese Datei kann nicht angewendet werden."
+  },
   "opt_imported": {
     "message": "Importierte Einstellungen wurden zusammengeführt."
   },
@@ -357,10 +397,10 @@
     "message": "Datenschutz und Grenzen"
   },
   "opt_privacy_body": {
-    "message": "Keine Konten, keine Analysen, kein Verlauf, nichts wird an Server oder Personen gesendet. Deine Einstellungen werden lokal in diesem Browser gespeichert und sind möglicherweise unverschlüsselt. Wir speichern weder Blockier-Versuche noch deine Suchbegriffe."
+    "message": "Keine Konten, Analysen, Browserverläufe oder Serverübertragung. Einstellungen bleiben lokal. Optionale Notizen, Vereinbarung und Reflexionen werden bei gesetztem Passwort verschlüsselt. Sperrversuche und deine Suchwörter werden nie gespeichert."
   },
   "opt_limits_body": {
-    "message": "Nur Hauptseiten werden blockiert (keine eingebetteten Frames oder Bilder). Sie wirkt nicht in anderen Browsern oder bei lokalen Dateien. Sie kann entfernt oder deaktiviert werden, privates Surfen muss manuell erlaubt werden. Sie liest weder Bildschirm noch Bilder noch Seiteninhalte."
+    "message": "Nur Hauptseiten werden blockiert (keine eingebetteten Frames oder Bilder). Sie wirkt nicht in anderen Browsern oder bei lokalen Dateien. Sie kann entfernt oder deaktiviert werden, privates Surfen muss manuell erlaubt werden. Sie liest weder Bildschirm noch Bilder noch Seiteninhalte. Wird eine blockierte Website über einen Link oder ein Suchformular auf einer Webseite geöffnet, kann der Browser statt der Tabsira-Hilfeseite seine eigene Seite „von einer Erweiterung blockiert“ anzeigen; die Website wird trotzdem nicht geöffnet. Die Hilfeseite erscheint, wenn du die Adresse eintippst oder ein Lesezeichen öffnest."
   },
   "err_domain_invalid": {
     "message": "Dieser Website-Name ist ungültig."
@@ -464,6 +504,9 @@
   "err_session_needs_active_protection": {
     "message": "Eine Sitzung kann nur starten, wenn der Status „Regeln installiert“ ist. Behebe zuerst das angezeigte Problem."
   },
+  "err_session_start_inconsistent": {
+    "message": "Deine Einstellungen haben sich beim Start der Selbstverpflichtung geändert, der Start wurde nicht bestätigt. Möglicherweise läuft eine Selbstverpflichtung mit den neuen Einstellungen; prüfe den Status oben."
+  },
   "err_already_onboarded": {
     "message": "Die Ersteinrichtung wurde bereits abgeschlossen."
   },
@@ -486,5 +529,351 @@
         "content": "$1"
       }
     }
+  },
+  "set_language": {
+    "message": "Sprache"
+  },
+  "set_religion": {
+    "message": "Wähle, was zu dir passt"
+  },
+  "set_muslim": {
+    "message": "Muslimisch"
+  },
+  "set_nonmuslim": {
+    "message": "Nicht muslimisch"
+  },
+  "set_faith": {
+    "message": "Optionale Glaubensinhalte"
+  },
+  "set_faith_hint": {
+    "message": "Die Wahl Muslimisch aktiviert anfangs Glaubensinhalte. Du kannst sie jederzeit unabhängig von Sprache und Religion ändern."
+  },
+  "set_theme": {
+    "message": "Darstellung"
+  },
+  "set_light": {
+    "message": "Hell"
+  },
+  "set_dark": {
+    "message": "Dunkel"
+  },
+  "set_system": {
+    "message": "System"
+  },
+  "set_home": {
+    "message": "Start"
+  },
+  "set_plan": {
+    "message": "Mein Plan"
+  },
+  "set_filter": {
+    "message": "Filter"
+  },
+  "set_more": {
+    "message": "Mehr"
+  },
+  "set_current": {
+    "message": "Aktuelle Website sperren"
+  },
+  "set_current_hint": {
+    "message": "Öffne Tabsira auf der Website, die du sperren möchtest. Keine Tablisten oder Verläufe werden erfasst."
+  },
+  "set_current_unavailable": {
+    "message": "Keine aktuelle Website verfügbar. Öffne das Tabsira-Popup auf der gewünschten Website."
+  },
+  "set_core": {
+    "message": "Die Basisliste ist nach der Einrichtung verpflichtend und erlaubt keine Ausnahmen."
+  },
+  "set_sites": {
+    "message": "Websites"
+  },
+  "set_phrases": {
+    "message": "Suchbegriffe"
+  },
+  "set_preview": {
+    "message": "Tatsächlich enthaltene Liste ansehen"
+  },
+  "set_search": {
+    "message": "Domains filtern"
+  },
+  "set_add_selected": {
+    "message": "Auswahl meiner Liste hinzufügen"
+  },
+  "set_selection_limit": {
+    "message": "Du kannst insgesamt bis zu 1.000 zusätzliche Domains auswählen."
+  },
+  "set_preview_count": {
+    "message": "$P1$ Ergebnisse · Seite $P2$ von $P3$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      },
+      "p3": {
+        "content": "$3"
+      }
+    }
+  },
+  "set_preview_error": {
+    "message": "Die enthaltene Liste konnte nicht geladen werden."
+  },
+  "set_schedule": {
+    "message": "Zusätzlicher Schutzzeitplan"
+  },
+  "set_schedule_hint": {
+    "message": "Zeitpläne beenden den Basisschutz nie. Zeiträume über Mitternacht enden am Folgetag. Während einer Verpflichtung kann der Zeitplan nicht geschwächt werden."
+  },
+  "set_start": {
+    "message": "Beginn"
+  },
+  "set_end": {
+    "message": "Ende"
+  },
+  "set_add": {
+    "message": "Hinzufügen"
+  },
+  "set_edit": {
+    "message": "Bearbeiten"
+  },
+  "set_delete": {
+    "message": "Löschen"
+  },
+  "set_day_0": {
+    "message": "Sonntag"
+  },
+  "set_day_1": {
+    "message": "Montag"
+  },
+  "set_day_2": {
+    "message": "Dienstag"
+  },
+  "set_day_3": {
+    "message": "Mittwoch"
+  },
+  "set_day_4": {
+    "message": "Donnerstag"
+  },
+  "set_day_5": {
+    "message": "Freitag"
+  },
+  "set_day_6": {
+    "message": "Samstag"
+  },
+  "set_duration": {
+    "message": "Dauer der Verpflichtung"
+  },
+  "set_minutes": {
+    "message": "Minuten"
+  },
+  "set_hours": {
+    "message": "Stunden"
+  },
+  "set_days": {
+    "message": "Tage"
+  },
+  "set_weeks": {
+    "message": "Wochen"
+  },
+  "set_months": {
+    "message": "Monate (30 Tage)"
+  },
+  "set_exit_delay": {
+    "message": "Wartezeit vor vorzeitigem Ende in Minuten (mindestens 60)"
+  },
+  "set_commit": {
+    "message": "Verpflichtung starten oder verlängern"
+  },
+  "set_commit_hint": {
+    "message": "Bis zu einem Jahr (525.600 Minuten). Eine Verlängerung verkürzt weder die Dauer noch die Wartezeit. Ein Antrag beendet den Schutz nicht automatisch: Warte und bestätige dann mit deinem Passwort."
+  },
+  "set_request_exit": {
+    "message": "Vorzeitiges Ende beantragen"
+  },
+  "set_cancel_exit": {
+    "message": "Antrag abbrechen"
+  },
+  "set_confirm_exit": {
+    "message": "Ende nach der Wartezeit mit Passwort bestätigen"
+  },
+  "set_wait_until": {
+    "message": "Bestätigung möglich: $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "set_covenant": {
+    "message": "Persönliche Vereinbarung"
+  },
+  "set_covenant_now": {
+    "message": "Vereinbarung jetzt erstellen"
+  },
+  "set_covenant_later": {
+    "message": "Du kannst deine Vereinbarung später unter Mein Plan erstellen."
+  },
+  "set_password": {
+    "message": "Optionales lokales Passwort"
+  },
+  "set_password_hint": {
+    "message": "Sperrt Einstellungen und private Daten. Hilfe und Schutz bleiben immer verfügbar. Sie verhindert keine Deinstallation der Erweiterung. Kein Konto, keine Biometrie und kein Gerätepasswort."
+  },
+  "set_password_new": {
+    "message": "Neues Passwort (mindestens 8 Zeichen)"
+  },
+  "set_password_repeat": {
+    "message": "Passwort wiederholen"
+  },
+  "set_password_set": {
+    "message": "Passwort festlegen"
+  },
+  "set_unlock": {
+    "message": "Zugriff entsperren"
+  },
+  "set_lock": {
+    "message": "Zugriff jetzt sperren"
+  },
+  "set_recover": {
+    "message": "Mit deinem bisherigen Code wiederherstellen"
+  },
+  "set_recovery_code": {
+    "message": "Wiederherstellungscode"
+  },
+  "set_recovery_hint": {
+    "message": "Speichere diesen Code jetzt außerhalb der Erweiterung. Er wird nur einmal angezeigt. Eine Wiederherstellung verändert Schutz und Verpflichtung nie."
+  },
+  "set_locked": {
+    "message": "Privater Zugriff ist gesperrt. Entsperre ihn mit deinem Passwort; Hilfe bleibt verfügbar."
+  },
+  "set_unlocked": {
+    "message": "Der private Zugriff ist vorübergehend entsperrt. Er kann beim Beenden des Hintergrund-Workers automatisch gesperrt werden; entsperre ihn erneut mit deinem Passwort."
+  },
+  "set_no_password": {
+    "message": "Es ist kein Passwort festgelegt."
+  },
+  "set_mismatch": {
+    "message": "Die Passwörter stimmen nicht überein."
+  },
+  "set_notes": {
+    "message": "Optionale lokal gespeicherte Notizen"
+  },
+  "set_notes_hint": {
+    "message": "Werden nur mit Speichern gesichert. Bei gesetztem Passwort werden sie verschlüsselt."
+  },
+  "set_note": {
+    "message": "Neue Notiz"
+  },
+  "set_save_note": {
+    "message": "Notiz speichern"
+  },
+  "set_news": {
+    "message": "Versionshinweise im Programm"
+  },
+  "set_news_body": {
+    "message": "Diese Version ergänzt Vereinbarung, Hilfe und lokale Einstellungen. Cloudkonten, Wiederherstellung per E-Mail und Nachrichtenabos sind noch nicht verfügbar."
+  },
+  "set_prayer": {
+    "message": "Optionale Gebetsbenachrichtigungen"
+  },
+  "set_prayer_hint": {
+    "message": "Standardmäßig deaktiviert. Benötigt eine eigene Zustimmung und einen manuell eingegebenen Ort; keine automatische Standorterfassung."
+  },
+  "set_invalid_duration": {
+    "message": "Gib eine gültige Dauer bis zu einem Jahr und eine Wartezeit zwischen 60 und 525600 Minuten ein."
+  },
+  "set_saved": {
+    "message": "Änderungen gespeichert."
+  },
+  "set_unavailable": {
+    "message": "Dieser Vorgang ist momentan nicht verfügbar. Deine Eingabe bleibt für einen erneuten Versuch erhalten."
+  },
+  "set_setup_title": {
+    "message": "Tabsira einrichten"
+  },
+  "set_profile_title": {
+    "message": "Deine Sprache und Auswahl"
+  },
+  "set_protection_title": {
+    "message": "Klarer Basisschutz"
+  },
+  "set_setup_password": {
+    "message": "Lege jetzt ein Passwort fest oder lasse das Feld leer und fahre fort."
+  },
+  "set_setup_done": {
+    "message": "Einrichtung abgeschlossen. Prüfe den Schutzstatus und versuche dann den sicheren Test."
+  },
+  "set_choose": {
+    "message": "Bitte auswählen"
+  },
+  "set_choose_required": {
+    "message": "Wähle Muslimisch oder Nicht muslimisch, um fortzufahren."
+  },
+  "set_optional_title": {
+    "message": "Optionale Auswahl für deine Bedürfnisse"
+  },
+  "set_code_saved": {
+    "message": "Ich habe den Wiederherstellungscode außerhalb der Erweiterung gespeichert"
+  },
+  "set_code_required": {
+    "message": "Speichere den Wiederherstellungscode und bestätige dies vor dem Fortfahren."
+  },
+  "set_password_pending": {
+    "message": "Wähle Passwort festlegen oder leere beide Felder, um ohne Passwort fortzufahren."
+  },
+  "set_duration_unit": {
+    "message": "Einheit der Verpflichtungsdauer"
+  },
+  "err_access_locked": {
+    "message": "Privater Zugriff ist gesperrt. Entsperre ihn mit deinem Passwort."
+  },
+  "err_exit_not_requested": {
+    "message": "Beantrage zunächst ein vorzeitiges Ende; aktuell besteht kein gültiger Antrag."
+  },
+  "err_exit_waiting": {
+    "message": "Die Wartezeit ist noch nicht abgelaufen. Der Schutz bleibt aktiv."
+  },
+  "err_invalid_recovery": {
+    "message": "Der Wiederherstellungscode ist ungültig."
+  },
+  "err_password_invalid": {
+    "message": "Das Passwort ist falsch oder ungültig."
+  },
+  "err_prayer_invalid": {
+    "message": "Prüfe Ort, Zeitzone und Gebetsberechnungsmethode."
+  },
+  "err_prayer_permission": {
+    "message": "Die Benachrichtigungsberechtigung fehlt. Gebetsbenachrichtigungen sind deaktiviert."
+  },
+  "err_recovery_unavailable": {
+    "message": "Es gibt kein Passwort zur Wiederherstellung."
+  },
+  "err_schedule_conflict": {
+    "message": "Dieser Zeitplan überschneidet sich mit einem anderen, auch nach Mitternacht."
+  },
+  "err_schedule_invalid": {
+    "message": "Wähle mindestens einen Tag sowie gültige, unterschiedliche Anfangs- und Endzeiten."
+  },
+  "err_security_corrupt": {
+    "message": "Private Daten konnten nicht überprüft werden. Der Zugriff bleibt geschlossen."
+  },
+  "err_security_unavailable": {
+    "message": "Lokale Verschlüsselung ist in diesem Browser nicht verfügbar."
+  },
+  "err_session_expired": {
+    "message": "Die Verpflichtung ist bereits beendet; ein vorzeitiges Ende ist nicht nötig."
+  },
+  "err_storage_error": {
+    "message": "Der lokale Vorgang ist fehlgeschlagen. Behalte deine Eingabe und versuche es erneut."
+  },
+  "err_verify_failed": {
+    "message": "Die Installation der Schutzregeln konnte nicht überprüft werden."
+  },
+  "set_exit_password_required": {
+    "message": "Ein vorzeitiger Ausstieg erfordert ein lokales Passwort. Ohne Passwort kannst du ihn erst nach dem Festlegen eines Passworts bestätigen; die Verpflichtung endet automatisch zum Ablaufzeitpunkt."
+  },
+  "err_commitment_release_limit": {
+    "message": "Der Speicher für vorzeitige Ausstiege ist voll. Eine neue Ausstiegsanfrage ist nicht möglich; die Verpflichtung läuft regulär aus und der Schutz bleibt aktiv."
   }
 }

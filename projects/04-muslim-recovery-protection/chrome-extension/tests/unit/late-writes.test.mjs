@@ -25,7 +25,7 @@ function storedConfig(state) {
     }
     return best ? best.value : state.storage.config;
 }
-const ruleDomains = state => state.rules.flatMap(rule => rule.condition.requestDomains ?? []).sort();
+const ruleDomains = state => state.rules.flatMap(rule => rule.condition.requestDomains ?? []).filter(domain => domain !== 'tabsira-selftest.test').sort();
 
 let peers = 0;
 const peerOf = api => createController({ ...api, instanceId: `peer${++peers}` });

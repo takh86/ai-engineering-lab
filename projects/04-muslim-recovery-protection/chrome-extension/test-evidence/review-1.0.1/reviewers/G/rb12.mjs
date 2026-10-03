@@ -1,0 +1,12 @@
+import { launch, openExtPage, send, executableFor } from '/home/user/ai-engineering-lab/projects/04-muslim-recovery-protection/chrome-extension/tests/e2e/lib.mjs';
+const b = await launch({ executablePath: executableFor('chromium'), extensionDir: process.cwd() + '/ext' });
+const page = await openExtPage(b.context, b.extensionId, 'options.html');
+let r = await send(page, { type: 'COMPLETE_ONBOARDING', baseList: true, starterTerms: true });
+const L = [...'ابتثجحخدذرزسشصضطظعغفقكلمنهوي'];
+const mk = (n, len, off) => Array.from({ length: n }, (_, i) => Array.from({ length: len }, (_, j) => L[(i * 7 + j * 3 + off + (j % 2 ? i : 0)) % L.length]).join(''));
+const words = [...new Set(mk(80, 12, 0))].slice(0, 60), contains = [...new Set(mk(80, 15, 5))].filter(x => !words.includes(x)).slice(0, 40);
+const t0 = Date.now();
+r = await send(page, { type: 'SAVE_SETTINGS', baseRevision: r.status.revision, settings: { baseList: true, starterTerms: true, domains: [], allow: [], words, contains } });
+console.log('worst-case save', r.ok, JSON.stringify(r.error ?? {}), r.status?.state, JSON.stringify(r.status?.reasons), 'words', words.length, 'contains', contains.length, (Date.now() - t0) + 'ms', 'dynamic rules', r.status?.counts?.dynamicRules);
+const s2 = await send(page, { type: 'START_SESSION', minutes: 60 }); console.log('session', s2.ok, s2.error?.code);
+await b.context.close();

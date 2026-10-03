@@ -33,6 +33,8 @@ function baseManifest() {
         version: pkg.version, default_locale: 'ar',
         icons: { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png', 48: 'icons/icon-48.png', 96: 'icons/icon-96.png', 128: 'icons/icon-128.png' },
         permissions,
+        // Both are requested only after an explicit user gesture. No tabs/history/geolocation permission.
+        optional_permissions: ['activeTab', 'notifications'],
         host_permissions: HOSTS,
         action: { default_popup: 'popup.html', default_title: '__MSG_extShortName__', default_icon: { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png' } },
         options_ui: { page: 'options.html', open_in_tab: true },
@@ -86,6 +88,7 @@ function buildTarget(target, baseList) {
     fs.mkdirSync(path.join(out, 'rulesets'));
     fs.writeFileSync(path.join(out, 'rulesets', 'base_adult.json'), baseList.rules);
     fs.writeFileSync(path.join(out, 'base-list-meta.json'), baseList.meta);
+    // Settings reads this exact ruleset for the licensed snapshot preview; no duplicate list.
     fs.writeFileSync(path.join(out, 'manifest.json'), `${JSON.stringify(MANIFESTS[target](), null, 2)}\n`);
     fs.copyFileSync(path.join(root, 'data', 'base-list', 'THIRD_PARTY_NOTICES.md'), path.join(out, 'THIRD_PARTY_NOTICES.txt'));
     return out;

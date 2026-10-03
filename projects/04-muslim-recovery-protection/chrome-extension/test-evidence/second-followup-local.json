@@ -1,0 +1,121 @@
+{
+  "date": "2026-10-03",
+  "productSourceLocalCommit": "f872ac55c30b7cf6826fd3e2b1267228df97b076",
+  "testSourceLocalCommit": "2359c5b0b6ef31367e7f8499d0e1ed8e2065fda2",
+  "scope": "Current local corrections only; no 1.0.1 integration or publication clearance",
+  "unitStatic": {
+    "pass": 161,
+    "fail": 0,
+    "independentRerun": "161/161 PASS by review_second_redteam"
+  },
+  "controllerRegressions": {
+    "repo": "/workspace/scratch/bcf19308400d/tabsira-product/projects/04-muslim-recovery-protection/chrome-extension",
+    "coverage": "Node real controllers with fake browser APIs, no browser/DNR claim",
+    "results": [
+      {
+        "name": "RT1 valid password confirms mature explicit early exit (actual feature controller)",
+        "result": "PASS",
+        "ms": 249
+      },
+      {
+        "name": "RT2 released older long lock cannot delete shorter new commitment (verifier stub isolates protection)",
+        "result": "PASS",
+        "ms": 6
+      },
+      {
+        "name": "RT3 eligible opted-in prayer alarm delivers notification (actual feature controller)",
+        "result": "PASS",
+        "ms": 32
+      },
+      {
+        "name": "RT4 valid large private records remain readable after encrypted save/restart/recovery",
+        "result": "PASS",
+        "ms": 887
+      },
+      {
+        "name": "RT5 locked gates/private status redaction/page capabilities/recovery preserve commitment",
+        "result": "PASS",
+        "ms": 487
+      },
+      {
+        "name": "RT6 frozen valid confirmation rejects cancel",
+        "result": "PASS",
+        "ms": 238
+      },
+      {
+        "name": "RT6 frozen valid confirmation rejects new-session",
+        "result": "PASS",
+        "ms": 273
+      },
+      {
+        "name": "RT6 frozen valid confirmation rejects rotate-password",
+        "result": "PASS",
+        "ms": 342
+      },
+      {
+        "name": "RT6 frozen valid confirmation rejects natural-expiry",
+        "result": "PASS",
+        "ms": 236
+      },
+      {
+        "name": "RT7 ciphertext corruption fails closed without weakening protection or revealing private text",
+        "result": "PASS",
+        "ms": 395
+      }
+    ]
+  },
+  "workerCapabilities": {
+    "repo": "/workspace/scratch/bcf19308400d/tabsira-product/projects/04-muslim-recovery-protection/chrome-extension",
+    "result": "PASS",
+    "coverage": "Actual service-worker listener with fake WebExtension APIs; sender capability boundaries, worker password gates, status redaction, recovery protection invariance"
+  },
+  "redTeam": {
+    "agent": "review_second_redteam",
+    "conclusion": "No additional material source defect reproduced in scoped local review",
+    "checked": [
+      "Release saturation, cancelled lock replay and newer-shorter-lock compaction",
+      "Versionless/v1 rejection without private reset or protection weakening",
+      "V2 wrapping-label substitution refusal",
+      "Acyclic production ES imports",
+      "Fresh both-target licensed snapshot hashes/no duplicated domainfile",
+      "Frozen solar fixture byte hash; independent primary API reopening unavailable"
+    ]
+  },
+  "packages": {
+    "chromium": {
+      "sha256": "59e0ebac2ef88d1f689bee8ef1d6ea30be76136148722c42b69c87f0c7808e87",
+      "bytes": 1374096,
+      "runtime": "NOT_RUN"
+    },
+    "firefox": {
+      "sha256": "e356ed4a2c22b192e576c681b6b5522a4cd5dd5913bc3838aed6b9abe0835c3f",
+      "bytes": 1374224,
+      "runtime": "NOT_RUN"
+    }
+  },
+  "installedBrowser": {
+    "status": "NOT_RUN",
+    "attemptFile": "second-followup-browser-attempt.json",
+    "reason": "Chromium process-singleton socket Operation not permitted before extension load",
+    "note": "Fresh revised ZIP built before attempt. Historical57 passes are not reused."
+  },
+  "preparedAcceptance": [
+    "Real-minute schedule alarms and actual DNR transitions with watchdog disabled temporarily/optionspolling unloaded",
+    "AR/EN/DE password-free commitment form/confirmation warning",
+    "Native forced ServiceWorker.stopWorker and restart lock/protection preservation"
+  ],
+  "unverified": [
+    "Actual browser execution of revised suite",
+    "Genuine idle worker termination (forced stop is distinct)",
+    "Successful mature early exit with real minimum wait",
+    "Prayer OS delivery",
+    "Firefox runtime",
+    "Separate 184-check suite"
+  ],
+  "openGates": [
+    "Actual .bundle file containing1.0.1 commits is unavailable in current inputs",
+    "Owner store-purpose/privacy/prayer-scope decision",
+    "Fresh real-browser verification after reconciliation"
+  ],
+  "publication": "LOCAL_ONLY; no GitHub push/PR modification/comment/merge/store submission/policy deployment"
+}

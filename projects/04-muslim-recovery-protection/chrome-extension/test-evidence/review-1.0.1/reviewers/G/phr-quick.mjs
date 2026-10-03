@@ -1,0 +1,3 @@
+import { normalizePhrase, phraseFragment, buildPhraseRegex } from '/home/user/ai-engineering-lab/projects/04-muslim-recovery-protection/chrome-extension/src/core/phrases.js';
+const t = x => { try { const n = normalizePhrase(x); let f; try { f = phraseFragment(n).slice(0,70); } catch (e) { f = 'FRAGMENT THROWS ' + e.name; } return `${JSON.stringify(n)} frag=${f}`; } catch (e) { return 'ERR ' + e.code; } };
+for (const x of ['ab\ud800cd','İstanbul','ﷺ ab','ab​','aـb','ａｂ','AB  CD','a b','x y','۝ab cd','ab\u0000cd','ab‮cd','a.b','a%b','a+b','a&b#c','ab'.repeat(30),'ab'.repeat(31),'\u{1F600}\u{1F600}ab','ǅǅ','ß ss','Σσς','١٢٣','ab́c','الله','أ ب','ٱلله']) console.log(JSON.stringify(x).padEnd(24), t(x));

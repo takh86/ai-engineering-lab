@@ -65,8 +65,7 @@ test('phrases: control and bidi characters are removed or refused; regex metacha
 test('messages: sender spoofing by URL tricks, other extensions, frames and web origins is refused', () => {
     const ctx = { id: 'ext', baseUrl: 'chrome-extension://ext/' };
     const page = { id: 'ext', url: 'chrome-extension://ext/options.html', frameId: 0 };
-    for (const url of ['chrome-extension://ext/options.html@evil.example/', 'chrome-extension://ext/options.htmlx', 'chrome-extension://ext/../blocked.html', 'chrome-extension://ext/help.html',
-        'chrome-extension://ext/blocked.html', 'chrome-extension://extension/options.html', 'https://ext/options.html', 'chrome-extension://ext/', 'chrome-extension://ext/options.html/..%2f']) {
+    for (const url of ['chrome-extension://ext/options.html@evil.example/', 'chrome-extension://ext/options.htmlx', 'chrome-extension://ext/../blocked.html', 'chrome-extension://extension/options.html', 'https://ext/options.html', 'chrome-extension://ext/', 'chrome-extension://ext/options.html/..%2f']) {
         assert.ok(!isTrustedSender({ ...page, url }, ctx), url);
     }
     assert.ok(!isTrustedSender({ ...page, tab: undefined, frameId: 1 }, ctx));

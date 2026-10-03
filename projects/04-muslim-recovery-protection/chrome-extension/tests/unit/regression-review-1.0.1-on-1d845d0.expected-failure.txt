@@ -1,0 +1,555 @@
+TAP version 13
+# Subtest: A-2/G-2a: whole-word boundaries accept quotes, punctuation, ".com" and "-" around the phrase, and still refuse letters/digits
+not ok 1 - A-2/G-2a: whole-word boundaries accept quotes, punctuation, ".com" and "-" around the phrase, and still refuse letters/digits
+  ---
+  duration_ms: 2.105321
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:28:1'
+  failureType: 'testCodeFailure'
+  error: 'must block q=xvideos.com'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:32:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: A-2/G-2a: a phrase too long for the wide boundary falls back to the narrow boundary (never becomes unsupported)
+not ok 2 - A-2/G-2a: a phrase too long for the wide boundary falls back to the narrow boundary (never becomes unsupported)
+  ---
+  duration_ms: 8.217185
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:40:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(buildPhraseRegex('word', 'q', [phraseFragment(phrase)]).length > narrowLength)
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:43:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: A-1/G-3: SAVE refuses a phrase that no rule can express for EVERY search parameter (not only q)
+not ok 3 - A-1/G-3: SAVE refuses a phrase that no rule can express for EVERY search parameter (not only q)
+  ---
+  duration_ms: 10.225616
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:53:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:62:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: A-6/B-2: the safe-test domain is redirected by a user rule even when the built-in list is off
+not ok 4 - A-6/B-2: the safe-test domain is redirected by a user rule even when the built-in list is off
+  ---
+  duration_ms: 5.934941
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:66:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:70:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: A-4/G-8: a lone surrogate in a phrase is rejected as phrase_invalid (no raw URIError)
+not ok 5 - A-4/G-8: a lone surrogate in a phrase is rejected as phrase_invalid (no raw URIError)
+  ---
+  duration_ms: 0.885307
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:76:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected exception.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:77:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: A-8: repeated www. prefixes are stripped in one step (stored form is already canonical)
+not ok 6 - A-8: repeated www. prefixes are stripped in one step (stored form is already canonical)
+  ---
+  duration_ms: 0.744817
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:82:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'www.example.com'
+    - 'example.com'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'example.com'
+  actual: 'www.example.com'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:83:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: G-9b: common Arab/Asian shared suffixes are refused as sites
+not ok 7 - G-9b: common Arab/Asian shared suffixes are refused as sites
+  ---
+  duration_ms: 0.556425
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:87:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected exception: org.sa'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:89:16)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: G-4/C-6b: a lease that claims to expire far in the future is ignored (cannot lock everyone out)
+not ok 8 - G-4/C-6b: a lease that claims to expire far in the future is ignored (cannot lock everyone out)
+  ---
+  duration_ms: 402.939032
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:93:1'
+  failureType: 'testCodeFailure'
+  error: 'busy'
+  code: 'busy'
+  name: 'TabsiraError'
+  stack: |-
+    acquire (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/src/background/coordination.js:43:23)
+    async Object.run (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/src/background/coordination.js:77:9)
+    async TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:98:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C-3: a storage failure while registering for the mutex does not leave a live entry behind
+not ok 9 - C-3: a storage failure while registering for the mutex does not leave a live entry behind
+  ---
+  duration_ms: 2.718839
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:102:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    no orphan mutex entry
+    + actual - expected
+    
+    + [
+    +   'mx:i4'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'mx:i4'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:108:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C-4: compaction never removes a valid session because another lock-like entry is invalid
+not ok 10 - C-4: compaction never removes a valid session because another lock-like entry is invalid
+  ---
+  duration_ms: 0.793267
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:111:1'
+  failureType: 'testCodeFailure'
+  error: 'the valid session end survives'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:114:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C-6a/G-5: a transient forward clock error cannot permanently delete the newest session entry
+not ok 11 - C-6a/G-5: a transient forward clock error cannot permanently delete the newest session entry
+  ---
+  duration_ms: 0.499889
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:118:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   'lock:1-1:a'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'lock:1-1:a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:120:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: G-7b: an out-of-range epoch in storage is ignored for numbering and flagged as invalid (reset can clear it)
+not ok 12 - G-7b: an out-of-range epoch in storage is ignored for numbering and flagged as invalid (reset can clear it)
+  ---
+  duration_ms: 0.183441
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:123:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 999999999999999
+    - 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 999999999999999
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:125:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: C-2/G-6: a v0 session end is written BEFORE the migrated record, so it cannot be lost between the two writes
+not ok 13 - C-2/G-6: a v0 session end is written BEFORE the migrated record, so it cannot be lost between the two writes
+  ---
+  duration_ms: 1.985265
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:129:1'
+  failureType: 'testCodeFailure'
+  error: 'session end stored first (stored=0)'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:138:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: SCENARIO 1a: START_SESSION frozen at the session-record write (after the ownership check); lease expires; another controller saves WEAKER settings; the old start must not return success
+not ok 14 - SCENARIO 1a: START_SESSION frozen at the session-record write (after the ownership check); lease expires; another controller saves WEAKER settings; the old start must not return success
+  ---
+  duration_ms: 10.912328
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:149:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    the old start must not report success on empty protection
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:165:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: SCENARIO 1b: a failed late start never deletes or cancels a NEWER successful session, even with an equal end time
+not ok 15 - SCENARIO 1b: a failed late start never deletes or cancels a NEWER successful session, even with an equal end time
+  ---
+  duration_ms: 5.920177
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:173:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:189:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: SCENARIO 1c: equal end times - removing the tie "loser" entry (any order) never changes the effective end
+ok 16 - SCENARIO 1c: equal end times - removing the tie "loser" entry (any order) never changes the effective end
+  ---
+  duration_ms: 0.523573
+  type: 'test'
+  ...
+# Subtest: SCENARIO 2a: a legacy store with an ACTIVE session: a plain SAVE stores the session end first, so the next weakening is still refused
+not ok 17 - SCENARIO 2a: a legacy store with an ACTIVE session: a plain SAVE stores the session end first, so the next weakening is still refused
+  ---
+  duration_ms: 1.240879
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:209:1'
+  failureType: 'testCodeFailure'
+  error: 'the legacy session end now lives in a lock key'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:215:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: SCENARIO 2b: a legacy store with an active session: IMPORT directly before any reconcile keeps the session
+not ok 18 - SCENARIO 2b: a legacy store with an active session: IMPORT directly before any reconcile keeps the session
+  ---
+  duration_ms: 1.856931
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:223:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(lockEnd(fake.state) >= until)
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:230:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: SCENARIO 2c: START_SESSION on a legacy store whose old end is LONGER than the new one does not lose the old end
+ok 19 - SCENARIO 2c: START_SESSION on a legacy store whose old end is LONGER than the new one does not lose the old end
+  ---
+  duration_ms: 1.68578
+  type: 'test'
+  ...
+# Subtest: SCENARIO 2d: stop right after the migrated record is written (before any later lock write) then a weakening save from another controller is refused
+not ok 20 - SCENARIO 2d: stop right after the migrated record is written (before any later lock write) then a weakening save from another controller is refused
+  ---
+  duration_ms: 1.052409
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:246:1'
+  failureType: 'testCodeFailure'
+  error: 'session survives the interrupted migration'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:255:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: SCENARIO 2e: two controllers on one legacy store (one migrating, one saving) end with the session intact
+ok 21 - SCENARIO 2e: two controllers on one legacy store (one migrating, one saving) end with the session intact
+  ---
+  duration_ms: 5.810752
+  type: 'test'
+  ...
+# Subtest: G2-2: a planted out-of-range epoch is reported as corrupt and RESET clears it (no permanent "stale")
+not ok 22 - G2-2: a planted out-of-range epoch is reported as corrupt and RESET clears it (no permanent "stale")
+  ---
+  duration_ms: 2.560006
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:269:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(!('cfg:999999999999:zz' in fake.state.storage))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:277:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: G2-6: the wide edge needs a real hex digit after %2 (a malformed %2\# is not a boundary)
+not ok 23 - G2-6: the wide edge needs a real hex digit after %2 (a malformed %2\# is not a boundary)
+  ---
+  duration_ms: 0.57195
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:280:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(wideRe('q', 'tabsira word').test('https://e.test/s?q=%22tabsira+word%22'))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:282:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: NOTES: a whole word that only fits the narrow edge is reported (status note), never shown as plain full protection
+not ok 24 - NOTES: a whole word that only fits the narrow edge is reported (status note), never shown as plain full protection
+  ---
+  duration_ms: 0.734315
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:285:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + undefined
+    - [
+    -   'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+    - ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:292:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: G3-2: a CORRUPT legacy store still honours its session end: RESET is refused while it runs
+not ok 25 - G3-2: a CORRUPT legacy store still honours its session end: RESET is refused while it runs
+  ---
+  duration_ms: 0.514576
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:302:1'
+  failureType: 'testCodeFailure'
+  error: 'session end read from the corrupt legacy store ({"domains":["http://bad/path"])'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:308:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: G3-3: the wide edge covers operators and question marks; documented non-edges stay non-edges
+not ok 26 - G3-3: the wide edge covers operators and question marks; documented non-edges stay non-edges
+  ---
+  duration_ms: 1.105862
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:316:1'
+  failureType: 'testCodeFailure'
+  error: 'must block q=site:xvideos.com'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/76910e72-6eb0-5df8-a0a7-f9c1d34aa315/scratchpad/wt100/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/review-1.0.1.test.mjs:318:124)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: G4-2: a legacy session end above the lock ceiling is ignored (the store stays usable)
+ok 27 - G4-2: a legacy session end above the lock ceiling is ignored (the store stays usable)
+  ---
+  duration_ms: 2.794468
+  type: 'test'
+  ...
+# Subtest: G4-4: a RESET whose commit fails does not drop a damaged session key (commit first, clean up after)
+ok 28 - G4-4: a RESET whose commit fails does not drop a damaged session key (commit first, clean up after)
+  ---
+  duration_ms: 3.271355
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 5
+# fail 23
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 567.581737

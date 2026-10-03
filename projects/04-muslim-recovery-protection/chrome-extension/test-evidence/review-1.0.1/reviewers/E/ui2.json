@@ -1,0 +1,761 @@
+{
+ "overflow": [],
+ "small": [
+  {
+   "lang": "ar",
+   "page": "options",
+   "sm": [
+    {
+     "t": "INPUT#baseList",
+     "w": 22,
+     "h": 22
+    },
+    {
+     "t": "A#",
+     "w": 165,
+     "h": 15
+    },
+    {
+     "t": "INPUT#starterTerms",
+     "w": 22,
+     "h": 22
+    }
+   ]
+  },
+  {
+   "lang": "en",
+   "page": "options",
+   "sm": [
+    {
+     "t": "INPUT#baseList",
+     "w": 22,
+     "h": 22
+    },
+    {
+     "t": "A#",
+     "w": 165,
+     "h": 15
+    },
+    {
+     "t": "INPUT#starterTerms",
+     "w": 22,
+     "h": 22
+    }
+   ]
+  },
+  {
+   "lang": "de",
+   "page": "options",
+   "sm": [
+    {
+     "t": "INPUT#baseList",
+     "w": 22,
+     "h": 22
+    },
+    {
+     "t": "A#",
+     "w": 165,
+     "h": 15
+    },
+    {
+     "t": "INPUT#starterTerms",
+     "w": 22,
+     "h": 22
+    }
+   ]
+  }
+ ],
+ "kbd": {
+  "ar/popup": [
+   {
+    "t": "A#help",
+    "name": "ساعدني الآن",
+    "x": 203,
+    "y": 212,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON#settings",
+    "name": "الإعدادات",
+    "x": 74,
+    "y": 212,
+    "outline": "solid 3px",
+    "fv": true
+   }
+  ],
+  "ar/options": [
+   {
+    "t": "A#selftest",
+    "name": "اختبار آمن",
+    "x": 748,
+    "y": 346,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "INPUT#baseList",
+    "name": "حجب المواقع المصنّفة للبالغين",
+    "x": 845,
+    "y": 546,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "A",
+    "name": "THIRD_PARTY_NOTICES.txt",
+    "x": 440,
+    "y": 611,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "INPUT#starterTerms",
+    "name": "عبارات البحث المبدئية (كلمات ك",
+    "x": 845,
+    "y": 647,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "SUMMARY",
+    "name": "عرض العبارات المبدئية",
+    "x": 118,
+    "y": 682,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "TEXTAREA#domains",
+    "name": "مواقع تُحجب — موقع في كل سطر",
+    "x": 118,
+    "y": 372,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "TEXTAREA#words",
+    "name": "كلمات كاملة — عبارة في كل سطر ",
+    "x": 118,
+    "y": 727,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "TEXTAREA#contains",
+    "name": "مطابقة جزئية — عبارة في كل سطر",
+    "x": 118,
+    "y": 372,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "TEXTAREA#allow",
+    "name": "مواقع مسموحة (حجب خاطئ) — موقع",
+    "x": 118,
+    "y": 764,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON",
+    "name": "حفظ التغييرات",
+    "x": 739,
+    "y": 378,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON",
+    "name": "60 دقيقة",
+    "x": 749,
+    "y": 684,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON",
+    "name": "90 دقيقة",
+    "x": 618,
+    "y": 684,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON",
+    "name": "120 دقيقة",
+    "x": 479,
+    "y": 684,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "A",
+    "name": "ساعدني الآن",
+    "x": 727,
+    "y": 744,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON#export",
+    "name": "تصدير الإعدادات",
+    "x": 706,
+    "y": 378,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON#importButton",
+    "name": "استيراد إعدادات",
+    "x": 533,
+    "y": 378,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON#reset",
+    "name": "مسح كل القواعد",
+    "x": 696,
+    "y": 512,
+    "outline": "solid 3px",
+    "fv": true
+   }
+  ],
+  "ar/onboarding": [
+   {
+    "t": "BUTTON#next",
+    "name": "التالي",
+    "x": 808,
+    "y": 368,
+    "outline": "solid 3px",
+    "fv": true
+   }
+  ],
+  "ar/blocked": [
+   {
+    "t": "A",
+    "name": "ساعدني الآن",
+    "x": 436,
+    "y": 324,
+    "outline": "solid 3px",
+    "fv": true
+   }
+  ],
+  "ar/help": [
+   {
+    "t": "BUTTON#start",
+    "name": "ابدأ دقيقة",
+    "x": 436,
+    "y": 550,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "A",
+    "name": "العودة إلى تبصرة",
+    "x": 413,
+    "y": 716,
+    "outline": "solid 3px",
+    "fv": true
+   }
+  ],
+  "en/popup": [
+   {
+    "t": "A#help",
+    "name": "Help me now",
+    "x": 16,
+    "y": 243,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON#settings",
+    "name": "Settings",
+    "x": 170,
+    "y": 243,
+    "outline": "solid 3px",
+    "fv": true
+   }
+  ],
+  "en/options": [
+   {
+    "t": "A#selftest",
+    "name": "Safe test",
+    "x": 118,
+    "y": 377,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "INPUT#baseList",
+    "name": "Block sites classified as adul",
+    "x": 118,
+    "y": 576,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "A",
+    "name": "THIRD_PARTY_NOTICES.txt",
+    "x": 440,
+    "y": 667,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "INPUT#starterTerms",
+    "name": "Starter search phrases (whole ",
+    "x": 118,
+    "y": 704,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "SUMMARY",
+    "name": "Show the starter phrases",
+    "x": 118,
+    "y": 738,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "TEXTAREA#domains",
+    "name": "Sites to block — one per line",
+    "x": 118,
+    "y": 372,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "TEXTAREA#words",
+    "name": "Whole words — one phrase per l",
+    "x": 118,
+    "y": 727,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "TEXTAREA#contains",
+    "name": "Partial match — one phrase per",
+    "x": 118,
+    "y": 372,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "TEXTAREA#allow",
+    "name": "Allowed sites (wrongly blocked",
+    "x": 118,
+    "y": 764,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON",
+    "name": "Save changes",
+    "x": 93,
+    "y": 378,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON",
+    "name": "60 minutes",
+    "x": 118,
+    "y": 714,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON",
+    "name": "90 minutes",
+    "x": 260,
+    "y": 714,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON",
+    "name": "120 minutes",
+    "x": 402,
+    "y": 714,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "A",
+    "name": "Help me now",
+    "x": 118,
+    "y": 756,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON#export",
+    "name": "Export settings",
+    "x": 118,
+    "y": 378,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON#importButton",
+    "name": "Import settings",
+    "x": 287,
+    "y": 378,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON#reset",
+    "name": "Clear all rules",
+    "x": 118,
+    "y": 512,
+    "outline": "solid 3px",
+    "fv": true
+   }
+  ],
+  "en/onboarding": [
+   {
+    "t": "BUTTON#next",
+    "name": "Next",
+    "x": 100,
+    "y": 398,
+    "outline": "solid 3px",
+    "fv": true
+   }
+  ],
+  "en/blocked": [
+   {
+    "t": "A",
+    "name": "Help me now",
+    "x": 423,
+    "y": 324,
+    "outline": "solid 3px",
+    "fv": true
+   }
+  ],
+  "en/help": [
+   {
+    "t": "BUTTON#start",
+    "name": "Start one minute",
+    "x": 402,
+    "y": 550,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "A",
+    "name": "Back to Tabsira",
+    "x": 408,
+    "y": 716,
+    "outline": "solid 3px",
+    "fv": true
+   }
+  ],
+  "de/popup": [
+   {
+    "t": "A#help",
+    "name": "Hilf mir jetzt",
+    "x": 16,
+    "y": 275,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON#settings",
+    "name": "Einstellungen",
+    "x": 165,
+    "y": 275,
+    "outline": "solid 3px",
+    "fv": true
+   }
+  ],
+  "de/options": [
+   {
+    "t": "A#selftest",
+    "name": "Sicherer Test",
+    "x": 118,
+    "y": 407,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "INPUT#baseList",
+    "name": "Websites blockieren, die als I",
+    "x": 118,
+    "y": 607,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "A",
+    "name": "THIRD_PARTY_NOTICES.txt",
+    "x": 440,
+    "y": 698,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "INPUT#starterTerms",
+    "name": "Start-Suchbegriffe (ganze Wört",
+    "x": 118,
+    "y": 734,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "SUMMARY",
+    "name": "Start-Begriffe anzeigen",
+    "x": 118,
+    "y": 769,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "TEXTAREA#domains",
+    "name": "Zu blockierende Websites – ein",
+    "x": 118,
+    "y": 372,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "TEXTAREA#words",
+    "name": "Ganze Wörter – ein Begriff pro",
+    "x": 118,
+    "y": 726,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "TEXTAREA#contains",
+    "name": "Teilübereinstimmung – ein Begr",
+    "x": 118,
+    "y": 372,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "TEXTAREA#allow",
+    "name": "Erlaubte Websites (fälschlich ",
+    "x": 118,
+    "y": 372,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON",
+    "name": "Änderungen speichern",
+    "x": 93,
+    "y": 660,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON",
+    "name": "60 Minuten",
+    "x": 118,
+    "y": 378,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON",
+    "name": "90 Minuten",
+    "x": 261,
+    "y": 378,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON",
+    "name": "120 Minuten",
+    "x": 404,
+    "y": 378,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "A",
+    "name": "Hilf mir jetzt",
+    "x": 118,
+    "y": 438,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON#export",
+    "name": "Einstellungen exportieren",
+    "x": 118,
+    "y": 730,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON#importButton",
+    "name": "Einstellungen importieren",
+    "x": 359,
+    "y": 730,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "BUTTON#reset",
+    "name": "Alle Regeln löschen",
+    "x": 118,
+    "y": 378,
+    "outline": "solid 3px",
+    "fv": true
+   }
+  ],
+  "de/onboarding": [
+   {
+    "t": "BUTTON#next",
+    "name": "Weiter",
+    "x": 100,
+    "y": 398,
+    "outline": "solid 3px",
+    "fv": true
+   }
+  ],
+  "de/blocked": [
+   {
+    "t": "A",
+    "name": "Hilf mir jetzt",
+    "x": 425,
+    "y": 354,
+    "outline": "solid 3px",
+    "fv": true
+   }
+  ],
+  "de/help": [
+   {
+    "t": "BUTTON#start",
+    "name": "Eine Minute starten",
+    "x": 392,
+    "y": 550,
+    "outline": "solid 3px",
+    "fv": true
+   },
+   {
+    "t": "A",
+    "name": "Zurück zu Tabsira",
+    "x": 400,
+    "y": 716,
+    "outline": "solid 3px",
+    "fv": true
+   }
+  ]
+ },
+ "aria": {
+  "ar/popup": "- main:\n  - text: تبصرة مساحة تختار فيها\n  - status: القواعد مثبتة وصلاحياتها متاحة. اختبرها بالاختبار الآمن.\n  - paragraph: لا توجد جلسة التزام نشطة.\n  - link \"ساعدني الآن\":\n    - /url: help.html\n  - button \"الإعدادات\"\n  - paragraph: الحجب للمواقع والعبارات التي تضيفها فقط. لا يفحص الصور ولا محتوى الصفحات.",
+  "ar/options": "- main:\n  - text: تبصرة مساحة تختار فيها\n  - heading \"إعداد تبصرة\" [level=1]\n  - region \"الحالة\":\n    - heading \"الحالة\" [level=2]\n    - status: القواعد مثبتة وصلاحياتها متاحة. اختبرها بالاختبار الآمن.\n    - paragraph: لا توجد جلسة التزام نشطة.\n    - paragraph: \"التصفح الخفي: غير مفعّل للإضافة. فعّله من صفحة الإضافات في المتصفح إن أردت.\"\n    - link \"اختبار آمن\":\n      - /url: https://tabsira-selftest.test/\n    - paragraph: يفتح عنوانًا وهميًا محجوزًا للاختبار. إذا ظهرت صفحة تبصرة فالحجب يعمل في هذا المتصفح.\n  - region \"قائمة المواقع الأساسية\":\n    - heading \"قائمة المواقع الأساسية\" [level=2]\n    - checkbox \"حجب المواقع المصنّفة للبالغين\" [checked]\n    - text: حجب المواقع المصنّفة للبالغين ⁦242,750⁩ نطاق · لقطة بتاريخ ⁦2026-10-02⁩. التصنيف آلي مجتمعي وقد يخطئ؛ لا يوجد تحقق ذاتي من كل نطاق. ShadowWhisperer (Unlicense) · Sinfonietta (MIT) —\n    - link \"THIRD_PARTY_NOTICES.txt\":\n      - /url: THIRD_PARTY_NOTICES.txt\n    - checkbox \"عبارات البحث المبدئية (كلمات كاملة)\" [checked]\n    - text: عبارات البحث المبدئية (كلمات كاملة)\n    - group: عرض العبارات المبدئية\n  - region \"مواقعي\":\n    - heading \"مواقعي\" [level=2]\n    - text: مواقع تُحجب — موقع في كل سطر\n    - textbox \"مواقع تُحجب — موقع في كل سطر\"\n    - text: يحجب الموقع ونطاقاته الفرعية (مثل example.com يحجب mail.example.com ولا يحجب badexample.com). اكتب النطاق فقط دون مسار.\n    - alert\n  - region \"عبارات البحث\":\n    - heading \"عبارات البحث\" [level=2]\n    - text: كلمات كاملة — عبارة في كل سطر (موصى به)\n    - textbox \"كلمات كاملة — عبارة في كل سطر (موصى به)\"\n    - alert\n    - text: مطابقة جزئية — عبارة في كل سطر (أوسع، وقد تحجب بحثًا سليمًا)\n    - textbox \"مطابقة جزئية — عبارة في كل سطر (أوسع، وقد تحجب بحثًا سليمًا)\"\n    - alert\n    - text: تُطابق العبارة داخل معامل البحث فقط (q أو p أو search_query أو text) في Google وBing وDuckDuckGo وYahoo وYouTube وYandex وBrave وEcosia وQwant، بترميز + أو %20 وبغض النظر عن حالة الأحرف. تُزال التشكيلة والتطويل من العبارة، ولا تُوحَّد صور الألف والياء. العبارة العربية الواحدة محدودة بنحو ١٢–١٤ حرفًا (أقل مع المسافات) بسبب حدود المتصفح. لا يلتقط البحث الذي لا يحمّل صفحة جديدة.\n  - region \"الاستثناءات\":\n    - heading \"الاستثناءات\" [level=2]\n    - text: مواقع مسموحة (حجب خاطئ) — موقع في كل سطر\n    - textbox \"مواقع مسموحة (حجب خاطئ) — موقع في كل سطر\"\n    - text: للاستثناء الأولوية على القائمة الأساسية وعلى مواقعك. لا يمكن استثناء محركات البحث. إضافة استثناء تُعد تخفيفًا للحماية فلا تُسمح أثناء جلسة التزام.\n    - alert\n  - button \"حفظ التغييرات\"\n  - status\n  - region \"أحتاج حدودًا أقوى الآن\":\n    - heading \"أحتاج حدودًا أقوى الآن\" [level=2]\n    - paragraph: \"جلسة الالتزام تمنع من داخل الإضافة كل ما يخفّف الحماية: حذف قاعدة، إيقاف القائمة الأساسية، إضافة استثناء، استيراد إعدادات أضعف، أو إعادة الضبط. يمكنك فقط إضافة حماية أقوى. تنتهي في موعدها وتسمح بالتعديل فقط، ولا تزيل أي حجب. تغيير ساعة الجهاز يغيّر موعد الانتهاء، ويمكن حذف الإضافة أو تعطيلها من المتصفح.\"\n    - button \"60 دقيقة\"\n    - button \"90 دقيقة\"\n    - button \"120 دقيقة\"\n    - link \"ساعدني الآن\":\n      - /url: help.html\n  - region \"نسخة احتياطية\":\n    - heading \"نسخة احتياطية\" [level=2]\n    - paragraph: التصدير يحفظ إعداداتك (مواقعك وعباراتك واستثناءاتك) في ملف على جهازك. الملف غير مشفّر، فاحفظه بحذر. الاستيراد يدمج الملف مع إعداداتك ولا يضعف الحماية، ولا يُقبل أثناء جلسة الالتزام إن تضمّن استثناءات جديدة.\n    - button \"تصدير الإعدادات\"\n    - button \"استيراد إعدادات\"\n    - paragraph: ملف التصدير يضم المواقع والعبارات التي اخترتها بنص عادي غير مشفّر. احتفظ به لنفسك.\n    - heading \"مسح كل القواعد\" [level=2]\n    - button \"مسح كل القواعد\"\n  - region \"الخصوصية والحدود\":\n    - heading \"الخصوصية والحدود\" [level=2]\n    - paragraph: لا حسابات ولا تحليلات ولا سجل تصفح ولا إرسال بيانات لأي خادم أو شخص. تُحفظ إعداداتك محليًا في هذا المتصفح وقد تكون غير مشفّرة. لا نحفظ محاولات الحجب أو كلمات بحثك.\n    - paragraph: تُحجب الصفحات الرئيسية فقط (لا الإطارات المضمّنة ولا الصور). لا تعمل الإضافة في متصفحات أو ملفات محلية أخرى. يمكن حذفها أو تعطيلها، والتصفح الخفي يحتاج تفعيلًا يدويًا. لا تقرأ الشاشة ولا الصور ولا محتوى الصفحات.\n    - paragraph: الإصدار 1.0.0",
+  "ar/onboarding": "- main:\n  - text: تبصرة مساحة تختار فيها\n  - heading \"مرحبًا بك في تبصرة\" [level=1]\n  - status: الخطوة 1 من 5\n  - heading \"ما الذي تفعله الإضافة؟\" [level=2]\n  - paragraph: تحجب المواقع وعبارات البحث التي تختارها أنت، وعند الحجب تعرض صفحة هادئة بمساعدة قصيرة. هي أداة مكمّلة لحمايات أخرى (مثل تطبيق الجوال أو DNS العائلي)، وليست بديلًا عنها ولا علاجًا مثبتًا.\n  - button \"التالي\"",
+  "ar/blocked": "- main:\n  - paragraph: تبصرة\n  - heading \"لنأخذ لحظة\" [level=1]\n  - paragraph: طابق هذا الطلب قاعدة في قائمة الحجب التي اخترتها.\n  - paragraph: لن يُفتح الموقع من هنا. يمكنك أخذ دقيقة واختيار خطوة تناسبك.\n  - link \"ساعدني الآن\":\n    - /url: help.html\n  - paragraph: هل هذا حجب خاطئ؟ أضف الموقع إلى الاستثناءات من الإعدادات (غير متاح أثناء جلسة التزام).\n  - paragraph: لا نحفظ عنوان الصفحة ولا نص البحث الذي أدى إلى الحجب.",
+  "ar/help": "- main:\n  - paragraph: ساعدني الآن\n  - heading \"خذ مساحة قبل القرار\" [level=1]\n  - paragraph: لا يُطلب منك حل كل شيء الآن. فقط لنغيّر هذه اللحظة.\n  - heading \"دقيقة بعيدًا عن الشاشة\" [level=2]\n  - paragraph: ارفع يدك عن الفأرة، خذ نفسًا هادئًا، وقم من مكانك إن استطعت.\n  - timer \"الوقت المتبقي بالثواني\":\n    - status: \"60\"\n  - button \"ابدأ دقيقة\"\n  - status: الدقيقة لا تفتح أي موقع ولا توقف الحجب.\n  - heading \"اختر الخطوة التالية\" [level=2]\n  - paragraph: ضع الجهاز بعيدًا، اخرج إلى مكان مشترك، أو تواصل مع شخص تثق به.\n  - paragraph: هذه المساعدة ليست علاجًا ولا ضمانًا للتعافي. إذا احتجت دعمًا متخصصًا فتواصل مع مختص أو جهة موثوقة في بلدك.\n  - link \"العودة إلى تبصرة\":\n    - /url: options.html",
+  "en/popup": "- main:\n  - text: Tabsira A space to choose\n  - status: Rules are installed and the required permission is available. Try the safe test to confirm.\n  - paragraph: No commitment session is active.\n  - link \"Help me now\":\n    - /url: help.html\n  - button \"Settings\"\n  - paragraph: Blocks only the sites and phrases you set. It does not scan images or page content.",
+  "en/options": "- main:\n  - text: Tabsira A space to choose\n  - heading \"Tabsira settings\" [level=1]\n  - region \"Status\":\n    - heading \"Status\" [level=2]\n    - status: Rules are installed and the required permission is available. Try the safe test to confirm.\n    - paragraph: No commitment session is active.\n    - paragraph: \"Private browsing: not enabled for the extension. Turn it on in the browser’s extensions page if you want it.\"\n    - link \"Safe test\":\n      - /url: https://tabsira-selftest.test/\n    - paragraph: Opens a reserved dummy address. If the Tabsira page appears, blocking works in this browser.\n  - region \"Built-in sites list\":\n    - heading \"Built-in sites list\" [level=2]\n    - checkbox \"Block sites classified as adult\" [checked]\n    - text: Block sites classified as adult ⁦242,750⁩ domains · snapshot of ⁦2026-10-02⁩. Classification is automated and community-made and can be wrong; each domain is not individually verified. ShadowWhisperer (Unlicense) · Sinfonietta (MIT) —\n    - link \"THIRD_PARTY_NOTICES.txt\":\n      - /url: THIRD_PARTY_NOTICES.txt\n    - checkbox \"Starter search phrases (whole words)\" [checked]\n    - text: Starter search phrases (whole words)\n    - group: Show the starter phrases\n  - region \"My sites\":\n    - heading \"My sites\" [level=2]\n    - text: Sites to block — one per line\n    - textbox \"Sites to block — one per line\"\n    - text: Blocks the site and its subdomains (example.com blocks mail.example.com but not badexample.com). Enter the domain only, no path.\n    - alert\n  - region \"Search phrases\":\n    - heading \"Search phrases\" [level=2]\n    - text: Whole words — one phrase per line (recommended)\n    - textbox \"Whole words — one phrase per line (recommended)\"\n    - alert\n    - text: Partial match — one phrase per line (broader, may block harmless searches)\n    - textbox \"Partial match — one phrase per line (broader, may block harmless searches)\"\n    - alert\n    - text: Matched inside the search parameter only (q, p, search_query or text) on Google, Bing, DuckDuckGo, Yahoo, YouTube, Yandex, Brave, Ecosia and Qwant, with + or %20 spaces, case-insensitive. Arabic diacritics and tatweel are removed from your phrase; alef/ya variants are not unified. A single Arabic phrase is limited to about 12–14 letters (fewer with spaces) by browser limits. Searches that do not load a new page are not caught.\n  - region \"Exceptions\":\n    - heading \"Exceptions\" [level=2]\n    - text: Allowed sites (wrongly blocked) — one per line\n    - textbox \"Allowed sites (wrongly blocked) — one per line\"\n    - text: An exception wins over the built-in list and over your sites. Search engines cannot be excepted. Adding an exception counts as weakening, so it is not allowed during a commitment session.\n    - alert\n  - button \"Save changes\"\n  - status\n  - region \"I need stronger limits right now\":\n    - heading \"I need stronger limits right now\" [level=2]\n    - paragraph: \"A commitment session blocks, from inside the extension, everything that weakens protection: deleting a rule, turning off the built-in list, adding an exception, importing weaker settings, or resetting. You can only add stronger protection. It ends on time and then only allows editing; it removes no blocking. Changing the device clock changes the end time, and the extension can still be removed or disabled in the browser.\"\n    - button \"60 minutes\"\n    - button \"90 minutes\"\n    - button \"120 minutes\"\n    - link \"Help me now\":\n      - /url: help.html\n  - region \"Backup\":\n    - heading \"Backup\" [level=2]\n    - paragraph: Export saves your settings (sites, phrases, exceptions) to a file on your device. The file is not encrypted, so keep it carefully. Import merges the file with your settings and never weakens protection; it is refused during a commitment session if it adds exceptions.\n    - button \"Export settings\"\n    - button \"Import settings\"\n    - paragraph: The export file lists the sites and phrases you chose as plain, unencrypted text. Keep it private.\n    - heading \"Clear all rules\" [level=2]\n    - button \"Clear all rules\"\n  - region \"Privacy and limits\":\n    - heading \"Privacy and limits\" [level=2]\n    - paragraph: No accounts, no analytics, no browsing history, nothing sent to any server or person. Your settings are stored locally in this browser and may be unencrypted. We do not store block attempts or your search words.\n    - paragraph: Only top-level pages are blocked (not embedded frames or images). It does not work in other browsers or on local files. It can be removed or disabled, and private browsing must be enabled manually. It does not read the screen, images or page content.\n    - paragraph: Version 1.0.0",
+  "en/onboarding": "- main:\n  - text: Tabsira A space to choose\n  - heading \"Welcome to Tabsira\" [level=1]\n  - status: Step 1 of 5\n  - heading \"What it does\" [level=2]\n  - paragraph: It blocks the sites and search phrases you choose, and when something is blocked it shows a calm page with short help. It complements other protections (such as a phone app or family DNS); it is not a replacement and not a proven treatment.\n  - button \"Next\"",
+  "en/blocked": "- main:\n  - paragraph: Tabsira\n  - heading \"Let’s take a moment\" [level=1]\n  - paragraph: This request matched a rule in the blocking list you chose.\n  - paragraph: The site will not open from here. You can take a minute and pick a step that suits you.\n  - link \"Help me now\":\n    - /url: help.html\n  - paragraph: A wrong block? Add the site to Exceptions in Settings (not possible during a commitment session).\n  - paragraph: We do not store the page address or the search text that led here.",
+  "en/help": "- main:\n  - paragraph: Help me now\n  - heading \"Make room before deciding\" [level=1]\n  - paragraph: You do not have to solve everything right now. Let’s just change this moment.\n  - heading \"One minute away from the screen\" [level=2]\n  - paragraph: Take your hand off the mouse, breathe slowly, and stand up if you can.\n  - timer \"Seconds remaining\":\n    - status: \"60\"\n  - button \"Start one minute\"\n  - status: The minute never opens a site and never turns blocking off.\n  - heading \"Choose your next step\" [level=2]\n  - paragraph: Put the device down, go somewhere shared, or reach out to someone you trust.\n  - paragraph: This help is not treatment and not a guarantee of recovery. If you need professional support, contact a qualified professional or a trusted service in your country.\n  - link \"Back to Tabsira\":\n    - /url: options.html",
+  "de/popup": "- main:\n  - text: Tabsira Ein Raum für deine Entscheidung\n  - status: Regeln sind installiert und die nötige Berechtigung ist vorhanden. Bestätige es mit dem sicheren Test.\n  - paragraph: Keine Selbstverpflichtung aktiv.\n  - link \"Hilf mir jetzt\":\n    - /url: help.html\n  - button \"Einstellungen\"\n  - paragraph: Blockiert nur die Websites und Begriffe, die du festlegst. Bilder und Seiteninhalte werden nicht geprüft.",
+  "de/options": "- main:\n  - text: Tabsira Ein Raum für deine Entscheidung\n  - heading \"Tabsira-Einstellungen\" [level=1]\n  - region \"Status\":\n    - heading \"Status\" [level=2]\n    - status: Regeln sind installiert und die nötige Berechtigung ist vorhanden. Bestätige es mit dem sicheren Test.\n    - paragraph: Keine Selbstverpflichtung aktiv.\n    - paragraph: \"Privates Surfen: für die Erweiterung nicht aktiviert. Aktiviere es bei Bedarf auf der Erweiterungsseite des Browsers.\"\n    - link \"Sicherer Test\":\n      - /url: https://tabsira-selftest.test/\n    - paragraph: Öffnet eine reservierte Test-Adresse. Erscheint die Tabsira-Seite, funktioniert das Blockieren in diesem Browser.\n  - region \"Integrierte Website-Liste\":\n    - heading \"Integrierte Website-Liste\" [level=2]\n    - checkbox \"Websites blockieren, die als Inhalte für Erwachsene eingestuft sind\" [checked]\n    - text: \"Websites blockieren, die als Inhalte für Erwachsene eingestuft sind ⁦242.750⁩ Domains · Stand: ⁦2026-10-02⁩. Die Einstufung ist automatisiert und von der Community; sie kann falsch sein, einzelne Domains werden nicht geprüft. ShadowWhisperer (Unlicense) · Sinfonietta (MIT) —\"\n    - link \"THIRD_PARTY_NOTICES.txt\":\n      - /url: THIRD_PARTY_NOTICES.txt\n    - checkbox \"Start-Suchbegriffe (ganze Wörter)\" [checked]\n    - text: Start-Suchbegriffe (ganze Wörter)\n    - group: Start-Begriffe anzeigen\n  - region \"Meine Websites\":\n    - heading \"Meine Websites\" [level=2]\n    - text: Zu blockierende Websites – eine pro Zeile\n    - textbox \"Zu blockierende Websites – eine pro Zeile\"\n    - text: Blockiert die Website und ihre Subdomains (example.com blockiert mail.example.com, aber nicht badexample.com). Nur die Domain eingeben, ohne Pfad.\n    - alert\n  - region \"Suchbegriffe\":\n    - heading \"Suchbegriffe\" [level=2]\n    - text: Ganze Wörter – ein Begriff pro Zeile (empfohlen)\n    - textbox \"Ganze Wörter – ein Begriff pro Zeile (empfohlen)\"\n    - alert\n    - text: Teilübereinstimmung – ein Begriff pro Zeile (breiter, kann harmlose Suchen blockieren)\n    - textbox \"Teilübereinstimmung – ein Begriff pro Zeile (breiter, kann harmlose Suchen blockieren)\"\n    - alert\n    - text: Es wird nur im Suchparameter (q, p, search_query oder text) von Google, Bing, DuckDuckGo, Yahoo, YouTube, Yandex, Brave, Ecosia und Qwant geprüft, mit + oder %20 als Leerzeichen, ohne Beachtung der Groß-/Kleinschreibung. Arabische Diakritika und Tatwil werden entfernt; Alef-/Ya-Varianten werden nicht vereinheitlicht. Ein einzelner arabischer Begriff ist durch Browser-Grenzen auf etwa 12–14 Buchstaben begrenzt (weniger mit Leerzeichen). Suchen ohne neues Laden der Seite werden nicht erfasst.\n  - region \"Ausnahmen\":\n    - heading \"Ausnahmen\" [level=2]\n    - text: Erlaubte Websites (fälschlich blockiert) – eine pro Zeile\n    - textbox \"Erlaubte Websites (fälschlich blockiert) – eine pro Zeile\"\n    - text: Eine Ausnahme hat Vorrang vor der integrierten Liste und deinen Websites. Suchmaschinen können nicht ausgenommen werden. Eine Ausnahme schwächt den Schutz und ist daher während einer Selbstverpflichtung nicht erlaubt.\n    - alert\n  - button \"Änderungen speichern\"\n  - status\n  - region \"Ich brauche jetzt stärkere Grenzen\":\n    - heading \"Ich brauche jetzt stärkere Grenzen\" [level=2]\n    - paragraph: \"Eine Selbstverpflichtung verhindert innerhalb der Erweiterung alles, was den Schutz schwächt: Regel löschen, integrierte Liste ausschalten, Ausnahme hinzufügen, schwächere Einstellungen importieren oder zurücksetzen. Du kannst nur stärkeren Schutz hinzufügen. Sie endet pünktlich und erlaubt dann nur das Bearbeiten; sie entfernt keine Sperre. Eine Änderung der Geräteuhr verschiebt das Ende, und die Erweiterung kann im Browser weiterhin entfernt oder deaktiviert werden.\"\n    - button \"60 Minuten\"\n    - button \"90 Minuten\"\n    - button \"120 Minuten\"\n    - link \"Hilf mir jetzt\":\n      - /url: help.html\n  - region \"Sicherung\":\n    - heading \"Sicherung\" [level=2]\n    - paragraph: Der Export speichert deine Einstellungen (Websites, Begriffe, Ausnahmen) in einer Datei auf deinem Gerät. Die Datei ist nicht verschlüsselt, bewahre sie sorgfältig auf. Der Import führt die Datei mit deinen Einstellungen zusammen und schwächt den Schutz nie; während einer Selbstverpflichtung wird er abgelehnt, wenn er Ausnahmen hinzufügt.\n    - button \"Einstellungen exportieren\"\n    - button \"Einstellungen importieren\"\n    - paragraph: Die Exportdatei enthält die gewählten Websites und Begriffe als unverschlüsselten Klartext. Bewahre sie privat auf.\n    - heading \"Alle Regeln löschen\" [level=2]\n    - button \"Alle Regeln löschen\"\n  - region \"Datenschutz und Grenzen\":\n    - heading \"Datenschutz und Grenzen\" [level=2]\n    - paragraph: Keine Konten, keine Analysen, kein Verlauf, nichts wird an Server oder Personen gesendet. Deine Einstellungen werden lokal in diesem Browser gespeichert und sind möglicherweise unverschlüsselt. Wir speichern weder Blockier-Versuche noch deine Suchbegriffe.\n    - paragraph: Nur Hauptseiten werden blockiert (keine eingebetteten Frames oder Bilder). Sie wirkt nicht in anderen Browsern oder bei lokalen Dateien. Sie kann entfernt oder deaktiviert werden, privates Surfen muss manuell erlaubt werden. Sie liest weder Bildschirm noch Bilder noch Seiteninhalte.\n    - paragraph: Version 1.0.0",
+  "de/onboarding": "- main:\n  - text: Tabsira Ein Raum für deine Entscheidung\n  - heading \"Willkommen bei Tabsira\" [level=1]\n  - status: Schritt 1 von 5\n  - heading \"Was die Erweiterung tut\" [level=2]\n  - paragraph: Sie blockiert die Websites und Suchbegriffe, die du wählst, und zeigt dann eine ruhige Seite mit kurzer Hilfe. Sie ergänzt andere Schutzmaßnahmen (z. B. eine Handy-App oder Familien-DNS), ersetzt sie nicht und ist keine bewiesene Behandlung.\n  - button \"Weiter\"",
+  "de/blocked": "- main:\n  - paragraph: Tabsira\n  - heading \"Nehmen wir uns einen Moment\" [level=1]\n  - paragraph: Diese Anfrage entsprach einer Regel in der von dir gewählten Blockliste.\n  - paragraph: Die Seite wird von hier aus nicht geöffnet. Du kannst dir eine Minute nehmen und einen passenden nächsten Schritt wählen.\n  - link \"Hilf mir jetzt\":\n    - /url: help.html\n  - paragraph: Falsch blockiert? Füge die Seite in den Einstellungen zu den Ausnahmen hinzu (während einer Selbstverpflichtung nicht möglich).\n  - paragraph: Wir speichern weder die Seitenadresse noch den Suchtext, der hierher geführt hat.",
+  "de/help": "- main:\n  - paragraph: Hilf mir jetzt\n  - heading \"Schaffe Raum vor der Entscheidung\" [level=1]\n  - paragraph: Du musst nicht alles jetzt lösen. Lass uns nur diesen Moment verändern.\n  - heading \"Eine Minute Abstand vom Bildschirm\" [level=2]\n  - paragraph: Nimm die Hand von der Maus, atme ruhig und steh auf, wenn du kannst.\n  - timer \"Verbleibende Sekunden\":\n    - status: \"60\"\n  - button \"Eine Minute starten\"\n  - status: Die Minute öffnet keine Seite und schaltet das Blockieren nicht ab.\n  - heading \"Wähle deinen nächsten Schritt\" [level=2]\n  - paragraph: Leg das Gerät weg, geh an einen gemeinsamen Ort oder melde dich bei jemandem, dem du vertraust.\n  - paragraph: Diese Hilfe ist keine Behandlung und keine Garantie für Genesung. Wenn du fachliche Unterstützung brauchst, wende dich an Fachleute oder eine vertrauenswürdige Stelle in deinem Land.\n  - link \"Zurück zu Tabsira\":\n    - /url: options.html"
+ },
+ "lang": {
+  "ar/popup": {
+   "lang": "ar",
+   "dir": "rtl",
+   "title": "تبصرة",
+   "fontLatin": "Tajawal, \"Segoe UI\", system-ui, sans-serif"
+  },
+  "ar/options": {
+   "lang": "ar",
+   "dir": "rtl",
+   "title": "إعداد تبصرة",
+   "fontLatin": "Tajawal, \"Segoe UI\", system-ui, sans-serif"
+  },
+  "ar/onboarding": {
+   "lang": "ar",
+   "dir": "rtl",
+   "title": "مرحبًا بك في تبصرة",
+   "fontLatin": "Tajawal, \"Segoe UI\", system-ui, sans-serif"
+  },
+  "ar/blocked": {
+   "lang": "ar",
+   "dir": "rtl",
+   "title": "تبصرة",
+   "fontLatin": "Tajawal, \"Segoe UI\", system-ui, sans-serif"
+  },
+  "ar/help": {
+   "lang": "ar",
+   "dir": "rtl",
+   "title": "تبصرة",
+   "fontLatin": "Tajawal, \"Segoe UI\", system-ui, sans-serif"
+  },
+  "en/popup": {
+   "lang": "en",
+   "dir": "ltr",
+   "title": "Tabsira",
+   "fontLatin": "Tajawal, \"Segoe UI\", system-ui, sans-serif"
+  },
+  "en/options": {
+   "lang": "en",
+   "dir": "ltr",
+   "title": "Tabsira settings",
+   "fontLatin": "Tajawal, \"Segoe UI\", system-ui, sans-serif"
+  },
+  "en/onboarding": {
+   "lang": "en",
+   "dir": "ltr",
+   "title": "Welcome to Tabsira",
+   "fontLatin": "Tajawal, \"Segoe UI\", system-ui, sans-serif"
+  },
+  "en/blocked": {
+   "lang": "en",
+   "dir": "ltr",
+   "title": "Tabsira",
+   "fontLatin": "Tajawal, \"Segoe UI\", system-ui, sans-serif"
+  },
+  "en/help": {
+   "lang": "en",
+   "dir": "ltr",
+   "title": "Tabsira",
+   "fontLatin": "Tajawal, \"Segoe UI\", system-ui, sans-serif"
+  },
+  "de/popup": {
+   "lang": "de",
+   "dir": "ltr",
+   "title": "Tabsira",
+   "fontLatin": "Tajawal, \"Segoe UI\", system-ui, sans-serif"
+  },
+  "de/options": {
+   "lang": "de",
+   "dir": "ltr",
+   "title": "Tabsira-Einstellungen",
+   "fontLatin": "Tajawal, \"Segoe UI\", system-ui, sans-serif"
+  },
+  "de/onboarding": {
+   "lang": "de",
+   "dir": "ltr",
+   "title": "Willkommen bei Tabsira",
+   "fontLatin": "Tajawal, \"Segoe UI\", system-ui, sans-serif"
+  },
+  "de/blocked": {
+   "lang": "de",
+   "dir": "ltr",
+   "title": "Tabsira",
+   "fontLatin": "Tajawal, \"Segoe UI\", system-ui, sans-serif"
+  },
+  "de/help": {
+   "lang": "de",
+   "dir": "ltr",
+   "title": "Tabsira",
+   "fontLatin": "Tajawal, \"Segoe UI\", system-ui, sans-serif"
+  }
+ }
+}

@@ -1,0 +1,52 @@
+{
+ "maxSave": {
+  "ok": true,
+  "ms": 409
+ },
+ "maxCounts": {
+  "dynamicRules": 260,
+  "domains": 1000,
+  "allow": 0,
+  "words": 60,
+  "contains": 40,
+  "starter": 25
+ },
+ "maxState": {
+  "state": "active",
+  "reasons": []
+ },
+ "maxGetStatusWarm": {
+  "n": 10,
+  "min": 31,
+  "median": 35,
+  "max": 42
+ },
+ "maxGetStatusColdWorker": {
+  "n": 8,
+  "min": 227,
+  "median": 306,
+  "max": 462
+ },
+ "maxSaveVariants": {
+  "n": 5,
+  "min": 174,
+  "median": 202,
+  "max": 212
+ },
+ "growth300Saves": {
+  "ms": 53451,
+  "before": {
+   "keys": 3,
+   "bytes": 44830
+  },
+  "after": {
+   "keys": 3,
+   "by": {
+    "cfg": 2,
+    "ep": 1
+   },
+   "bytes": 5092
+  }
+ },
+ "workerHeapMB": null
+}

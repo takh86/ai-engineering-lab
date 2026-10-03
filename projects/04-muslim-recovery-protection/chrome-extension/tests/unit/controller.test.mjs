@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { RULE_ID } from '../../src/core/rules.js';
 import { createController } from '../../src/background/controller.js';
 import { isTrustedSender, validateMessage } from '../../src/background/messages.js';
 import { createFakeBrowser, storedConfig, corruptConfig } from './fake-browser.mjs';
@@ -47,7 +48,7 @@ test('missing host permission is "partial", never "active"; recovers when grante
 test('save persists config and installs rules; stale revision is rejected; unsupported phrase names its line only', async () => {
     const t = setup(); await t.onboard(false, false);
     const ok = await t.save({ domains: ['example.com'], words: ['alpha beta'] });
-    assert.ok(ok.ok); assert.equal(t.state.rules.length, 1 + 4);
+    assert.ok(ok.ok); assert.equal(t.state.rules.length, 1 + 4 + 1);   // + the safe-test rule
     assert.equal(ok.status.counts.domains, 1);
     const stale = await t.send({ type: 'SAVE_SETTINGS', baseRevision: 0, settings: { ...noList, domains: [] } });
     assert.equal(code(stale), 'stale');
@@ -58,12 +59,14 @@ test('save persists config and installs rules; stale revision is rejected; unsup
     assert.ok(!JSON.stringify(tooLong).includes('ع'));
 });
 
-test('exception beats base/user block by priority; conflicting entries are refused', async () => {
+test('exception excludes additional blocks only; conflicting entries are refused', async () => {
     const t = setup(); await t.onboard(true, false);
     assert.ok((await t.save({ baseList: true, domains: ['example.com'], allow: ['ok.example.com'] })).ok);
     const allow = t.state.rules.find(r => r.action.type === 'allow');
     const block = t.state.rules.find(r => r.condition.requestDomains?.includes('example.com'));
-    assert.ok(allow.priority > block.priority);
+    assert.equal(allow, undefined, 'core has no allow-rule bypass');
+    assert.deepEqual(block.condition.excludedRequestDomains, ['ok.example.com']);
+    assert.equal(t.state.baseEnabled, true);
     assert.equal(code(await t.save({ baseList: true, domains: ['a.ok.example.com'], allow: ['ok.example.com'] })), 'conflict_domain_allow');
 });
 
@@ -75,7 +78,7 @@ test('commitment: refuses every weakening path, allows stronger changes, ends on
     const rev = () => storedConfig(t.state).revision;
     const base = { baseList: true, starterTerms: true, domains: ['example.com'], words: ['alpha beta'], contains: ['gamma'], allow: ['fine.example.net'] };
     const attempt = over => t.send({ type: 'SAVE_SETTINGS', baseRevision: rev(), settings: { ...base, ...over } });
-    for (const [over, why] of [[{ domains: [] }, 'domain_removed'], [{ baseList: false }, 'base_list_disabled'], [{ starterTerms: false }, 'starter_terms_disabled'],
+    for (const [over, why] of [[{ domains: [] }, 'domain_removed'], [{ starterTerms: false }, 'starter_terms_disabled'],
         [{ words: [] }, 'phrase_removed'], [{ contains: [] }, 'phrase_removed'], [{ allow: ['fine.example.net', 'new.example.org'] }, 'exception_added']]) {
         const r = await attempt(over);
         assert.equal(code(r), 'locked_weakening'); assert.ok(r.error.params.reasons.includes(why), why);
@@ -102,11 +105,11 @@ test('commitment cannot start around inactive protection or with nothing configu
     const t = setup();
     assert.equal(code(await t.send({ type: 'START_SESSION', minutes: 60 })), 'session_needs_rules');
     await t.onboard(false, false);
-    assert.equal(code(await t.send({ type: 'START_SESSION', minutes: 60 })), 'session_needs_rules');
+    assert.ok((await t.send({ type: 'START_SESSION', minutes: 60 })).ok, 'mandatory core is enough to commit');
     await t.save({ domains: ['example.com'] });
     t.state.hosts = false;
     assert.equal(code(await t.send({ type: 'START_SESSION', minutes: 60 })), 'session_needs_active_protection');
-    assert.equal(lockUntil(t), 0);
+    assert.ok(lockUntil(t) > 0, 'refusal does not erase the previous valid commitment');
 });
 
 test('commitment survives service-worker restart and config/lock live in separate keys', async () => {
@@ -131,8 +134,9 @@ test('storage failure after rules were installed restores rules and settings', a
 
 test('base-ruleset switch failing after dynamic rules changed rolls the dynamic rules back', async () => {
     const t = setup(); await t.onboard(false, false); await t.save({ domains: ['example.com'] });
+    t.state.baseEnabled = false; // simulate ruleset loss so repair of mandatory core must switch it on
     t.state.fail['rulesets.update'] = true;
-    const r = await t.save({ baseList: true, domains: ['example.org'] });
+    const r = await t.send({ type: 'SAVE_SETTINGS', baseRevision: storedConfig(t.state).revision, settings: { ...noList, baseList: true, domains: ['example.org'] } });
     assert.equal(code(r), 'apply_failed');
     assert.deepEqual(t.state.rules[0].condition.requestDomains, ['example.com']);
     assert.equal(t.state.baseEnabled, false);
@@ -158,7 +162,7 @@ test('dynamic rules wiped behind our back are restored on restart and by status'
     const t = setup(); await t.onboard(true, false); await t.save({ baseList: true, domains: ['example.com'] });
     t.state.rules = []; t.state.baseEnabled = false;
     const status = await t.restart().reconcile();
-    assert.equal(status.state, 'active'); assert.equal(t.state.rules.length, 1); assert.equal(t.state.baseEnabled, true);
+    assert.equal(status.state, 'active'); assert.equal(t.state.rules.length, 2); assert.equal(t.state.baseEnabled, true);   // user sites + safe-test rule
 });
 
 test('corrupt or unreadable storage never removes existing protection and reports unknown', async () => {
@@ -179,10 +183,10 @@ test('corrupt config: reset is the escape hatch but an active commitment still b
     await t.send({ type: 'START_SESSION', minutes: 60 });
     corruptConfig(t.state, 'garbage');
     assert.equal(code(await t.send({ type: 'RESET', baseRevision: 0 })), 'locked_weakening');
-    assert.equal(t.state.rules.length, 1);
+    assert.equal(t.state.rules.length, 2);
     t.state.now += 61 * MIN;
     assert.ok((await t.send({ type: 'RESET', baseRevision: 0 })).ok);
-    assert.equal(t.state.rules.length, 0);
+    assert.deepEqual(t.state.rules.map(rule => rule.id), [RULE_ID.SELFTEST]);
 });
 
 test('storage cleared but rules present: reported as partial and left untouched', async () => {
@@ -190,7 +194,7 @@ test('storage cleared but rules present: reported as partial and left untouched'
     t.state.storage = {};
     const status = await t.restart().reconcile();
     assert.equal(status.state, 'partial'); assert.ok(status.reasons.includes('config_missing_rules_present'));
-    assert.equal(t.state.rules.length, 1); assert.equal(t.state.baseEnabled, true);
+    assert.equal(t.state.rules.length, 2); assert.equal(t.state.baseEnabled, true);
 });
 
 test('prototype (v0) configuration is migrated in place and keeps its rules and commitment', async () => {
@@ -244,7 +248,7 @@ test('messages: strict schema, trusted senders only, nothing sensitive echoed', 
     const good = { id: 'test-extension', url: 'chrome-extension://test-extension/options.html', frameId: 0 };
     assert.ok(isTrustedSender(good, ctx));
     assert.ok(isTrustedSender({ ...good, url: 'chrome-extension://test-extension/options.html#sec' }, ctx));
-    for (const sender of [{ ...good, id: 'other' }, { ...good, url: 'https://evil.test/' }, { ...good, url: 'chrome-extension://test-extension/blocked.html' },
+    for (const sender of [{ ...good, id: 'other' }, { ...good, url: 'https://evil.test/' },
         { ...good, url: 'chrome-extension://test-extension/options.html.evil' }, { ...good, frameId: 3 }, { id: 'test-extension' }, undefined]) {
         assert.ok(!isTrustedSender(sender, ctx));
     }
@@ -264,7 +268,12 @@ test('no source file logs, stores history, or contacts the network', async () =>
         const text = await fs.readFile(file, 'utf8');
         assert.ok(!/console\./u.test(text), `${file} uses console`);
         assert.ok(!/XMLHttpRequest|WebSocket|sendBeacon|navigator\.sendBeacon|\beval\(|new Function|innerHTML\s*=|document\.write/u.test(text), `${file} uses a forbidden API`);
-        // fetch is allowed only for the extension's own metadata file
-        for (const match of text.matchAll(/fetch\(([^)]*)\)/gu)) assert.ok(/getURL\('base-list-meta\.json'\)/u.test(match[0]), `${file}: unexpected fetch`);
+        // These exact bundled resources are read locally; arbitrary or remote fetches stay forbidden.
+        for (const match of text.matchAll(/fetch\(([^)]*)\)/gu)) {
+            const allowed = /getURL\('base-list-meta\.json'\)/u.test(match[0])
+                || (file.endsWith('/ui/options.js') && match[0] === "fetch('rulesets/base_adult.json')")
+                || (file.endsWith('/ui/common.js') && match[0] === 'fetch(ext.runtime.getURL(`_locales/${language}/messages.json`)');
+            assert.ok(allowed, `${file}: unexpected fetch`);
+        }
     }
 });

@@ -1,3 +1,4 @@
+import { mergeLocks } from './lock.js';
 // Append-only, fenced storage layout for the configuration (and the write epoch).
 //
 // storage.local has no atomic compare-and-set, and a worker can be frozen at ANY point between its last ownership check and
@@ -18,64 +19,38 @@
 //   can only remove what was already irrelevant when it was chosen, and can never reach a newer value, because newer values live under
 //   different names. (The only in-place rewrite is a writer replacing its OWN record by the previous configuration when it rolls back;
 //   that writer is the only one that can touch that name.)
-export const CONFIG_PREFIX = 'cfg:';
-export const LEGACY_CONFIG_KEY = 'config';
-export const EPOCH_PREFIX = 'ep:';
-const RECORD_KEY = /^cfg:(\d{1,15}):([A-Za-z0-9_-]{1,64})$/u;
-const MAX_EPOCH = 1e15;
+import { listConfigRecords, newestConfig } from './config-records.js';
+export { MAX_EPOCH, CONFIG_PREFIX, LEGACY_CONFIG_KEY, EPOCH_PREFIX, configKey, epochKey, listConfigRecords, newestConfig, maxEpoch } from './config-records.js';
 
-export const configKey = (epoch, instance) => `${CONFIG_PREFIX}${epoch}:${instance}`;
-export const epochKey = (epoch, instance) => `${EPOCH_PREFIX}${epoch}:${instance}`;
 const EPOCH_KEY = /^ep:(\d{1,15}):([A-Za-z0-9_-]{1,64})$/u;
-
-const higher = (a, b) => a.epoch > b.epoch || (a.epoch === b.epoch && a.id > b.id);
-
-/** All configuration records of a storage snapshot, newest first: { key, epoch, id, value }. The legacy single `config` key counts as epoch 0. */
-export function listConfigRecords(snapshot) {
-    const records = []; const invalidKeys = [];
-    for (const [key, value] of Object.entries(snapshot)) {
-        if (!key.startsWith(CONFIG_PREFIX)) continue;
-        const match = RECORD_KEY.exec(key);
-        if (!match || !Number.isSafeInteger(Number(match[1])) || Number(match[1]) >= MAX_EPOCH) { invalidKeys.push(key); continue; }
-        records.push({ key, epoch: Number(match[1]), id: match[2], value });
-    }
-    if (LEGACY_CONFIG_KEY in snapshot) records.push({ key: LEGACY_CONFIG_KEY, epoch: 0, id: '', value: snapshot[LEGACY_CONFIG_KEY], legacy: true });
-    records.sort((a, b) => (higher(a, b) ? -1 : higher(b, a) ? 1 : 0));
-    return { records, invalidKeys };
-}
-
-/** The effective configuration record, or null when nothing was ever stored. */
-export const newestConfig = snapshot => listConfigRecords(snapshot).records[0] ?? null;
-
-/** Highest write epoch registered so far (epoch entries `ep:<epoch>:<instance>` and configuration records). */
-export function maxEpoch(snapshot) {
-    let max = 0;
-    for (const key of Object.keys(snapshot)) {
-        const match = EPOCH_KEY.exec(key) ?? RECORD_KEY.exec(key);
-        if (match && Number(match[1]) < MAX_EPOCH) max = Math.max(max, Number(match[1]));
-    }
-    return max;
-}
-
 const keyOrder = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 
 /**
  * Keys that can be removed without ever changing the effective state, because their (immutable) value is dominated for ever:
  *  - configuration records: all but the two newest;
  *  - epoch entries: all but the highest (epoch, instance);
- *  - session entries (`lock`, `lock:*`): expired ones, and any entry dominated by another with a later end time (ties: higher key name wins);
+ *  - session entries (`lock`, `lock:*`): any VALID entry dominated by another with a later end time (ties: higher key name wins). The newest
+ *    entry is kept even when it has expired: a clock that jumped forward must never delete a session for good, and one small key costs nothing.
+ *    An entry that fails the lock validator is never touched here (only RESET clears it), so one damaged entry cannot delete a valid session;
  *  - mutex entries of other instances that expired more than an hour ago (a removal at worst makes a live owner fail closed with "busy").
- * `now` is the session clock, `leaseNow` the lease clock, `selfMutexKey` the caller's own mutex entry (never listed).
+ * `leaseNow` is the lease clock, `selfMutexKey` the caller's own mutex entry (never listed).
  */
-export function obsoleteKeys(snapshot, { now = 0, leaseNow = 0, selfMutexKey = null } = {}) {
+export function obsoleteKeys(snapshot, { leaseNow = 0, selfMutexKey = null } = {}) {
     const stale = listConfigRecords(snapshot).records.slice(2).map(record => record.key);
     const epochs = Object.keys(snapshot).map(key => ({ key, match: EPOCH_KEY.exec(key) })).filter(entry => entry.match)
         .map(entry => ({ key: entry.key, n: Number(entry.match[1]), id: entry.match[2] }))
         .sort((a, b) => b.n - a.n || keyOrder(b.id, a.id));
     for (const entry of epochs.slice(1)) stale.push(entry.key);
-    const locks = Object.entries(snapshot).filter(([key, value]) => (key === 'lock' || key.startsWith('lock:')) && value && typeof value === 'object' && Number.isSafeInteger(value.until))
-        .map(([key, value]) => ({ key, until: value.until })).sort((a, b) => b.until - a.until || keyOrder(b.key, a.key));
-    locks.forEach((entry, index) => { if (index > 0 || entry.until <= now) stale.push(entry.key); });
+    // Released lock names are immutable cancellation targets. They cannot dominate a new,
+    // shorter commitment, and removing them can never reach a future unique lock name.
+    const merged = mergeLocks(snapshot);
+    for (const [key, value] of Object.entries(snapshot)) {
+        if ((key === 'lock' || key.startsWith('lock:')) && value && Number.isSafeInteger(value.until)
+            && !merged.invalidKeys.includes(key) && !Object.hasOwn(merged.keys, key)) stale.push(key);
+    }
+    const locks = Object.entries(merged.keys).map(([key, until]) => ({ key, until }))
+        .sort((a, b) => b.until - a.until || keyOrder(b.key, a.key));
+    locks.forEach((entry, index) => { if (index > 0) stale.push(entry.key); });
     for (const [key, value] of Object.entries(snapshot)) {
         if (key.startsWith('mx:') && key !== selfMutexKey && value && typeof value === 'object' && Number.isFinite(value.exp) && value.exp < leaseNow - 3_600_000) stale.push(key);
     }

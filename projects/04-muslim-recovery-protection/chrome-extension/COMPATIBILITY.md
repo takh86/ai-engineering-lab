@@ -1,17 +1,38 @@
-# Browser compatibility
+# Tabsira 1.1.0 compatibility
 
-Status words: **VERIFIED** (the check ran in that real browser and passed), **FAILED**, **NOT TESTED**, **NOT RUN**
+Both Chromium-family MV3 and Firefox MV3 development packages are generated. Building a package is not a browser compatibility pass.
+
+| Target | Manifest minimum | Pre-integration 1.1.0 runtime evidence |
+|---|---|---|
+| Chromium | 120 | Installed ZIP:57/57 PASS on Chromium141.0.7390.37/GitHub Linux, including setup/help/recovery/covenant clicks |
+| Google Chrome stable / Edge / Brave / Opera | Chromium-family | Not yet independently verified for 1.1.0 |
+| Firefox | 128 | Package/static checks only; new features not runtime verified |
+| Private/incognito windows | Chromium split / Firefox default | Concurrency simulated; new 1.1.0 real-browser coverage pending |
+| Windows / macOS / user devices | Platform-dependent | Not verified |
+
+The historical 1.0.0 and frozen 1.0.1 browser results remain in git/evidence for traceability. They do not certify 1.1.0. Optional `activeTab` and notification permission flows need testing in each intended store browser. Firefox signing/store approval remains a separate release step.
+
+## Integrated candidate status
+
+This local integration combines frozen 1.0.1 (`efc7357`) with the follow-up feature branch (`1817d0a`). No browser result above certifies the integrated tree. The 57-check result belongs to the earlier PR candidate; follow-up source changes and integration require fresh package-specific verification. See [TESTING.md](TESTING.md).
+
+## Historical browser matrix retained from 1.0.1 branch
+
+The 155-check rows below originate in 1.0.0 evidence. Frozen 1.0.1 subsequently recorded 184 Chromium-family checks; its exact package hashes and review qualifications are in TESTING.md. These records certify neither the integrated tree nor a generic version wildcard.
+
+
+Status words: **HISTORICALLY VERIFIED — earlier frozen package only** (the check ran in that real browser and passed), **FAILED**, **NOT TESTED**, **NOT RUN**
 (prepared, could not be executed here, with the reason). Evidence files are in `test-evidence/`; commands and
 manual steps are in `TESTING.md`. “Verified” never means a store-published or user-tested release.
 
 | Browser (desktop) | Package | Status | Tested version / OS | Notes |
 |---|---|---|---|---|
 | Google Chrome — **branded stable** | `tabsira-chromium-*.zip` | **NOT TESTED** | — | The branded installer (`dl.google.com`) was not reachable. Run the manual steps in `TESTING.md` on your Chrome. |
-| **Google Chrome for Testing** (official Google build for automation) | `tabsira-chromium-*.zip` | **VERIFIED** (155 PASS · 0 FAIL · 2 NOT RUN) | 154.0.8037.97 · Linux x64 | Full automated suite on the extracted release ZIP, incl. restart, update, private windows, concurrency, faults, identity/zoom, hostile page, performance. Not the branded stable build. |
-| Chromium (open source) | `tabsira-chromium-*.zip` | **VERIFIED** (155 PASS · 0 FAIL · 2 NOT RUN) | 141.0.7390.37 · Linux x64 | Same suite. **Not** to be read as "Google Chrome". |
-| Microsoft Edge | `tabsira-chromium-*.zip` | **VERIFIED** on Linux (155 PASS · 0 FAIL · 2 NOT RUN) | 154.0.4258.53 · Linux x64 | Same suite and package. **Edge on Windows/macOS: NOT TESTED.** Edge resets connections to some of its own/partner search hosts in the local test setup (bing/yahoo/youtube); the suite therefore asserts "not redirected" there. |
-| Mozilla Firefox | `tabsira-firefox-*.zip` | **VERIFIED** with a temporary add-on (44 PASS · 0 FAIL · 1 NOT RUN) | 157.0 · Linux x64 | geckodriver 0.37.1. Signed AMO build and permanent install **NOT TESTED**. Arabic UI inside Firefox NOT RUN (needs the Arabic language pack). |
-| Mozilla Firefox — **private windows** | `tabsira-firefox-*.zip` | **VERIFIED** (11 PASS · 0 FAIL) | 157.0 · Linux x64 | Real private windows (`PrivateBrowsingUtils.isWindowPrivate`): with "Run in Private Windows" allowed the stop page shows, the session is shared, weakening is refused; without it the extension is not applied (documented limit). |
+| **Google Chrome for Testing** (official Google build for automation) | `tabsira-chromium-*.zip` | **HISTORICALLY VERIFIED — earlier frozen package only** (155 PASS · 0 FAIL · 2 NOT RUN) | 154.0.8037.97 · Linux x64 | Full automated suite on the extracted release ZIP, incl. restart, update, private windows, concurrency, faults, identity/zoom, hostile page, performance. Not the branded stable build. |
+| Chromium (open source) | `tabsira-chromium-*.zip` | **HISTORICALLY VERIFIED — earlier frozen package only** (155 PASS · 0 FAIL · 2 NOT RUN) | 141.0.7390.37 · Linux x64 | Same suite. **Not** to be read as "Google Chrome". |
+| Microsoft Edge | `tabsira-chromium-*.zip` | **HISTORICALLY VERIFIED — earlier frozen package only** on Linux (155 PASS · 0 FAIL · 2 NOT RUN) | 154.0.4258.53 · Linux x64 | Same suite and package. **Edge on Windows/macOS: NOT TESTED.** In the 1.0.1 review run, Edge 154 on Linux did NOT redirect a phrase search on `www.bing.com` (the same checks passed on Chrome for Testing 154 and in an earlier Edge run on the previous package); the cause was not determined (see the review report, D-1). Treat Bing phrase blocking on Edge as **unverified** until tested on real Edge (Windows/macOS) over https. |
+| Mozilla Firefox | `tabsira-firefox-*.zip` | **HISTORICALLY VERIFIED — earlier frozen package only** with a temporary add-on (44 PASS · 0 FAIL · 1 NOT RUN) | 157.0 · Linux x64 | geckodriver 0.37.1. Signed AMO build and permanent install **NOT TESTED**. Arabic UI inside Firefox NOT RUN (needs the Arabic language pack). |
+| Mozilla Firefox — **private windows** | `tabsira-firefox-*.zip` | **HISTORICALLY VERIFIED — earlier frozen package only** (11 PASS · 0 FAIL) | 157.0 · Linux x64 | Real private windows (`PrivateBrowsingUtils.isWindowPrivate`): with "Run in Private Windows" allowed the stop page shows, the session is shared, weakening is refused; without it the extension is not applied (documented limit). |
 | Brave | Chromium package | **NOT TESTED** | — | Not installed here; expected to load the Chromium package, unverified. |
 | Opera | Chromium package | **NOT TESTED** | — | Not installed here. |
 | Safari (macOS/iOS) | — | **Out of V1** | — | See “Safari later” below. |

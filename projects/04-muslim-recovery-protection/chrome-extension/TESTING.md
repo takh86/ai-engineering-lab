@@ -1,4 +1,41 @@
-# Testing — what ran, where, and what did not
+# Tabsira 1.1.0 verification
+
+The current feature contract is [docs/final-features/CONTRACT.md](docs/final-features/CONTRACT.md). Historical feature results are recorded in [docs/final-features/REVIEW.md](docs/final-features/REVIEW.md); subsequent local corrections and limits are in [docs/final-features/FOLLOWUP-REVIEW.md](docs/final-features/FOLLOWUP-REVIEW.md). Neither certifies this integration.
+
+Unit tests exercise strict schemas, sender capabilities, schedules including weekly wrapping, password encryption/recovery, commitment concurrency and storage fencing. They use simulated browser adapters; they do not prove browser integration. Static checks examine packaged module imports, CSP, locale coverage, approved tokens, the licensed snapshot and reproducible ZIPs.
+
+`tests/e2e/final-features.mjs` extracts the actual Chromium release ZIP, launches an installed extension, and checks core enforcement, extra domains, schedules, all three UI languages, password/private-data gates, recovery invariance, help-page capabilities and logged errors. Test sites resolve to a local server; real adult sites are never requested. Results are in `test-evidence/final-features-chromium.json`. Failure to launch is `NOT_RUN`, with a nonzero exit code. Permission activation and actual delivered prayer notifications still require explicit browser coverage; pure calculations and notification lifecycle tests are reported separately.
+
+```sh
+npm ci
+npm test
+npm run build
+npm run verify-reproducible
+node node_modules/playwright-core/cli.js install --with-deps chromium
+node tests/e2e/final-features.mjs
+```
+
+The dedicated GitHub workflow runs those checks. It does not merge the PR or publish to a store.
+
+Older `tests/e2e/suite.mjs`, Firefox suites and `test-evidence/SUMMARY.md` are historical 1.0.0 evidence. Some older assertions (optional core, core exceptions and old onboarding DOM) contradict the owner's final requirements. They are not the 1.1.0 acceptance suite and their old results must not be represented as current verification.
+
+## Integrated tree: verification pending
+
+The imported frozen 1.0.1 branch ends at `efc7357`; the feature follow-up branch ends at `1817d0a`. Integrated source, dependency graph, regression suites and packaged browser behavior must be rechecked. Historical 112/112, 161/161, 184 browser checks and 57 feature checks belong to their respective earlier trees. A browser launch failure is NOT_RUN, not PASS.
+
+## Historical frozen 1.0.1 / 1.0.0 register
+
+The following register is preserved from the imported branch. Its package fingerprints and results refer only to those frozen packages. Its manual steps describe older behavior: switching off or exempting the core is no longer supported, commitment duration/early exit has changed, and additional optional permissions/private features require new checks. Do not use the historical steps as the integrated release acceptance checklist.
+
+
+## 1.0.1 status (pre-release review) — read this first
+
+Package under test: `tabsira-chromium-1.0.1.zip` SHA-256 `61942949005aa35c07b7cff1ad90ffd735812618234c8a545146d9489712b700`, `tabsira-firefox-1.0.1.zip` SHA-256
+`82d1e64ebf8c90da85e57257a6f20877b433a558c9a20eb7f3c45d79bc6ea47b`, built byte-identically three times from clean archives of the frozen commit `f57bc8c` (later commits change tests/docs/evidence only; verified by rebuilding).
+Real-browser runs on those packages after unzipping (Linux x64, headless): Chromium 141.0.7390.37, Chrome for Testing 154.0.8037.97 (not branded stable Chrome), Edge 154.0.4258.53: **184 PASS · 0 FAIL · 2 NOT_RUN** each
+(S7.14 clock change, S8.5 dropping a required permission); Firefox 157.0: 44 PASS · 1 NOT_RUN (F1.3b); Firefox 157.0 private windows: 11 PASS. Unit: 112/112. Evidence: `test-evidence/e2e-*.json`, `SUMMARY.md`, review material in `test-evidence/review-1.0.1/`.
+**Incomplete (not PASS):** `test-evidence/incomplete-f57bc8c/` — three runs that crashed at S16c (outdated test premise) before writing a summary.
+Everything below this section describes 1.0.0 and earlier evidence; hashes and counts there are **historical** for those packages. Full register: `docs/RELEASE-REVIEW-1.0.1.md`.
 
 Three layers, kept separate on purpose:
 
@@ -31,7 +68,7 @@ for Firefox); no real website — and no listed adult domain — was ever contac
 | Browser | Exact build | Source |
 |---|---|---|
 | Chromium | 141.0.7390.37 | Playwright build (open-source Chromium — **not** "Google Chrome") |
-| **Google Chrome for Testing** | 154.0.8037.97 | Google's official Chrome-for-Testing download (`storage.googleapis.com/chrome-for-testing-public`), ZIP SHA-256 `487c3b0e…c8a2`. It is Google's official build for automation, **not the branded stable Chrome** installer (`dl.google.com` was not reachable). |
+| **Google Chrome for Testing** | 154.0.8037.97 | Google's official Chrome-for-Testing download (`storage.googleapis.com/chrome-for-testing-public`), ZIP SHA-256 `487c3b0e…c7a2`. It is Google's official build for automation, **not the branded stable Chrome** installer (`dl.google.com` was not reachable). |
 | Microsoft Edge | 154.0.4258.53 | Linux .deb from packages.microsoft.com, unpacked |
 | Mozilla Firefox | 157.0 | conda-forge repackaging of the Mozilla release; geckodriver 0.37.1; add-on installed temporarily |
 

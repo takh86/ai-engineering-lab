@@ -1,0 +1,14 @@
+import http from 'node:http';
+import { launch, openExtPage, send, executableFor, sleep } from '/home/user/ai-engineering-lab/projects/04-muslim-recovery-protection/chrome-extension/tests/e2e/lib.mjs';
+const b = await launch({ executablePath: executableFor('chromium'), extensionDir: process.cwd() + '/ext' });
+const page0 = await openExtPage(b.context, b.extensionId, 'options.html');
+let r = await send(page0, { type: 'COMPLETE_ONBOARDING', baseList: false, starterTerms: true });
+await send(page0, { type: 'SAVE_SETTINGS', baseRevision: r.status.revision, settings: { baseList: false, starterTerms: true, domains: ['blocked.example'], allow: [], words: [], contains: [] } });
+const hits = []; let P;
+const server = http.createServer((q, s) => { hits.push(q.headers.host + q.url + ' purpose=' + (q.headers['sec-purpose'] || '-')); s.setHeader('content-type', 'text/html'); if (q.headers.host.startsWith('origin')) s.end(`<!doctype html><title>ORIGIN</title><script type="speculationrules">{"prefetch":[{"source":"list","urls":["http://blocked.example:${P}/","http://www.google.com:${P}/search?q=xvideos"]}],"prerender":[{"source":"list","urls":["http://sub.blocked.example:${P}/"]}]}</script><a id=l href="http://blocked.example:${P}/">go</a><a id=g href="http://www.google.com:${P}/search?q=xvideos">go2</a>`); else s.end('<title>REAL-SITE</title>real'); });
+await new Promise(r => server.listen(0, '127.0.0.1', r)); P = server.address().port;
+const p = await b.context.newPage(); await p.goto(`http://origin.example:${P}/`); await sleep(3000);
+console.log('requests that reached the server for blocked targets during speculation:', hits.filter(h => /blocked|google/.test(h)));
+await p.click('#l'); await sleep(1500); console.log('click blocked link ->', p.url().slice(0, 50), '| reached server:', hits.filter(h => h.startsWith('blocked.example')).length);
+const p2 = await b.context.newPage(); await p2.goto(`http://origin.example:${P}/`); await sleep(500); await p2.click('#g'); await sleep(1500); console.log('click phrase link ->', p2.url().slice(0, 50), '| reached server:', hits.filter(h => h.startsWith('www.google.com')).length);
+await b.context.close(); server.close();

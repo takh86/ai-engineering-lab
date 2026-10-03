@@ -1,0 +1,12 @@
+api_error
+base_list_disabled
+config_missing_rules_present
+domain_removed
+exception_added
+host_permission_missing
+nothing_enabled
+onboarding_pending
+phrase_removed
+phrases_unsupported
+rules_mismatch
+starter_terms_disabled

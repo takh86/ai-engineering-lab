@@ -1,3 +1,5 @@
+> **1.1.0 update:** The review below documents earlier implementation/evidence. Current feature findings, fixes and verification limits are in [chrome-extension/docs/final-features/REVIEW.md](../chrome-extension/docs/final-features/REVIEW.md). Older browser passes do not certify1.1.0.
+
 # Tabsira V1 — security and Red Team review
 
 Date: 2026-10-02 (updated after the independent reviews of `7294cd6`, `0b46c1d` and `516a4ff`) · Scope: `projects/04-muslim-recovery-protection/chrome-extension` (Chrome/Edge/Firefox packages) ·

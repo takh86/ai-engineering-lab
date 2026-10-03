@@ -72,6 +72,7 @@ test('manifest (both targets): least permissions, strict CSP, minimal web-access
         assert.equal(manifest.version, JSON.parse(read('package.json')).version);
         assert.deepEqual([...manifest.permissions].sort(), ['alarms', 'declarativeNetRequest', 'storage']);   // 'alarms' = watchdog wake-up, no install warning
         assert.deepEqual(manifest.host_permissions, ['http://*/*', 'https://*/*']);
+        assert.deepEqual(manifest.optional_permissions, ['activeTab', 'notifications']); // owner-approved, explicit opt-in only
         if (target === 'chromium') assert.equal(manifest.web_accessible_resources, undefined);   // no fixed-ID fingerprint
         else assert.deepEqual(manifest.web_accessible_resources, [{ resources: ['blocked.html'], matches: ['http://*/*', 'https://*/*'] }]);   // Firefox requirement, random UUID
         assert.equal(manifest.content_scripts, undefined);
@@ -101,6 +102,16 @@ test('build output: every file the manifest and pages reference exists; base rul
         for (const file of fs.readdirSync(dir).filter(f => f.endsWith('.html'))) {
             const html = fs.readFileSync(path.join(dir, file), 'utf8');
             for (const m of html.matchAll(/(?:src|href)="([^":#]+)"/gu)) assert.ok(fs.existsSync(path.join(dir, m[1])), `${target}/${file}: ${m[1]}`);
+        }
+        // UI files are flattened during packaging. Check the installed module graph,
+        // rather than only source paths, to catch broken UI-to-core imports.
+        for (const file of fs.readdirSync(dir, { recursive: true }).filter(f => f.endsWith('.js'))) {
+            const source = fs.readFileSync(path.join(dir, file), 'utf8');
+            for (const match of source.matchAll(/(?:from\s*|import\s*\()\s*['"](\.[^'"]+)['"]/gu)) {
+                const resolved = path.resolve(dir, path.dirname(file), match[1]);
+                assert.ok(resolved.startsWith(`${dir}${path.sep}`), `${target}/${file}: import escapes package`);
+                assert.ok(fs.existsSync(resolved), `${target}/${file}: missing ${match[1]}`);
+            }
         }
         const rules = JSON.parse(fs.readFileSync(path.join(dir, 'rulesets', 'base_adult.json'), 'utf8'));
         assert.equal(rules.length, 1);
@@ -137,7 +148,11 @@ test('base list: ONLY the two explicitly licensed sources, pinned to commits and
     for (const needle of ['ShadowWhisperer', 'Sinfonietta', 'free and unencumbered software', 'The MIT License', 'Copyright (c) 2016 Sinfonietta', sw.commit, sin.commit]) assert.ok(notices.includes(needle), needle);
     for (const forbidden of ['Block List Project', 'HaGeZi', 'zachlagden']) assert.ok(!notices.includes(forbidden), `${forbidden} must not appear in the shipped notices as a source`);
     assert.ok(fs.existsSync(path.join(out, 'chromium', 'THIRD_PARTY_NOTICES.txt')));
+    const packedRules = JSON.parse(fs.readFileSync(path.join(out, 'chromium', 'rulesets', 'base_adult.json'), 'utf8'));
+    const snapshot = packedRules[0].condition.requestDomains.filter(domain => domain !== 'tabsira-selftest.test');
+    const preview = Buffer.from(`${snapshot.join('\n')}\n`);
+    assert.ok(!fs.existsSync(path.join(out, 'chromium', 'base-domains.txt')), 'no duplicate snapshot shipped');
+    assert.equal(crypto.createHash('sha256').update(preview).digest('hex'), provenance.snapshotSha256, 'preview is the exact licensed snapshot');
     // the shipped notice carries the full MIT text of Sinfonietta (condition of the licence)
     assert.ok(read('data', 'base-list', 'THIRD_PARTY_NOTICES.md').includes(read('data', 'base-list', 'licenses', 'LICENSE-Sinfonietta-MIT.txt').trim()));
 });
-

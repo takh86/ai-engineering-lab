@@ -1,0 +1,48 @@
+# Mozilla Firefox 157.0 on Linux 6.18.44-fc-v51 (x64)
+PASS  F1.1 temporary install succeeds; options page loads; worker answers (Firefox event page)
+PASS  F1.2 base list metadata readable
+PASS  F1.3 UI follows the Firefox locale (en-US build → English, LTR, translated)
+SKIP  F1.3b Arabic RTL UI inside Firefox  (needs the Arabic Firefox language pack, not installable offline here; Arabic/RTL rendering is verified in Chromium and Edge)
+PASS  F1.4 host permission state is reported (informational)
+PASS  F1.5 nothing blocked before onboarding
+PASS  F2.1 onboarding with base list succeeds
+PASS  F2.2 status active (permission present) — or an honest partial with the reason
+PASS  F2.3 safe self-test domain redirects to the stop page (real Firefox DNR redirect)
+PASS  F3.1 blocks blocked-user.test
+PASS  F3.1 blocks sub.blocked-user.test
+PASS  F3.1 does not block notblocked-user.test
+PASS  F3.1 does not block blocked-user.test.evil.example
+PASS  F3.2 exception for a subdomain beats the parent block; sibling stays blocked
+PASS  F3.3 exception overrides the built-in list
+PASS  F4.0 phrases accepted by the real Firefox regex engine
+PASS  F4.1 blocked: google plus
+PASS  F4.1 blocked: google %20
+PASS  F4.1 blocked: google upper
+PASS  F4.1 blocked: google arabic
+PASS  F4.1 blocked: google.de
+PASS  F4.1 blocked: bing images
+PASS  F4.1 blocked: yahoo p
+PASS  F4.1 blocked: youtube
+PASS  F4.1 blocked: contains
+PASS  F4.1 allowed: ordinary
+PASS  F4.1 allowed: other param
+PASS  F4.1 allowed: aq boundary
+PASS  F4.1 allowed: embedded word
+PASS  F4.1 allowed: wrong param on engine
+PASS  F4.1 allowed: non-engine site
+PASS  F4.2 Firefox accepts a 40-letter Arabic phrase (no 2 KB regex limit observed, unlike Chromium) and it is enforced
+PASS  F4.3 every starter term is accepted by the Firefox regex engine
+PASS  F5.1 session starts (60 min)
+PASS  F5.2 weakening refused during session (disable list / remove site / add exception)
+PASS  F5.3 reset refused during session
+PASS  F5.4 adding stronger protection allowed
+PASS  F6.1 after browser restart (add-on re-installed temporarily): session persists
+PASS  F6.2 after restart: rules and base list persist or are restored by reconcile
+PASS  F6.3 after restart: navigation blocked (user domain, base list, phrase)
+PASS  F7.1 rules removed behind our back are detected and restored
+PASS  F10.1 rules (and the built-in list) removed behind our back are restored AUTOMATICALLY by the watchdog alarm, without any status request
+PASS  F8.1 median local navigation with the full built-in ruleset enabled is under 250 ms
+PASS  F6b.1 withdrawn website permission is detected (status partial + specific reason)
+PASS  F6b.2 a commitment session can still be extended but nothing weakens (lock already active)
+
+SUMMARY {"PASS":44,"NOT_RUN":1}
