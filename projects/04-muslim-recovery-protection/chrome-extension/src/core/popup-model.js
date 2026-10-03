@@ -1,4 +1,4 @@
-import { normalizeDomain } from '../core/domains.js';
+import { normalizeDomain } from './domains.js';
 
 export const STATUS_STATES = new Set(['active', 'partial', 'unknown', 'not_configured']);
 export function honestStatus(status) {

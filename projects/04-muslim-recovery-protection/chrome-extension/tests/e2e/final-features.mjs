@@ -60,7 +60,7 @@ try {
  check('no personal text logged',!browser.evidence.logs.some(x=>x.includes('private-e2e-marker')||x.includes(password)));
  check('extension has no console errors',!browser.evidence.logs.some(x=>/^error:/u.test(x)));
 } catch(error) {
- if(!browser)report.skip('installed-extension acceptance',error.message.slice(0,2000));
+ if(!browser)report.skip('installed-extension acceptance',error.message.split('\n').filter(line=>/EPERM|Operation not permitted|FATAL|Error|browserType|closed|Singleton|socket/u.test(line)).join('\n').slice(0,3000));
  else report.check('suite completed',false,error.stack);
  process.exitCode=1;
 } finally {

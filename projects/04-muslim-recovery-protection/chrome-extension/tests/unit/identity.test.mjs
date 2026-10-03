@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { auditStyles, auditDirectory } from '../../scripts/identity-audit.mjs';
-import { commitmentCountdown, domainFromTabUrl, honestStatus } from '../../src/ui/popup-model.js';
-import { blockCurrentSite } from '../../src/ui/popup-actions.js';
+import { commitmentCountdown, domainFromTabUrl, honestStatus } from '../../src/core/popup-model.js';
+import { blockCurrentSite } from '../../src/core/popup-actions.js';
 import { POPUP_COPY, popupText } from '../../src/ui/popup-copy.js';
 const read = name => fs.readFileSync(new URL(`../../src/ui/${name}`, import.meta.url), 'utf8');
 

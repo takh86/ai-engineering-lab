@@ -1,7 +1,7 @@
 import { initPage, send, renderStatus, openOptions } from './common.js';
 import { popupText } from './popup-copy.js';
-import { commitmentCountdown, honestStatus } from './popup-model.js';
-import { blockCurrentSite } from './popup-actions.js';
+import { commitmentCountdown, honestStatus } from './core/popup-model.js';
+import { blockCurrentSite } from './core/popup-actions.js';
 
 const ext = globalThis.browser ?? globalThis.chrome;
 await initPage();

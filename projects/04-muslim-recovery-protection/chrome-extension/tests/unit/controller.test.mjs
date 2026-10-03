@@ -267,7 +267,12 @@ test('no source file logs, stores history, or contacts the network', async () =>
         const text = await fs.readFile(file, 'utf8');
         assert.ok(!/console\./u.test(text), `${file} uses console`);
         assert.ok(!/XMLHttpRequest|WebSocket|sendBeacon|navigator\.sendBeacon|\beval\(|new Function|innerHTML\s*=|document\.write/u.test(text), `${file} uses a forbidden API`);
-        // fetch is allowed only for the extension's own metadata file
-        for (const match of text.matchAll(/fetch\(([^)]*)\)/gu)) assert.ok(/getURL\('base-list-meta\.json'\)/u.test(match[0]), `${file}: unexpected fetch`);
+        // These exact bundled resources are read locally; arbitrary or remote fetches stay forbidden.
+        for (const match of text.matchAll(/fetch\(([^)]*)\)/gu)) {
+            const allowed = /getURL\('base-list-meta\.json'\)/u.test(match[0])
+                || (file.endsWith('/ui/options.js') && match[0] === "fetch('base-domains.txt')")
+                || (file.endsWith('/ui/common.js') && match[0] === 'fetch(ext.runtime.getURL(`_locales/${language}/messages.json`)');
+            assert.ok(allowed, `${file}: unexpected fetch`);
+        }
     }
 });
