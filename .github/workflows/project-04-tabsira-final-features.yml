@@ -22,6 +22,8 @@ jobs:
           cache-dependency-path: projects/04-muslim-recovery-protection/chrome-extension/package-lock.json
       - run: npm ci
       - run: npm test
+      - run: node tests/review/controller-regressions.mjs
+      - run: node tests/review/worker-capabilities.mjs
       - run: npm run build
       - run: npm run verify-reproducible
       - run: node node_modules/playwright-core/cli.js install --with-deps chromium
