@@ -67,12 +67,33 @@ jobs:
           pattern="$pattern|^$A/main/res/values/strings\.xml$"
           pattern="$pattern|^$A/test/java/com/muslimrecovery/protection/(vpn|dns|domain)/"
           pattern="$pattern|^$A/test/java/com/muslimrecovery/protection/ScaffoldingSanityTest\.kt$"
-          pattern="$pattern|^\.github/workflows/project-04-m1-07-verification\.yml$"
           if grep -E "$pattern" "$RUNNER_TEMP/changed.txt"; then
             echo "::error::W0a must not change frozen or historical paths (listed above)."
             exit 1
           fi
           echo "Diff guard OK: no frozen/historical path changed."
+
+      - name: Diff guard for the legacy M1 workflow (only the approved flavor-aware migration is allowed)
+        run: |
+          set -euo pipefail
+          m1=.github/workflows/project-04-m1-07-verification.yml
+          base="$(git merge-base origin/main HEAD)"
+          # Every added/removed line of that file must be one of the four lines of the approved migration
+          # (Owner decision C1, W0a closure). Any other edit to it fails; this is not a workflow bypass.
+          git diff --no-renames -U0 "$base" HEAD -- "$m1" | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)' | sort -u > "$RUNNER_TEMP/m1-actual.txt" || true
+          cat > "$RUNNER_TEMP/m1-approved.txt" <<'APPROVED'
+          +        run: ./gradlew clean assembleInternalDebug testInternalDebugUnitTest lintInternalDebug --no-daemon
+          +          path: projects/04-muslim-recovery-protection/android/app/build/outputs/apk/internal/debug/app-internal-debug.apk
+          -        run: ./gradlew clean assembleDebug testDebugUnitTest lintDebug --no-daemon
+          -          path: projects/04-muslim-recovery-protection/android/app/build/outputs/apk/debug/app-debug.apk
+          APPROVED
+          sed -i 's/^          //' "$RUNNER_TEMP/m1-approved.txt"
+          sort -u -o "$RUNNER_TEMP/m1-approved.txt" "$RUNNER_TEMP/m1-approved.txt"
+          unapproved="$(comm -23 "$RUNNER_TEMP/m1-actual.txt" "$RUNNER_TEMP/m1-approved.txt")"
+          if [ -n "$unapproved" ]; then
+            echo "::error::Unapproved change to the legacy M1 workflow:"; echo "$unapproved"; exit 1
+          fi
+          echo "M1 workflow diff is empty or exactly the approved migration."
 
       - name: Surface changes to the release boundary itself (reviewer attention, not a gate)
         run: |

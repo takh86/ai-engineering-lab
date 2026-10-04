@@ -44,12 +44,12 @@ jobs:
         run: chmod +x gradlew
 
       - name: Verify M1-07 and build debug APK
-        run: ./gradlew clean assembleDebug testDebugUnitTest lintDebug --no-daemon
+        run: ./gradlew clean assembleInternalDebug testInternalDebugUnitTest lintInternalDebug --no-daemon
 
       - name: Upload M1-07 debug APK
         uses: actions/upload-artifact@v4
         with:
           name: muslim-recovery-protection-m1-07-debug-apk
-          path: projects/04-muslim-recovery-protection/android/app/build/outputs/apk/debug/app-debug.apk
+          path: projects/04-muslim-recovery-protection/android/app/build/outputs/apk/internal/debug/app-internal-debug.apk
           if-no-files-found: error
           retention-days: 7

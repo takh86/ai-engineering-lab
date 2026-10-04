@@ -202,3 +202,11 @@ D-W0b-1 APPROVED, D-W0b-2 APPROVED WITH A1, D-W0b-3 APPROVED, D-17 APPROVED (see
 release/upload, new sensitive permissions.
 W0a lifecycle: Implementation → CI → Independent Review → Foundation Red Team → Fix Loop → Regression CI → Tech Lead Gate → Owner Review,
 ending in a W0a FOUNDATION GATE REPORT. Do not merge.
+
+## W0a closure decisions (2026-10-04)
+
+- W0a implementation accepted pending closure; see `w0a-foundation-gate-report.md`. W0a merge, W0b and F1–F16 are not authorized.
+- The legacy M1 workflow is kept and made flavor-aware (internal flavor only); it is not retired.
+- R-W0a-1: bundled AndroidX native libraries accepted for Foundation only; M5 verifies native-library / 16 KB page-size compatibility before Play production release.
+- R-W0a-2: no CODEOWNERS change in W0a; changes to `release-boundary/**`, flavor configuration and `.github/workflows/**` need explicit Tech Lead / Owner review; reconsider CODEOWNERS / branch protection in M5.
+- R-W0a-3: `onboardingComplete` omitted from the D0 `SettingsStore` is accepted; F1/F7 define atomic completion persistence with the required D1 onboarding state.
