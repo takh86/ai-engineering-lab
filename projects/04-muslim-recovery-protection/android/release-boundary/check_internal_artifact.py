@@ -18,12 +18,14 @@ REQUIRED_PERMISSIONS = {
     "android.permission.INTERNET",
     "android.permission.ACCESS_NETWORK_STATE",
 }
-SHELL = ("activity|%s.MainActivity|exported=true|permission=none|"
+SHELL = ("activity|%s.MainActivity|exported=true|enabled=unset|permission=none|"
          "filters=action:android.intent.action.MAIN,category:android.intent.category.LAUNCHER" % PKG)
-VPN_SERVICE = ("service|%s.vpn.LocalProtectionVpnService|exported=true|permission=android.permission.BIND_VPN_SERVICE|"
+VPN_SERVICE = ("service|%s.vpn.LocalProtectionVpnService|exported=true|enabled=unset|permission=android.permission.BIND_VPN_SERVICE|"
                "filters=action:android.net.VpnService" % PKG)
-HARNESS = "activity|%s.ExperimentalHarnessActivity|exported=false|permission=none|filters=none" % PKG
-REQUIRED_COMPONENTS = {VPN_SERVICE, HARNESS, SHELL}
+HARNESS = "activity|%s.ExperimentalHarnessActivity|exported=false|enabled=unset|permission=none|filters=none" % PKG
+LOCALE_SERVICE = ("service|androidx.appcompat.app.AppLocalesMetadataHolderService|exported=false|enabled=false|"
+                  "permission=none|filters=none")
+REQUIRED_COMPONENTS = {VPN_SERVICE, HARNESS, SHELL, LOCALE_SERVICE}
 REQUIRED_CLASSES = [
     PKG + ".vpn.LocalProtectionVpnService",
     PKG + ".dns.DnsFilteringEngine",
@@ -33,12 +35,12 @@ EXPECTED_APPLICATION_ID = PKG + ".internal"
 # Debug-only AndroidX tooling activities merged into debug builds (ui-test-manifest, ui-tooling). They
 # exist only because the internal artifact is a debug build; nothing else may be an exported activity.
 DEBUG_TOOLING_EXPORTED_ACTIVITIES = {
-    "activity|androidx.activity.ComponentActivity|exported=true|permission=none|filters=none",
-    "activity|androidx.compose.ui.tooling.PreviewActivity|exported=true|permission=none|filters=none",
+    "activity|androidx.activity.ComponentActivity|exported=true|enabled=unset|permission=none|filters=none",
+    "activity|androidx.compose.ui.tooling.PreviewActivity|exported=true|enabled=unset|permission=none|filters=none",
 }
 # Exported library component also present in the play artifact (protected by android.permission.DUMP).
 PROFILE_INSTALL_RECEIVER = (
-    "receiver|androidx.profileinstaller.ProfileInstallReceiver|exported=true|permission=android.permission.DUMP|"
+    "receiver|androidx.profileinstaller.ProfileInstallReceiver|exported=true|enabled=true|permission=android.permission.DUMP|"
     "filters=action:androidx.profileinstaller.action.BENCHMARK_OPERATION,action:androidx.profileinstaller.action.INSTALL_PROFILE,"
     "action:androidx.profileinstaller.action.SAVE_PROFILE,action:androidx.profileinstaller.action.SKIP_FILE"
 )
@@ -60,6 +62,7 @@ def check(manifest_xml, apk_path, version_name):
             "only the product shell, the guarded VPN service, the DUMP-guarded profileinstaller receiver and known "
             "debug-tooling activities may be exported; unexpected: %s" % unexpected
         )
+    problems.extend(crb.required_component_problems(manifest))  # F9: AppCompat locale storage service + autoStoreLocales
     if manifest["package"] != EXPECTED_APPLICATION_ID:
         problems.append("applicationId is '%s', expected '%s'" % (manifest["package"], EXPECTED_APPLICATION_ID))
     if not (version_name or "").endswith("-internal"):

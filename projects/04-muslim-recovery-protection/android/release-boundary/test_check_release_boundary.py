@@ -18,7 +18,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 ALLOWED = {
     "permissions": {PKG + ".DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"},
-    "components": {"activity|%s.MainActivity|exported=true|permission=none|filters=none" % PKG},
+    "components": {
+        "activity|%s.MainActivity|exported=true|enabled=unset|permission=none|filters=none" % PKG,
+        "service|androidx.appcompat.app.AppLocalesMetadataHolderService|exported=false|enabled=false|permission=none|filters=none",
+    },
     "dependencies": {"androidx.core:core-ktx", "org.jetbrains.kotlin:kotlin-stdlib"},
     "code_entries": {"lib/x86/libok.so"},
 }
@@ -30,6 +33,9 @@ GOOD_MANIFEST = """<manifest xmlns:android="http://schemas.android.com/apk/res/a
   <uses-permission android:name="%s.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"/>
   <application android:allowBackup="false">
     <activity android:name="%s.MainActivity" android:exported="true"/>
+    <service android:name="androidx.appcompat.app.AppLocalesMetadataHolderService" android:enabled="false" android:exported="false">
+      <meta-data android:name="autoStoreLocales" android:value="true"/>
+    </service>
   </application>
 </manifest>""" % (PKG, PKG, PKG, PKG)
 
@@ -85,12 +91,38 @@ class CheckerTest(unittest.TestCase):
     def test_unlisted_service_is_rejected(self):
         bad = GOOD_MANIFEST.replace("</application>", '<service android:name=".vpn.LocalProtectionVpnService" android:exported="true"/></application>')
         findings, _, _ = self.run_eval(manifest=bad)
-        self.assertIn("component|service|%s.vpn.LocalProtectionVpnService|exported=true|permission=none|filters=none" % PKG, findings)
+        self.assertIn("component|service|%s.vpn.LocalProtectionVpnService|exported=true|enabled=unset|permission=none|filters=none" % PKG, findings)
 
     def test_exported_flag_change_on_allowed_component_is_rejected(self):
         bad = GOOD_MANIFEST.replace('android:exported="true"', 'android:exported="false"')
         findings, _, _ = self.run_eval(manifest=bad)
-        self.assertIn("component|activity|%s.MainActivity|exported=false|permission=none|filters=none" % PKG, findings)
+        self.assertIn("component|activity|%s.MainActivity|exported=false|enabled=unset|permission=none|filters=none" % PKG, findings)
+
+    # --- F9 (C1): enabled state and the AppCompat locale-storage metadata are part of the boundary ---
+    def test_enabling_the_disabled_locale_service_is_rejected(self):
+        bad = GOOD_MANIFEST.replace('android:enabled="false"', 'android:enabled="true"')
+        findings, _, _ = self.run_eval(manifest=bad)
+        self.assertIn("component|service|androidx.appcompat.app.AppLocalesMetadataHolderService|exported=false|enabled=true|permission=none|filters=none", findings)
+
+    def test_dropping_the_enabled_attribute_changes_the_key_too(self):
+        bad = GOOD_MANIFEST.replace(' android:enabled="false"', "")
+        findings, _, _ = self.run_eval(manifest=bad)
+        self.assertTrue(any("enabled=unset" in f and "AppLocalesMetadataHolderService" in f for f in findings))
+
+    def test_autostore_locales_false_or_missing_is_a_hard_failure(self):
+        for bad in (GOOD_MANIFEST.replace('android:value="true"', 'android:value="false"'),
+                    GOOD_MANIFEST.replace('<meta-data android:name="autoStoreLocales" android:value="true"/>', "")):
+            _, hard, _ = self.run_eval(manifest=bad)
+            self.assertTrue(any(h.startswith("component-metadata|metadata|") and "autoStoreLocales" in h for h in hard), hard)
+
+    def test_a_missing_locale_service_is_a_hard_failure(self):
+        gone = GOOD_MANIFEST[:GOOD_MANIFEST.index("    <service")] + "  </application>\n</manifest>"
+        _, hard, _ = self.run_eval(manifest=gone)
+        self.assertTrue(any("required-component" in h for h in hard), hard)
+
+    def test_a_correct_locale_service_adds_no_hard_failure(self):
+        _, hard, _ = self.run_eval()
+        self.assertEqual(set(), hard)
 
     def test_relative_component_names_are_qualified(self):
         relative = GOOD_MANIFEST.replace(PKG + ".MainActivity", ".MainActivity")
@@ -114,14 +146,14 @@ class CheckerTest(unittest.TestCase):
         unguarded = GOOD_MANIFEST.replace("</application>", '<service android:name=".vpn.S" android:exported="true"/></application>')
         keys_g, _, _ = self.run_eval(manifest=guarded)
         keys_u, _, _ = self.run_eval(manifest=unguarded)
-        self.assertIn("component|service|%s.vpn.S|exported=true|permission=android.permission.BIND_VPN_SERVICE|filters=none" % PKG, keys_g)
-        self.assertIn("component|service|%s.vpn.S|exported=true|permission=none|filters=none" % PKG, keys_u)
+        self.assertIn("component|service|%s.vpn.S|exported=true|enabled=unset|permission=android.permission.BIND_VPN_SERVICE|filters=none" % PKG, keys_g)
+        self.assertIn("component|service|%s.vpn.S|exported=true|enabled=unset|permission=none|filters=none" % PKG, keys_u)
         browsable = GOOD_MANIFEST.replace('<activity android:name="%s.MainActivity" android:exported="true"/>' % PKG,
                                           '<activity android:name="%s.MainActivity" android:exported="true"><intent-filter>'
                                           '<action android:name="android.intent.action.VIEW"/><category android:name="android.intent.category.BROWSABLE"/>'
                                           '<data android:scheme="https"/></intent-filter></activity>' % PKG)
         findings, _, _ = self.run_eval(manifest=browsable)
-        self.assertIn("component|activity|%s.MainActivity|exported=true|permission=none|filters="
+        self.assertIn("component|activity|%s.MainActivity|exported=true|enabled=unset|permission=none|filters="
                       "action:android.intent.action.VIEW,category:android.intent.category.BROWSABLE,data:scheme=https" % PKG, findings)
 
     def test_backup_debuggable_cleartext_and_package_changes_are_hard_failures(self):

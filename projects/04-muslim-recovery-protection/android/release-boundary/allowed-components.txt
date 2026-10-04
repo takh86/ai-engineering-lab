@@ -1,9 +1,10 @@
 # Components the Play artifact may contain:
-# <tag>|<fully-qualified name>|exported=<true|false|unset>|permission=<guarding permission|none>|filters=<sorted action:/category:/data: tokens|none>
-activity|com.muslimrecovery.protection.MainActivity|exported=true|permission=none|filters=action:android.intent.action.MAIN,category:android.intent.category.LAUNCHER
+# <tag>|<fully-qualified name>|exported=<true|false|unset>|enabled=<true|false|unset>|permission=<guarding permission|none>|filters=<sorted action:/category:/data: tokens|none>
+activity|com.muslimrecovery.protection.MainActivity|exported=true|enabled=unset|permission=none|filters=action:android.intent.action.MAIN,category:android.intent.category.LAUNCHER
 # Library components merged in by AndroidX (profileinstaller/startup). The receiver is exported but
 # protected by android.permission.DUMP in the library manifest.
-provider|androidx.startup.InitializationProvider|exported=false|permission=none|filters=none
-receiver|androidx.profileinstaller.ProfileInstallReceiver|exported=true|permission=android.permission.DUMP|filters=action:androidx.profileinstaller.action.BENCHMARK_OPERATION,action:androidx.profileinstaller.action.INSTALL_PROFILE,action:androidx.profileinstaller.action.SAVE_PROFILE,action:androidx.profileinstaller.action.SKIP_FILE
-# F9 (E3): AppCompat per-app locale storage holder (API <= 32). Disabled and not exported; carries only metadata.
-service|androidx.appcompat.app.AppLocalesMetadataHolderService|exported=false|permission=none|filters=none
+provider|androidx.startup.InitializationProvider|exported=false|enabled=unset|permission=none|filters=none
+receiver|androidx.profileinstaller.ProfileInstallReceiver|exported=true|enabled=true|permission=android.permission.DUMP|filters=action:androidx.profileinstaller.action.BENCHMARK_OPERATION,action:androidx.profileinstaller.action.INSTALL_PROFILE,action:androidx.profileinstaller.action.SAVE_PROFILE,action:androidx.profileinstaller.action.SKIP_FILE
+# F9 (E3, C1): AppCompat per-app locale storage holder (API <= 32). Accepted artifact state: exported=false AND enabled=false.
+# Its meta-data autoStoreLocales=true is verified separately (REQUIRED_COMPONENT_METADATA in check_release_boundary.py).
+service|androidx.appcompat.app.AppLocalesMetadataHolderService|exported=false|enabled=false|permission=none|filters=none

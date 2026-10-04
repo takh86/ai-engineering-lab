@@ -38,6 +38,9 @@ class ManifestSplitTest {
         assertTrue(services[0].contains("android:name=\"androidx.appcompat.app.AppLocalesMetadataHolderService\""))
         assertTrue(services[0].contains("android:enabled=\"false\""))
         assertTrue(services[0].contains("android:exported=\"false\""))
+        // C1: the source manifest states the accepted artifact state, and the metadata AppCompat needs to persist locales.
+        val serviceBlock = Regex("<service[^>]*>.*?</service>", RegexOption.DOT_MATCHES_ALL).find(main)!!.value
+        assertTrue("autoStoreLocales must be true", Regex("<meta-data\\s+android:name=\"autoStoreLocales\"\\s+android:value=\"true\"").containsMatchIn(serviceBlock))
         assertTrue("RTL must be supported (F9)", main.contains("android:supportsRtl=\"true\""))
         assertFalse("no hand-written LocaleConfig reference (AGP generates it)", main.contains("android:localeConfig"))
         assertFalse(main.contains("BIND_VPN_SERVICE"))
