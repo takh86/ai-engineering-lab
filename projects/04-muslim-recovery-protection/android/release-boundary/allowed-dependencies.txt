@@ -1,12 +1,15 @@
 # group:artifact coordinates allowed on playReleaseRuntimeClasspath (versions deliberately not pinned).
 # Populated from the W0a CI discovery run (111 findings = 98 dependencies + 13 manifest/class findings).
 # Adding a line is a release-boundary change and needs an Owner-approved PR.
+# F9 (E1): androidx.appcompat:appcompat:1.8.0 and exactly its 13 resolved transitives, taken from the CI boundary report.
 androidx.activity:activity
 androidx.activity:activity-compose
 androidx.activity:activity-ktx
 androidx.annotation:annotation
 androidx.annotation:annotation-experimental
 androidx.annotation:annotation-jvm
+androidx.appcompat:appcompat
+androidx.appcompat:appcompat-resources
 androidx.arch.core:core-common
 androidx.arch.core:core-runtime
 androidx.autofill:autofill
@@ -49,6 +52,8 @@ androidx.compose:compose-bom
 androidx.concurrent:concurrent-futures
 androidx.core:core
 androidx.core:core-ktx
+androidx.cursoradapter:cursoradapter
+androidx.customview:customview
 androidx.customview:customview-poolingcontainer
 androidx.datastore:datastore
 androidx.datastore:datastore-android
@@ -60,13 +65,18 @@ androidx.datastore:datastore-preferences
 androidx.datastore:datastore-preferences-android
 androidx.datastore:datastore-preferences-core
 androidx.datastore:datastore-preferences-core-jvm
+androidx.drawerlayout:drawerlayout
 androidx.emoji2:emoji2
+androidx.emoji2:emoji2-views-helper
+androidx.fragment:fragment
 androidx.graphics:graphics-path
 androidx.interpolator:interpolator
 androidx.lifecycle:lifecycle-common
 androidx.lifecycle:lifecycle-common-java8
 androidx.lifecycle:lifecycle-common-jvm
+androidx.lifecycle:lifecycle-livedata
 androidx.lifecycle:lifecycle-livedata-core
+androidx.lifecycle:lifecycle-livedata-core-ktx
 androidx.lifecycle:lifecycle-process
 androidx.lifecycle:lifecycle-runtime
 androidx.lifecycle:lifecycle-runtime-android
@@ -78,12 +88,17 @@ androidx.lifecycle:lifecycle-viewmodel
 androidx.lifecycle:lifecycle-viewmodel-android
 androidx.lifecycle:lifecycle-viewmodel-ktx
 androidx.lifecycle:lifecycle-viewmodel-savedstate
+androidx.loader:loader
 androidx.profileinstaller:profileinstaller
+androidx.resourceinspection:resourceinspection-annotation
 androidx.savedstate:savedstate
 androidx.savedstate:savedstate-ktx
 androidx.startup:startup-runtime
 androidx.tracing:tracing
+androidx.vectordrawable:vectordrawable
+androidx.vectordrawable:vectordrawable-animated
 androidx.versionedparcelable:versionedparcelable
+androidx.viewpager:viewpager
 com.google.guava:listenablefuture
 com.squareup.okio:okio
 com.squareup.okio:okio-jvm
