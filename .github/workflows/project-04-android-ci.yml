@@ -3,9 +3,10 @@ name: Project 04 Android CI
 # M3-01 W0a. Objective build/test/lint gate for the Tabsira Android app (GitHub CI is the only
 # build environment; nothing is claimed as locally verified).
 #
-# This workflow NEVER uploads a playRelease binary. While W0a is in force the play flavor is
-# NON-RELEASABLE engineering evidence only (see docs/android/release-boundary.md).
-# The M1 workflow (project-04-m1-07-verification.yml) is intentionally left untouched (Amendment A2).
+# This workflow NEVER uploads a playRelease binary: the play flavor is engineering evidence only and no
+# Play upload is authorized (see docs/android/release-boundary.md).
+# The legacy M1 workflow (project-04-m1-07-verification.yml) was made flavor-aware in the W0a closure round
+# (internal flavor only, Amendment A2); it remains the historical INTERNAL experiment gate.
 
 on:
   push:
@@ -51,27 +52,14 @@ jobs:
         working-directory: projects/04-muslim-recovery-protection/android/ci
         run: python3 -m unittest -v
 
-      - name: Diff guard (frozen and historical paths must be untouched in W0a)
+      - name: Diff guard (W0b - frozen paths unchanged; historical code only moved as approved)
         run: |
           set -euo pipefail
           git fetch --no-tags origin main
           base="$(git merge-base origin/main HEAD)"
           echo "merge-base with origin/main: $base"
-          # --no-renames lists BOTH sides of a rename, so moving a frozen file out of its directory is seen.
-          git diff --no-renames --name-only "$base" HEAD | tee "$RUNNER_TEMP/changed.txt"
-          P=projects/04-muslim-recovery-protection
-          A=$P/android/app/src
-          pattern="^$P/chrome-extension/"
-          pattern="$pattern|^$A/main/java/com/muslimrecovery/protection/(vpn|dns|domain)/"
-          pattern="$pattern|^$A/main/java/com/muslimrecovery/protection/MainActivity\.kt$"
-          pattern="$pattern|^$A/main/res/values/strings\.xml$"
-          pattern="$pattern|^$A/test/java/com/muslimrecovery/protection/(vpn|dns|domain)/"
-          pattern="$pattern|^$A/test/java/com/muslimrecovery/protection/ScaffoldingSanityTest\.kt$"
-          if grep -E "$pattern" "$RUNNER_TEMP/changed.txt"; then
-            echo "::error::W0a must not change frozen or historical paths (listed above)."
-            exit 1
-          fi
-          echo "Diff guard OK: no frozen/historical path changed."
+          # --no-renames (inside the script) lists both sides of a move, so a move out of a frozen dir is seen.
+          python3 projects/04-muslim-recovery-protection/android/ci/w0b_diff_guard.py "$base"
 
       - name: Diff guard for the legacy M1 workflow (only the approved flavor-aware migration is allowed)
         run: |

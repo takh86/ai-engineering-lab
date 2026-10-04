@@ -13,7 +13,7 @@ import android.os.ParcelFileDescriptor
 import android.system.OsConstants
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.muslimrecovery.protection.MainActivity
+import com.muslimrecovery.protection.ExperimentalHarnessActivity
 import com.muslimrecovery.protection.dns.DnsFilteringEngine
 import com.muslimrecovery.protection.dns.DnsPacketProcessor
 import com.muslimrecovery.protection.dns.DnsProxyStatus
@@ -415,7 +415,7 @@ class LocalProtectionVpnService : VpnService() {
         val contentIntent = PendingIntent.getActivity(
             this,
             0,
-            Intent(this, MainActivity::class.java),
+            Intent(this, ExperimentalHarnessActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE,
         )
 

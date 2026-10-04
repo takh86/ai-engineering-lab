@@ -326,11 +326,12 @@ class CheckerTest(unittest.TestCase):
 
     def test_committed_baseline_only_contains_historical_vpn_dns_evidence(self):
         baseline = crb.load_list(os.path.join(HERE, "w0a-known-historical.txt"))
-        self.assertEqual(8, len(baseline))
+        self.assertEqual(9, len(baseline))
         for entry in baseline:
             self.assertTrue(
                 entry.startswith(("class|%s.dns." % PKG, "class|%s.vpn." % PKG,
-                                  "component|service|%s.vpn." % PKG, "permission|android.permission.")),
+                                  "component|service|%s.vpn." % PKG, "permission|android.permission.",
+                                  "component|activity|%s.ExperimentalHarnessActivity|" % PKG)),
                 entry,
             )
         self.assertFalse(any("experimental" in entry for entry in baseline))

@@ -26,7 +26,7 @@
         android:fullBackupContent="false">
 
         <activity
-            android:name=".MainActivity"
+            android:name=".ExperimentalHarnessActivity"
             android:exported="true"
             android:theme="@style/Theme.MuslimRecoveryProtection">
             <intent-filter>

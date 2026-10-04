@@ -51,7 +51,7 @@ import java.net.InetAddress
  * domain-truthful [ProtectionState] and never claims "Protected": the DNS experiment is not
  * verified protection (D11), so `filteringOperational` stays false.
  */
-class MainActivity : ComponentActivity() {
+class ExperimentalHarnessActivity : ComponentActivity() {
 
     private val vpnPermissionGranted = mutableStateOf(false)
 
