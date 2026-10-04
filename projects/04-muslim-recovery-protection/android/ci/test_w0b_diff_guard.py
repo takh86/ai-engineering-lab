@@ -121,3 +121,35 @@ class GuardTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PostW0bModeTest(unittest.TestCase):
+    """After W0b merged: the base already holds the relocated harness (ExperimentalHarnessActivity)."""
+
+    BASE = {g.POST_W0B_MARKER, g.INTERNAL + "/vpn/LocalProtectionVpnService.kt", g.MAIN_ACTIVITY}
+
+    def run_changes(self, changes):
+        def unexpected(_):
+            raise AssertionError("post-W0b mode must not read file contents")
+        return g.check(changes, self.BASE, unexpected, unexpected, lambda p: True, head_files=set(self.BASE))
+
+    def test_feature_work_and_strings_xml_edits_pass(self):
+        main_res = g.ANDROID + "/app/src/main/res/values/strings.xml"
+        design = g.MAIN + "/core/design/theme/TabsiraTheme.kt"
+        self.assertEqual([], self.run_changes({main_res: "M", design: "A", g.MAIN_ACTIVITY: "M"}))
+
+    def test_domain_extension_and_scaffolding_stay_frozen(self):
+        for path in (g.ANDROID + "/app/src/main/java/" + g.PKG + "/domain/rules/RuleSet.kt",
+                     g.PROJECT + "/chrome-extension/src/x.js", g.TEST + "/ScaffoldingSanityTest.kt"):
+            self.assertEqual(1, len(self.run_changes({path: "M"})), path)
+
+    def test_relocated_historical_code_is_frozen_in_every_way(self):
+        for path in (g.INTERNAL + "/vpn/LocalProtectionVpnService.kt", g.INTERNAL + "/dns/New.kt",
+                     g.TEST_INTERNAL + "/dns/DnsMessageCodecTest.kt", g.POST_W0B_MARKER):
+            for status in ("A", "M", "D"):
+                self.assertEqual(1, len(self.run_changes({path: status})), (path, status))
+
+    def test_nothing_may_return_to_the_main_vpn_or_dns_directories(self):
+        self.assertEqual(1, len(self.run_changes({g.MAIN + "/dns/Back.kt": "A"})))
+        self.assertEqual(1, len(self.run_changes({g.MAIN + "/vpn/Back.kt": "A"})))
+

@@ -11,6 +11,12 @@ vpn/dns directories is a violation. The check is stage-tolerant (any commit of t
 is evaluated per head against the merge-base.
 
   w0b_diff_guard.py <merge-base>      (run from the repository root)
+
+After W0b was merged (F9, IR-D): when the base tree already contains the relocated harness, the relocation rules
+above no longer apply (nothing is being moved any more) and the guard switches to POST-W0B mode: chrome-extension,
+domain and ScaffoldingSanityTest stay frozen, and the relocated historical code (internal vpn/dns, their tests and
+the harness) must not change at all; nothing may reappear in the main vpn/dns directories. `strings.xml` is not
+frozen in this mode: F9 (E6) marks the placeholder app_name non-translatable.
 """
 import collections
 import difflib
@@ -58,8 +64,32 @@ def destination(base_path):
     return None
 
 
+POST_W0B_MARKER = INTERNAL + "/ExperimentalHarnessActivity.kt"
+POST_W0B_FROZEN = [
+    re.compile("^" + re.escape(PROJECT + "/chrome-extension/")),
+    re.compile("^" + re.escape(ANDROID + "/app/src/") + "[^/]+/(java|kotlin)/" + re.escape(PKG + "/domain/")),
+    re.compile("^" + re.escape(TEST + "/ScaffoldingSanityTest.kt") + "$"),
+]
+POST_W0B_HISTORICAL = [INTERNAL + "/vpn/", INTERNAL + "/dns/", TEST_INTERNAL + "/vpn/", TEST_INTERNAL + "/dns/"]
+
+
+def check_post_w0b(changes):
+    """After W0b: frozen paths and the relocated historical code must not change; nothing returns to main vpn/dns."""
+    problems = []
+    for path, status in sorted(changes.items()):
+        if any(pattern.search(path) for pattern in POST_W0B_FROZEN):
+            problems.append("%s %s: frozen path must not change" % (status, path))
+        elif path == POST_W0B_MARKER or any(path.startswith(d) for d in POST_W0B_HISTORICAL):
+            problems.append("%s %s: relocated historical code is frozen after W0b" % (status, path))
+        elif any(path.startswith(d) for d in HISTORICAL_DIRS):
+            problems.append("%s %s: nothing may return to the main vpn/dns directories" % (status, path))
+    return problems
+
+
 def check(changes, base_files, read_base, read_head, exists_head, head_files=()):
     """changes: {path: status} from `git diff --no-renames --name-status`. Returns a list of violations."""
+    if POST_W0B_MARKER in base_files:
+        return check_post_w0b(changes)
     problems = []
     historical_base = {f for f in base_files if any(f.startswith(d) for d in HISTORICAL_DIRS)}
     service = MAIN + "/" + SERVICE_REL
@@ -153,7 +183,7 @@ def main(argv):
         print("::error::" + problem)
     if problems:
         return 1
-    print("W0b diff guard OK: %d changed paths, frozen/historical paths only moved as approved." % len(changes))
+    print("Diff guard OK: %d changed paths, frozen/historical paths only moved as approved." % len(changes))
     return 0
 
 
