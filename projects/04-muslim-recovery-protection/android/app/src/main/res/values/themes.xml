@@ -1,3 +1,10 @@
-<resources>
-    <style name="Theme.MuslimRecoveryProtection" parent="android:Theme.Material.Light.NoActionBar" />
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- F9: AppCompatActivity (required for per-app locales) needs an AppCompat theme. DayNight only drives the
+         pre-Compose window background through values-night; all visible UI is themed by TabsiraTheme. The theme
+         parent is AppCompat only (no material-components dependency). OEM force-dark is disabled so the OS never
+         auto-darkens over the brand tokens. -->
+    <style name="Theme.MuslimRecoveryProtection" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/tabsira_window_background</item>
+        <item name="android:forceDarkAllowed" tools:targetApi="29">false</item>
+    </style>
 </resources>

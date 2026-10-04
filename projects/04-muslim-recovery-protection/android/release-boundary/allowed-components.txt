@@ -5,3 +5,5 @@ activity|com.muslimrecovery.protection.MainActivity|exported=true|permission=non
 # protected by android.permission.DUMP in the library manifest.
 provider|androidx.startup.InitializationProvider|exported=false|permission=none|filters=none
 receiver|androidx.profileinstaller.ProfileInstallReceiver|exported=true|permission=android.permission.DUMP|filters=action:androidx.profileinstaller.action.BENCHMARK_OPERATION,action:androidx.profileinstaller.action.INSTALL_PROFILE,action:androidx.profileinstaller.action.SAVE_PROFILE,action:androidx.profileinstaller.action.SKIP_FILE
+# F9 (E3): AppCompat per-app locale storage holder (API <= 32). Disabled and not exported; carries only metadata.
+service|androidx.appcompat.app.AppLocalesMetadataHolderService|exported=false|permission=none|filters=none

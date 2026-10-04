@@ -57,6 +57,20 @@ android {
     buildFeatures {
         compose = true
     }
+
+    // F9 (E2/E4): supported UI locales are exactly en (unqualified fallback, see
+    // src/main/res/resources.properties), ar and de. AGP generates the LocaleConfig from them
+    // (do not hand-write a competing locales_config.xml). The filter also drops the many library locales
+    // (appcompat/material ship dozens) from the APK, so the generated config lists only these three.
+    androidResources {
+        localeFilters += listOf("en", "ar", "de")
+        generateLocaleConfig = true
+    }
+
+    // F9: a missing or surplus translation is a release error (D-5), not a warning.
+    lint {
+        error += listOf("MissingTranslation", "ExtraTranslation")
+    }
 }
 
 // There is no releasable internal build: only debug-type internal variants exist (M3-01 §4).
@@ -74,6 +88,10 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.activity:activity-compose:1.9.3")
+    // F9 (E1): the only new direct library. Standard per-app language support (Android 13+ platform,
+    // AppCompat backport for API 24-32). Transitives are NOT added by hand; the release-boundary
+    // dependency allow-list lists only what actually resolves.
+    implementation("androidx.appcompat:appcompat:1.8.0")
     implementation(platform("androidx.compose:compose-bom:2025.06.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")

@@ -7,6 +7,7 @@
     <application
         android:name=".app.TabsiraApplication"
         android:allowBackup="false"
+        android:supportsRtl="true"
         android:icon="@android:drawable/sym_def_app_icon"
         android:label="@string/app_name"
         android:theme="@style/Theme.MuslimRecoveryProtection"
@@ -22,6 +23,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- F9 (E3): AppCompat per-app locale persistence for API <= 32 (Android 13+ uses the platform).
+             Disabled and not exported: it only carries the metadata flag. AppCompat may perform blocking disk
+             reads/writes for this on API <= 32; accepted standard AppCompat behavior, no workaround added. -->
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
     </application>
 
 </manifest>
