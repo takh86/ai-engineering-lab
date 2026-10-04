@@ -67,6 +67,25 @@ android {
         generateLocaleConfig = true
     }
 
+    // F9 (E10): Gradle Managed Devices, no third-party emulator Action. One pre-33 device exercises the AppCompat
+    // locale backport, one 33+ device the platform per-app language. ATD images are headless and lighter.
+    testOptions {
+        managedDevices {
+            localDevices {
+                create("api30") {
+                    device = "Pixel 2"
+                    apiLevel = 30
+                    systemImageSource = "aosp-atd"
+                }
+                create("api34") {
+                    device = "Pixel 2"
+                    apiLevel = 34
+                    systemImageSource = "aosp-atd"
+                }
+            }
+        }
+    }
+
     // F9: a missing or surplus translation is a release error (D-5), not a warning.
     lint {
         error += listOf("MissingTranslation", "ExtraTranslation")

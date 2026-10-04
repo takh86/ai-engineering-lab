@@ -22,10 +22,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.muslimrecovery.protection.core.design.layout.TabsiraSpacing
 import com.muslimrecovery.protection.core.design.theme.TabsiraDesign
+
+/** Test hooks for the position of the selection marker and the label (RTL mirroring evidence). */
+internal const val SELECTABLE_OPTION_MARKER_TAG = "tabsira_option_marker"
+internal const val SELECTABLE_OPTION_LABEL_TAG = "tabsira_option_label"
 
 /**
  * A single-choice (radio) or multi-choice (checkbox) option row. Selection is shown three ways, never by color
@@ -61,7 +66,7 @@ fun SelectableOption(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(TabsiraSpacing.m),
     ) {
-        Box(modifier = Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.size(24.dp).testTag(SELECTABLE_OPTION_MARKER_TAG), contentAlignment = Alignment.Center) {
             if (selected) {
                 Icon(
                     imageVector = Icons.Filled.CheckCircle,
@@ -81,6 +86,7 @@ fun SelectableOption(
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(
+                modifier = Modifier.testTag(SELECTABLE_OPTION_LABEL_TAG),
                 text = label,
                 style = MaterialTheme.typography.bodyLarge,
                 color = if (enabled) MaterialTheme.colorScheme.onSurface else colors.disabledContent,
