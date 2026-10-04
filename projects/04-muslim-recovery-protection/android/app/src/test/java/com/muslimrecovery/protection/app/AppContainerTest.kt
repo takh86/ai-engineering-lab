@@ -2,7 +2,6 @@ package com.muslimrecovery.protection.app
 
 import com.muslimrecovery.protection.core.data.SettingsStore
 import com.muslimrecovery.protection.core.data.ThemeMode
-import com.muslimrecovery.protection.core.data.UiLanguage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
@@ -13,11 +12,8 @@ class AppContainerTest {
 
     private class FakeSettingsStore : SettingsStore {
         override val themeMode: Flow<ThemeMode> = flowOf(ThemeMode.DARK)
-        override val uiLanguage: Flow<UiLanguage> = flowOf(UiLanguage.GERMAN)
 
         override suspend fun setThemeMode(mode: ThemeMode) = Unit
-
-        override suspend fun setUiLanguage(language: UiLanguage) = Unit
     }
 
     @Test
