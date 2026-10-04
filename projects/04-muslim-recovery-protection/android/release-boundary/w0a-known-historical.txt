@@ -10,5 +10,5 @@ permission|android.permission.FOREGROUND_SERVICE
 permission|android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED
 permission|android.permission.INTERNET
 permission|android.permission.POST_NOTIFICATIONS
-# W0b C1 (transitional, removed with this file in C3): the harness is renamed in place and is still the launcher.
-component|activity|com.muslimrecovery.protection.ExperimentalHarnessActivity|exported=true|permission=none|filters=yes
+# W0b (transitional, removed with this file in C3): the harness still ships in src/main until the move; it is no longer the launcher.
+component|activity|com.muslimrecovery.protection.ExperimentalHarnessActivity|exported=false|permission=none|filters=no

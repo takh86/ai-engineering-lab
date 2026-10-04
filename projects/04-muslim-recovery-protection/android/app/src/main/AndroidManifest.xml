@@ -25,8 +25,9 @@
         android:theme="@style/Theme.MuslimRecoveryProtection"
         android:fullBackupContent="false">
 
+        <!-- The product launcher. -->
         <activity
-            android:name=".ExperimentalHarnessActivity"
+            android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.MuslimRecoveryProtection">
             <intent-filter>
@@ -34,6 +35,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- The historical M1 harness: not a launcher and not exported. W0b moves it to the internal flavor. -->
+        <activity
+            android:name=".ExperimentalHarnessActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MuslimRecoveryProtection" />
 
         <!-- android:exported="true" and this exact intent-filter are required by the
              VpnService contract so the system can locate/bind this service; the
