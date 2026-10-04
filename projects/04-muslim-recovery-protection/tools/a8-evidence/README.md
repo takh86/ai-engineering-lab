@@ -91,9 +91,12 @@ Recognized identity values are removed in place, so a long mixed line keeps its 
 fields. Quoted text is removed first; an unquoted SSID value is removed to the end of the line, so it cannot
 inject a fake Private DNS field. Such lines are marked `[identity values removed; inspect raw locally]`,
 and genuine fields after an unquoted SSID on the same line are lost from the extract.
-**Residual limit:** Android prints a quoted SSID without escaping embedded quotes, so a hostile SSID containing
-`", PrivateDnsServerName: x, "` could still produce a fake field in the extract. The extract is a reading aid
-only; confirm Private DNS facts against the raw stream before relying on them.
+**Hostile network names:** Android prints a quoted SSID without escaping embedded quotes, so text cannot be
+told apart from real fields by syntax alone. The extract therefore (1) withholds any Private DNS field that
+appears more than once on a line, since injected text can only add occurrences (`[AMBIGUOUS ...]`), and
+(2) labels every Private DNS fact that shares a line with a network name `[UNVERIFIED ...]`. A single injected
+field is only possible where the real line omits it; cross-check against the `private_dns_mode` and
+`private_dns_specifier` settings reads and the raw stream before relying on the extract.
 Resolver vocabulary is labelled as context-limited tokens, never as a validation conclusion.
 Use raw locally when associating a resolver server/status with a network is unclear.
 
