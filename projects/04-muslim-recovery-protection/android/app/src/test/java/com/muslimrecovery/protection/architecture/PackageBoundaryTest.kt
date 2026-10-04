@@ -172,6 +172,18 @@ class PackageBoundaryTest {
     }
 
     @Test
+    fun relativeSubPackageReferencesFromARootFileAreCaught() {
+        assertEquals(1, v("main", "MainActivity.kt", "val s = vpn.VpnRuntimeStatus").size)
+        assertEquals(1, v("main", "MainActivity.kt", "val d = dns . DnsProxyStatus").size)
+        assertEquals(1, v("main", "MainActivity.kt", "val e = experimental.webguard.Probe()").size)
+        assertEquals(1, v("internal", "MainActivity.kt", "val e = experimental.webguard.Probe()").size)
+        // The internal root harness may name vpn/dns packages (it is the experiment's own entry point).
+        assertEquals(emptyList<String>(), v("internal", "ExperimentalHarnessActivity.kt", "val s = vpn.VpnRuntimeStatus"))
+        // Innocent identifiers that merely start with those letters are not references.
+        assertEquals(emptyList<String>(), v("main", "MainActivity.kt", "val dnsServer = a.dnsServer.vpnLike"))
+    }
+
+    @Test
     fun insideInternalCoreFeatureAndAppStillMustNotUseVpnOrDns() {
         assertEquals(1, v("internal", "core/data/X.kt", "import com.muslimrecovery.protection.vpn.VpnRuntimeStatus").size)
         assertEquals(1, v("internal", "app/X.kt", "import com.muslimrecovery.protection.dns.DnsProxyStatus").size)

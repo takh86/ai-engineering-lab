@@ -12,6 +12,7 @@ is evaluated per head against the merge-base.
 
   w0b_diff_guard.py <merge-base>      (run from the repository root)
 """
+import collections
 import difflib
 import re
 import subprocess
@@ -29,19 +30,24 @@ MAIN_ACTIVITY = MAIN + "/MainActivity.kt"
 
 ALWAYS_FROZEN = [
     re.compile("^" + re.escape(PROJECT + "/chrome-extension/")),
-    re.compile("^" + re.escape(MAIN + "/domain/")),
-    re.compile("^" + re.escape(TEST + "/domain/")),
+    # domain/** is frozen in EVERY source set and source directory (java or kotlin, main/test/flavor).
+    re.compile("^" + re.escape(ANDROID + "/app/src/") + "[^/]+/(java|kotlin)/" + re.escape(PKG + "/domain/")),
     re.compile("^" + re.escape(ANDROID + "/app/src/main/res/values/strings.xml") + "$"),
     re.compile("^" + re.escape(TEST + "/ScaffoldingSanityTest.kt") + "$"),
 ]
 HISTORICAL_DIRS = [MAIN + "/vpn/", MAIN + "/dns/", TEST + "/vpn/", TEST + "/dns/"]
 
-SERVICE_EXPECTED_DIFF = {
+SERVICE_EXPECTED_DIFF = collections.Counter([
     "-import com.muslimrecovery.protection.MainActivity",
     "+import com.muslimrecovery.protection.ExperimentalHarnessActivity",
     "-            Intent(this, MainActivity::class.java),",
     "+            Intent(this, ExperimentalHarnessActivity::class.java),",
-}
+])
+# The harness is the old MainActivity.kt with ONLY its class name changed.
+HARNESS_OLD_DECLARATION = "class MainActivity : ComponentActivity()"
+HARNESS_NEW_DECLARATION = "class ExperimentalHarnessActivity : ComponentActivity()"
+# New files allowed under the internal vpn/dns test and source directories (everything else there must be a moved file).
+INTERNAL_EXTRA_FILES = {TEST_INTERNAL + "/vpn/NotificationTargetSourceTest.kt"}
 
 
 def destination(base_path):
@@ -52,7 +58,7 @@ def destination(base_path):
     return None
 
 
-def check(changes, base_files, read_base, read_head, exists_head):
+def check(changes, base_files, read_base, read_head, exists_head, head_files=()):
     """changes: {path: status} from `git diff --no-renames --name-status`. Returns a list of violations."""
     problems = []
     historical_base = {f for f in base_files if any(f.startswith(d) for d in HISTORICAL_DIRS)}
@@ -83,17 +89,37 @@ def check(changes, base_files, read_base, read_head, exists_head):
         if read_base(base_path) != read_head(target):
             problems.append("%s -> %s: moved file content changed (a move must be byte-identical)" % (base_path, target))
 
+    # Nothing may be added under the internal vpn/dns directories except the moved files themselves.
+    expected_internal = {destination(f) for f in historical_base} | INTERNAL_EXTRA_FILES
+    for path in sorted(head_files):
+        in_internal_dir = any(path.startswith(d) for d in (
+            INTERNAL + "/vpn/", INTERNAL + "/dns/", TEST_INTERNAL + "/vpn/", TEST_INTERNAL + "/dns/"))
+        if in_internal_dir and path not in expected_internal:
+            problems.append("A %s: only the moved historical files may live in the internal vpn/dns directories" % path)
+
+    # The harness is the old MainActivity with only the class name changed.
+    if MAIN_ACTIVITY in base_files:
+        harness = next((h for h in (MAIN + "/ExperimentalHarnessActivity.kt", INTERNAL + "/ExperimentalHarnessActivity.kt")
+                        if exists_head(h)), None)
+        if harness is None:
+            problems.append("ExperimentalHarnessActivity.kt is missing (it must be the renamed historical MainActivity)")
+        else:
+            expected = read_base(MAIN_ACTIVITY).replace(HARNESS_OLD_DECLARATION, HARNESS_NEW_DECLARATION, 1)
+            if read_head(harness) != expected:
+                problems.append("%s differs from the old MainActivity beyond the class name" % harness)
+
     # The service may only change by the approved notification-target edit, wherever it lives.
     service_now = service if exists_head(service) else destination(service)
     if service in historical_base and service_now and exists_head(service_now):
         before = read_base(service).splitlines()
         after = read_head(service_now).splitlines()
-        diff = {
+        diff = collections.Counter(
             line for line in difflib.unified_diff(before, after, lineterm="", n=0)
-            if line[:1] in "+-" and not line.startswith(("+++", "---"))
-        }
+            if line[:1] in "+-" and not line.startswith(("+++ ", "--- "))
+        )
         if diff and diff != SERVICE_EXPECTED_DIFF:
-            problems.append("LocalProtectionVpnService changed beyond the approved edit: %s" % sorted(diff ^ SERVICE_EXPECTED_DIFF))
+            problems.append("LocalProtectionVpnService changed beyond the approved edit: %s"
+                            % sorted(((diff - SERVICE_EXPECTED_DIFF) + (SERVICE_EXPECTED_DIFF - diff)).elements()))
     return problems
 
 
@@ -121,7 +147,8 @@ def main(argv):
     def exists_head(path):
         return subprocess.run(["git", "cat-file", "-e", "HEAD:" + path], capture_output=True).returncode == 0
 
-    problems = check(changes, base_files, read_base, read_head, exists_head)
+    head_files = set(_git("ls-tree", "-r", "--name-only", "HEAD").splitlines())
+    problems = check(changes, base_files, read_base, read_head, exists_head, head_files)
     for problem in problems:
         print("::error::" + problem)
     if problems:

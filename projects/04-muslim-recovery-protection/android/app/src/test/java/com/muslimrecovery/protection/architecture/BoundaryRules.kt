@@ -30,6 +30,8 @@ internal object BoundaryRules {
     private val PACKAGE_DECLARATION = Regex("^\\s*package\\s+([\\w.`]+)", RegexOption.MULTILINE)
     private val WILDCARD_ROOT_IMPORT = Regex("import\\s+${Regex.escape(BASE)}\\s*\\.\\s*\\*")
     private val DOT_SPACING = Regex("\\s*\\.\\s*")
+    // A root-package file may name a sub-package relatively (`vpn.X`, `experimental.Y`) without any full package text.
+    private val RELATIVE_SUBPACKAGE = Regex("(?<![\\w.])(experimental|vpn|dns)\\.[A-Za-z]")
 
     /** Removes `//` and (nested) block comments while leaving string and char literals intact. */
     fun stripComments(source: String): String {
@@ -125,6 +127,17 @@ internal object BoundaryRules {
             if (code.contains(HARNESS)) found += "$where: product source set must not reference the experimental harness"
         }
         val areaHistorical = !product
+
+        if (area == "") {
+            for (match in RELATIVE_SUBPACKAGE.findAll(code)) {
+                val name = match.groupValues[1]
+                if (name == "experimental") {
+                    found += "$where: root file references the experimental package relatively"
+                } else if (product) {
+                    found += "$where: product root file references the historical $name package relatively"
+                }
+            }
+        }
 
         when (area) {
             "core" -> {

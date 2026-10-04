@@ -48,8 +48,10 @@ class CompareTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             case = {"tests": 1, "failures": 0, "errors": 0, "skipped": 0, "cases": ["a"]}
             base_p, cur_p = os.path.join(d, "b.json"), os.path.join(d, "c.json")
-            json.dump({"p.core.B": case}, open(base_p, "w"))
-            json.dump({"p.core.B": case, "p.vpn.A": case}, open(cur_p, "w"))
+            with open(base_p, "w") as handle:
+                json.dump({"p.core.B": case}, handle)
+            with open(cur_p, "w") as handle:
+                json.dump({"p.core.B": case, "p.vpn.A": case}, handle)
             here = os.path.dirname(os.path.abspath(__file__))
             result = subprocess.run([sys.executable, os.path.join(here, "test_counts.py"), "compare", base_p, cur_p,
                                      "--exclude-prefix", "p.vpn."], capture_output=True, text=True)

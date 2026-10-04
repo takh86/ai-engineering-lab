@@ -1,5 +1,6 @@
 package com.muslimrecovery.protection.vpn
 
+import com.muslimrecovery.protection.architecture.BoundaryRules
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -13,8 +14,11 @@ import java.io.File
  */
 class NotificationTargetSourceTest {
 
+    // Comments are stripped so the intended target cannot "pass" by appearing only in a comment.
     private val source: String by lazy {
-        File("src/internal/java/com/muslimrecovery/protection/vpn/LocalProtectionVpnService.kt").readText()
+        BoundaryRules.stripComments(
+            File("src/internal/java/com/muslimrecovery/protection/vpn/LocalProtectionVpnService.kt").readText(),
+        )
     }
 
     @Test

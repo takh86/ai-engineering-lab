@@ -15,17 +15,24 @@ SERVICE_OK = SERVICE_SRC.replace("protection.MainActivity", "protection.Experime
     "Intent(this, MainActivity::class.java)", "Intent(this, ExperimentalHarnessActivity::class.java)")
 
 
+HARNESS_BASE = "package x\nclass MainActivity : ComponentActivity() {}\n"
+HARNESS_OK = "package x\nclass ExperimentalHarnessActivity : ComponentActivity() {}\n"
+HARNESS_PATH = g.INTERNAL + "/ExperimentalHarnessActivity.kt"
+
+
 def run(changes, head_files):
-    base = {SERVICE_BASE: SERVICE_SRC, OTHER_BASE: "A", TEST_BASE: "T", g.MAIN_ACTIVITY: "H"}
+    base = {SERVICE_BASE: SERVICE_SRC, OTHER_BASE: "A", TEST_BASE: "T", g.MAIN_ACTIVITY: HARNESS_BASE}
     return g.check(
         changes, BASE_FILES,
         read_base=lambda p: base[p],
         read_head=lambda p: head_files[p],
         exists_head=lambda p: p in head_files,
+        head_files=set(head_files),
     )
 
 
 GOOD_HEAD = {
+    HARNESS_PATH: HARNESS_OK,
     g.INTERNAL + "/vpn/LocalProtectionVpnService.kt": SERVICE_OK,
     g.INTERNAL + "/dns/DnsMessageCodec.kt": "A",
     g.TEST_INTERNAL + "/dns/DnsMessageCodecTest.kt": "T",
@@ -41,8 +48,36 @@ class GuardTest(unittest.TestCase):
         self.assertEqual([], run(GOOD_CHANGES, GOOD_HEAD))
 
     def test_intermediate_in_place_service_edit_passes(self):
-        head = {SERVICE_BASE: SERVICE_OK}
+        head = {SERVICE_BASE: SERVICE_OK, g.MAIN + "/ExperimentalHarnessActivity.kt": HARNESS_OK}
         self.assertEqual([], run({SERVICE_BASE: "M"}, head))
+
+    def test_a_duplicated_approved_line_is_rejected(self):
+        head = dict(GOOD_HEAD)
+        head[g.INTERNAL + "/vpn/LocalProtectionVpnService.kt"] = SERVICE_OK + "            Intent(this, ExperimentalHarnessActivity::class.java),\n"
+        self.assertTrue(any("beyond the approved edit" in p for p in run(GOOD_CHANGES, head)))
+
+    def test_an_edited_harness_is_rejected_and_a_missing_one_too(self):
+        head = dict(GOOD_HEAD)
+        head[HARNESS_PATH] = HARNESS_OK + "// sneaky\n"
+        self.assertTrue(any("beyond the class name" in p for p in run(GOOD_CHANGES, head)))
+        del head[HARNESS_PATH]
+        self.assertTrue(any("missing" in p and "Harness" in p for p in run(GOOD_CHANGES, head)))
+
+    def test_new_files_under_internal_vpn_or_dns_are_rejected_except_the_notification_test(self):
+        head = dict(GOOD_HEAD)
+        head[g.INTERNAL + "/dns/NewThing.kt"] = "x"
+        self.assertTrue(any("internal vpn/dns" in p for p in run(GOOD_CHANGES, head)))
+        head = dict(GOOD_HEAD)
+        head[g.TEST_INTERNAL + "/vpn/NotificationTargetSourceTest.kt"] = "x"
+        self.assertEqual([], run(GOOD_CHANGES, head))
+
+    def test_domain_is_frozen_in_every_source_set(self):
+        for path in (
+            g.ANDROID + "/app/src/play/java/" + g.PKG + "/domain/rules/X.kt",
+            g.ANDROID + "/app/src/main/kotlin/" + g.PKG + "/domain/protection/Y.kt",
+            g.ANDROID + "/app/src/internal/java/" + g.PKG + "/domain/Z.kt",
+        ):
+            self.assertTrue(run({path: "A"}, dict(GOOD_HEAD, **{path: "x"})), path)
 
     def test_a_moved_file_with_changed_content_is_rejected(self):
         head = dict(GOOD_HEAD)

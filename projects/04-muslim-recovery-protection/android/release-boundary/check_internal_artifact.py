@@ -18,11 +18,12 @@ REQUIRED_PERMISSIONS = {
     "android.permission.INTERNET",
     "android.permission.ACCESS_NETWORK_STATE",
 }
-REQUIRED_COMPONENTS = {
-    "service|%s.vpn.LocalProtectionVpnService|exported=true|permission=android.permission.BIND_VPN_SERVICE|filters=yes" % PKG,
-    "activity|%s.ExperimentalHarnessActivity|exported=false|permission=none|filters=no" % PKG,
-    "activity|%s.MainActivity|exported=true|permission=none|filters=yes" % PKG,
-}
+SHELL = ("activity|%s.MainActivity|exported=true|permission=none|"
+         "filters=action:android.intent.action.MAIN,category:android.intent.category.LAUNCHER" % PKG)
+VPN_SERVICE = ("service|%s.vpn.LocalProtectionVpnService|exported=true|permission=android.permission.BIND_VPN_SERVICE|"
+               "filters=action:android.net.VpnService" % PKG)
+HARNESS = "activity|%s.ExperimentalHarnessActivity|exported=false|permission=none|filters=none" % PKG
+REQUIRED_COMPONENTS = {VPN_SERVICE, HARNESS, SHELL}
 REQUIRED_CLASSES = [
     PKG + ".vpn.LocalProtectionVpnService",
     PKG + ".dns.DnsFilteringEngine",
@@ -32,10 +33,16 @@ EXPECTED_APPLICATION_ID = PKG + ".internal"
 # Debug-only AndroidX tooling activities merged into debug builds (ui-test-manifest, ui-tooling). They
 # exist only because the internal artifact is a debug build; nothing else may be an exported activity.
 DEBUG_TOOLING_EXPORTED_ACTIVITIES = {
-    "activity|androidx.activity.ComponentActivity|exported=true|permission=none|filters=no",
-    "activity|androidx.compose.ui.tooling.PreviewActivity|exported=true|permission=none|filters=no",
+    "activity|androidx.activity.ComponentActivity|exported=true|permission=none|filters=none",
+    "activity|androidx.compose.ui.tooling.PreviewActivity|exported=true|permission=none|filters=none",
 }
-SHELL = "activity|%s.MainActivity|exported=true|permission=none|filters=yes" % PKG
+# Exported library component also present in the play artifact (protected by android.permission.DUMP).
+PROFILE_INSTALL_RECEIVER = (
+    "receiver|androidx.profileinstaller.ProfileInstallReceiver|exported=true|permission=android.permission.DUMP|"
+    "filters=action:androidx.profileinstaller.action.BENCHMARK_OPERATION,action:androidx.profileinstaller.action.INSTALL_PROFILE,"
+    "action:androidx.profileinstaller.action.SAVE_PROFILE,action:androidx.profileinstaller.action.SKIP_FILE"
+)
+ALLOWED_EXPORTED = {SHELL, VPN_SERVICE, PROFILE_INSTALL_RECEIVER} | DEBUG_TOOLING_EXPORTED_ACTIVITIES
 
 
 def check(manifest_xml, apk_path, version_name):
@@ -45,13 +52,13 @@ def check(manifest_xml, apk_path, version_name):
         problems.append("missing permission " + permission)
     for component in sorted(REQUIRED_COMPONENTS - manifest["components"]):
         problems.append("missing or mis-configured component " + component)
-    exported_activities = {
-        c for c in manifest["components"] if c.startswith("activity|") and "|exported=true|" in c
-    }
-    unexpected = sorted(exported_activities - {SHELL} - DEBUG_TOOLING_EXPORTED_ACTIVITIES)
-    if SHELL not in exported_activities or unexpected:
+    # Every exported component of ANY kind (activity, alias, service, receiver, provider) must be known.
+    exported = {c for c in manifest["components"] if "|exported=true|" in c}
+    unexpected = sorted(exported - ALLOWED_EXPORTED)
+    if SHELL not in exported or unexpected:
         problems.append(
-            "only the product shell (plus known debug-tooling activities) may be an exported activity, unexpected: %s" % unexpected
+            "only the product shell, the guarded VPN service, the DUMP-guarded profileinstaller receiver and known "
+            "debug-tooling activities may be exported; unexpected: %s" % unexpected
         )
     if manifest["package"] != EXPECTED_APPLICATION_ID:
         problems.append("applicationId is '%s', expected '%s'" % (manifest["package"], EXPECTED_APPLICATION_ID))

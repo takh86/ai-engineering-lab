@@ -68,7 +68,10 @@ jobs:
           base="$(git merge-base origin/main HEAD)"
           # Every added/removed line of that file must be one of the four lines of the approved migration
           # (Owner decision C1, W0a closure). Any other edit to it fails; this is not a workflow bypass.
-          git diff --no-renames -U0 "$base" HEAD -- "$m1" | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)' | sort -u > "$RUNNER_TEMP/m1-actual.txt" || true
+          git diff --no-renames -U0 "$base" HEAD -- "$m1" > "$RUNNER_TEMP/m1-diff.txt"
+          rc=0
+          grep -E '^[+-]' "$RUNNER_TEMP/m1-diff.txt" | grep -vE '^(\+\+\+|---) (a/|b/|/dev/null)' | sort > "$RUNNER_TEMP/m1-actual.txt" || rc=$?
+          if [ "$rc" -gt 1 ]; then echo "::error::diff filtering failed ($rc)"; exit 1; fi
           cat > "$RUNNER_TEMP/m1-approved.txt" <<'APPROVED'
           +        run: ./gradlew clean assembleInternalDebug testInternalDebugUnitTest lintInternalDebug --no-daemon
           +          path: projects/04-muslim-recovery-protection/android/app/build/outputs/apk/internal/debug/app-internal-debug.apk
@@ -76,7 +79,7 @@ jobs:
           -          path: projects/04-muslim-recovery-protection/android/app/build/outputs/apk/debug/app-debug.apk
           APPROVED
           sed -i 's/^          //' "$RUNNER_TEMP/m1-approved.txt"
-          sort -u -o "$RUNNER_TEMP/m1-approved.txt" "$RUNNER_TEMP/m1-approved.txt"
+          sort -o "$RUNNER_TEMP/m1-approved.txt" "$RUNNER_TEMP/m1-approved.txt"
           unapproved="$(comm -23 "$RUNNER_TEMP/m1-actual.txt" "$RUNNER_TEMP/m1-approved.txt")"
           if [ -n "$unapproved" ]; then
             echo "::error::Unapproved change to the legacy M1 workflow:"; echo "$unapproved"; exit 1
@@ -86,9 +89,17 @@ jobs:
       - name: Surface changes to the release boundary itself (reviewer attention, not a gate)
         run: |
           set -euo pipefail
-          if grep -E '^(projects/04-muslim-recovery-protection/android/release-boundary/|projects/04-muslim-recovery-protection/android/app/build\.gradle\.kts$|\.github/workflows/)' "$RUNNER_TEMP/changed.txt" > "$RUNNER_TEMP/boundary-changes.txt"; then
-            while read -r f; do echo "::warning file=$f::Release-boundary-relevant file changed: this needs explicit Owner review (allow-lists, baseline, flavors, workflows)."; done < "$RUNNER_TEMP/boundary-changes.txt"
-          fi
+          base="$(git merge-base origin/main HEAD)"
+          git diff --no-renames --name-only "$base" HEAD > "$RUNNER_TEMP/changed.txt"
+          test -f "$RUNNER_TEMP/changed.txt"
+          # grep exits 1 when nothing matches (fine); any other failure must fail the step.
+          rc=0
+          grep -E '^(projects/04-muslim-recovery-protection/android/release-boundary/|projects/04-muslim-recovery-protection/android/ci/|projects/04-muslim-recovery-protection/android/app/build\.gradle\.kts$|\.github/workflows/)' "$RUNNER_TEMP/changed.txt" > "$RUNNER_TEMP/boundary-changes.txt" || rc=$?
+          if [ "$rc" -gt 1 ]; then echo "::error::grep failed ($rc)"; exit 1; fi
+          while read -r f; do
+            [ -n "$f" ] && echo "::warning file=$f::Release-boundary-relevant file changed: this needs explicit Tech Lead / Owner review (R-W0a-2)."
+          done < "$RUNNER_TEMP/boundary-changes.txt"
+          echo "boundary-relevant files changed: $(wc -l < "$RUNNER_TEMP/boundary-changes.txt")"
 
   baseline-main:
     name: Baseline test counts on main
@@ -200,7 +211,18 @@ jobs:
           if grep -nE 'isMinifyEnabled *= *true' app/build.gradle.kts; then
             echo "::error::R8/minification is on: class-name release-boundary scanning is no longer sufficient (D-10)"; exit 1
           fi
-          echo "Flavor invariants OK: no internalRelease task, play/internal tasks present, R8 off."
+          # W0b: no way back to a baseline or a non-releasable marker (any file name, flag or suffix).
+          root="$(git rev-parse --show-toplevel)"
+          if grep -nE 'nonreleasabl[e]' app/build.gradle.kts; then
+            echo "::error::a non-releasable marker is back in build.gradle.kts"; exit 1
+          fi
+          if grep -nE -e '--baselin[e]' "$root/.github/workflows/project-04-android-ci.yml"; then
+            echo "::error::the workflow passes a baseline to the boundary checker"; exit 1
+          fi
+          if ls release-boundary | grep -iE 'baselin|known|historic'; then
+            echo "::error::a baseline-like file exists in release-boundary/ (zero exceptions are allowed after W0b)"; exit 1
+          fi
+          echo "Flavor invariants OK: no internalRelease task, play/internal tasks present, R8 off, no baseline."
 
       - name: "Build, unit-test and lint both flavors (instrumentation tests are compiled, not run - D-17)"
         run: >

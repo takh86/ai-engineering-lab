@@ -24,7 +24,7 @@ Roots: `projects/04-muslim-recovery-protection/android/app/src/`.
 | `test/.../vpn/{CapturedNetworkWatchTest,UnderlyingNetworkInvalidationLifecycleTest,VpnLifecycleControllerTest,VpnRuntimeFactsTest}.kt` | `testInternal/.../vpn/` (same names) | R100 moves (4 files) | The tests move with the code they test and run in the internal flavor. |
 | `test/.../dns/{DnsFilteringEngineTest,DnsMessageCodecTest,DnsPacketProcessorTest,DnsParserRobustnessTest,Ipv4UdpDnsPacketAdapterTest,UpstreamDnsSelectorTest,DnsTestPackets}.kt` | `testInternal/.../dns/` (same names) | R100 moves (7 files) | same |
 
-27 files move as renames (16 main + 11 tests). **Not moved:** `domain/protection/**` and `domain/rules/**` (the single protection-state
+26 files are detected as renames against `main` (15 main + 11 tests); with the harness (renamed in C1) that is 27 relocated files (16 main + 11 tests). **Not moved:** `domain/protection/**` and `domain/rules/**` (the single protection-state
 source of truth and the rules engine, pure Kotlin, no components) and their tests stay in `src/main` / `src/test`; the internal
 flavor sees them.
 

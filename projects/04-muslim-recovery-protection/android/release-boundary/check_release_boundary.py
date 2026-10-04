@@ -50,6 +50,26 @@ PERMISSION_TAGS = ("uses-permission", "uses-permission-sdk-23", "uses-permission
 DECLARATION_TAGS = ("permission", "permission-tree", "permission-group")
 
 
+def filter_signature(element):
+    """Normalized, order-independent signature of every intent filter of a component, or 'none'.
+
+    Tokens: action:<name>, category:<name>, data:<attr>=<value> for scheme/host/mimeType/path*.
+    A new VIEW/BROWSABLE filter on an allowed component therefore changes its key and fails.
+    """
+    tokens = set()
+    for intent_filter in element.findall("intent-filter"):
+        for child in intent_filter:
+            name = child.get(ANDROID_NS + "name")
+            if child.tag in ("action", "category") and name:
+                tokens.add("%s:%s" % (child.tag, name))
+            elif child.tag == "data":
+                for attribute in ("scheme", "host", "port", "mimeType", "path", "pathPrefix", "pathPattern"):
+                    value = child.get(ANDROID_NS + attribute)
+                    if value:
+                        tokens.add("data:%s=%s" % (attribute, value))
+    return ",".join(sorted(tokens)) if tokens else "none"
+
+
 def parse_manifest(xml_text):
     """Returns a dict: package, uses, declared, components and application attributes.
 
@@ -84,10 +104,10 @@ def parse_manifest(xml_text):
         elif tag in COMPONENT_TAGS and name:
             exported = element.get(ANDROID_NS + "exported")
             guard = element.get(ANDROID_NS + "permission")
-            filters = "yes" if element.find("intent-filter") is not None else "no"
             components.add(
                 "%s|%s|exported=%s|permission=%s|filters=%s"
-                % (tag, qualify(name), exported if exported else "unset", guard if guard else "none", filters)
+                % (tag, qualify(name), exported if exported else "unset", guard if guard else "none",
+                   filter_signature(element))
             )
     return {"package": package, "uses": uses, "declared": declared, "components": components, "application": application}
 
@@ -115,7 +135,7 @@ def scan_apk(apk_path, denied_prefixes):
     """Returns (denied_prefixes_found, embedded_code_entries).
 
     Denied dotted prefixes are searched as type descriptors in every *.dex entry of the APK.
-    Any native library, jar or non-standard dex entry is reported as embedded code.
+    Any native library, jar, nested apk/zip or non-standard dex entry is reported as embedded code.
     """
     found, code_entries = set(), set()
     try:
@@ -135,7 +155,7 @@ def scan_apk(apk_path, denied_prefixes):
                 for prefix in denied_prefixes:
                     if ("L" + prefix.replace(".", "/")).encode("utf-8") in data:
                         found.add(prefix)
-            elif lowered.endswith((".so", ".jar")):
+            elif lowered.endswith((".so", ".jar", ".apk", ".zip")):
                 code_entries.add(name)
     return found, code_entries
 
