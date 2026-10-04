@@ -80,8 +80,8 @@ class LocaleAndRtlTest {
             }
         }
         rule.onNodeWithText(label).assertIsDisplayed()
-        val marker = rule.onNodeWithTag(SELECTABLE_OPTION_MARKER_TAG).getBoundsInRoot()
-        val text = rule.onNodeWithTag(SELECTABLE_OPTION_LABEL_TAG).getBoundsInRoot()
+        val marker = rule.onNodeWithTag(SELECTABLE_OPTION_MARKER_TAG, useUnmergedTree = true).getBoundsInRoot()
+        val text = rule.onNodeWithTag(SELECTABLE_OPTION_LABEL_TAG, useUnmergedTree = true).getBoundsInRoot()
         if (directionFor(tag) == LayoutDirection.Rtl) {
             assertTrue("RTL: the marker must sit to the right of (after) the label", marker.left > text.left)
         } else {

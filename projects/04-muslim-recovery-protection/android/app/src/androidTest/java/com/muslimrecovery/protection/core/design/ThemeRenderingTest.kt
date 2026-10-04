@@ -88,7 +88,8 @@ class ThemeRenderingTest {
             val slots = ColorScheme::class.java.declaredMethods.filter {
                 it.parameterCount == 0 && it.returnType == java.lang.Long.TYPE && it.name.startsWith("get")
             }
-            assertTrue("expected the complete Material3 slot set, saw ${slots.size}", slots.size >= 40)
+            // material3 1.3.2 exposes exactly the 36 constructor slots; fewer would mean the reflection missed some.
+            assertTrue("expected the complete Material3 slot set, saw ${slots.size}", slots.size >= 36)
             for (slot in slots) {
                 val packed = slot.invoke(scheme) as Long
                 val argb = packed ushr 32

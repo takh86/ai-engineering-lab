@@ -115,15 +115,20 @@ class ComponentSemanticsTest {
     fun labelsWrapWithoutClippingAtTwoHundredPercentFontScale() {
         showAll(ThemeMode.LIGHT, fontScale = 2f, narrow = true)
         val nodes = rule.onAllNodesWithText(germanLong)
+        val diagnostics = mutableListOf<String>()
         for (i in 0 until 4) {
             val results = mutableListOf<TextLayoutResult>()
             val node = nodes[i].fetchSemanticsNode()
             val ok = node.config[SemanticsActions.GetTextLayoutResult].action?.invoke(results) ?: false
             assertTrue("text layout available for node $i", ok && results.isNotEmpty())
             val layout = results.first()
-            assertFalse("node $i overflows at 200%", layout.hasVisualOverflow)
-            assertTrue("node $i must wrap onto several lines instead of truncating", layout.lineCount >= 2)
+            diagnostics += "node $i: lines=${layout.lineCount} size=${layout.size} " +
+                "paragraphWidth=${layout.multiParagraph.width} overflow=${layout.hasVisualOverflow} " +
+                "overflowW=${layout.didOverflowWidth} overflowH=${layout.didOverflowHeight}"
+            assertTrue("node $i must wrap onto several lines instead of truncating: $diagnostics", layout.lineCount >= 2)
         }
+        val overflowing = diagnostics.filter { it.contains("overflow=true") }
+        assertTrue("clipped text at 200%: $diagnostics", overflowing.isEmpty())
         for (tag in listOf("primary", "secondary", "action", "radio")) {
             rule.onNodeWithTag(tag).assertHeightIsAtLeast(48.dp)
         }
