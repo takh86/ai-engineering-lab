@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- F9 shared generic UI words only. No feature copy lives here: each feature owns strings_<feature>.xml.
+         Key prefix = file suffix (common_). Owner: F9 (core/design). -->
+    <string name="common_ok">OK</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_back">Back</string>
+    <string name="common_close">Close</string>
+    <string name="common_error_icon_description">Error</string>
+</resources>
