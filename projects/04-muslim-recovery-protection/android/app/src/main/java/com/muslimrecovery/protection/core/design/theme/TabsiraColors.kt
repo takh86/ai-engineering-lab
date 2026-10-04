@@ -22,8 +22,8 @@ internal val LocalTabsiraColors = staticCompositionLocalOf { TabsiraColors(Color
 
 /**
  * Maps the semantic tokens onto every Material3 slot. All slots are set explicitly through the constructor, so
- * no Material baseline (purple) or default red can leak in; a Material3 upgrade that adds a slot fails to compile
- * here and must be reviewed.
+ * no Material baseline (purple) or default red can leak in; a Material3 upgrade that adds a constructor slot fails to compile
+ * here and must be reviewed (the instrumented ThemeRenderingTest also walks every slot of the real scheme).
  */
 internal fun ColorTokens.toColorScheme(): ColorScheme {
     val bg = Color(background)
@@ -72,17 +72,5 @@ internal fun ColorTokens.toColorScheme(): ColorScheme {
         surfaceContainer = surf,
         surfaceContainerHigh = variant,
         surfaceContainerHighest = variant,
-        primaryFixed = prim,
-        primaryFixedDim = prim,
-        onPrimaryFixed = onPrim,
-        onPrimaryFixedVariant = onPrim,
-        secondaryFixed = variant,
-        secondaryFixedDim = variant,
-        onSecondaryFixed = text,
-        onSecondaryFixedVariant = text,
-        tertiaryFixed = variant,
-        tertiaryFixedDim = variant,
-        onTertiaryFixed = text,
-        onTertiaryFixedVariant = text,
     )
 }
