@@ -29,7 +29,7 @@ function ConvertFrom-A8Devices {
     $unparsed = 0
     foreach ($line in ($Text -split '\r?\n')) {
         if (-not $line.Trim() -or $line -match '^List of devices attached\s*$') { continue }
-        if ($line -notmatch '^(?<serial>\S+)\s+(?<state>device|offline|unauthorized|recovery|sideload|bootloader|no permissions)\b(?<rest>.*)$') {
+        if ($line -notmatch '^(?<serial>\S+(?: \(\d+\))?\S*)\s+(?<state>device|offline|unauthorized|recovery|sideload|bootloader|no permissions)\b(?<rest>.*)$') {
             $unparsed++
             continue
         }
@@ -156,14 +156,15 @@ function ConvertTo-A8ReviewText {
     $lineNumber = 0
     foreach ($line in ($Text -split '\r?\n')) {
         $lineNumber++
-        # A free-form identity value can contain text resembling a Private DNS field.
-        # Omit the whole line before parsing; never echo any part of that value.
-        if ($line -match '(?i)(?:^|[\s,{])(?:SSID|BSSID|MAC|MacAddress|subscriberId|IMSI|IMEI|ICCID|serial|account|phone|owner(?:Uid)?)\s*[:=]') {
-            $result.Add(('L{0}: [OMITTED identity-bearing line; inspect raw locally]' -f $lineNumber))
-            continue
-        }
-        # Do not mistake quoted SSIDs or other quoted free text for field names.
+        # Quoted free text first: it may contain text resembling a Private DNS field.
         $line = [regex]::Replace($line, '"(?:\\.|[^"\\])*"', '[OMITTED quoted text]')
+        # Remove identity VALUES, not the whole line: Samsung puts them on the same long line as
+        # the required Private DNS fields. Free-text SSID values (possibly unquoted, with spaces)
+        # are removed up to the next delimiter, so a spoofed field inside one cannot survive.
+        $identityRemoved = $false
+        $stripped = [regex]::Replace($line, '(?i)(?<![A-Za-z0-9_])SSID\s*[:=]\s*(?:\[OMITTED quoted text\]|[^,}\]\[]*)', '')
+        $stripped = [regex]::Replace($stripped, '(?i)(?<![A-Za-z0-9_])(?:BSSID|MAC|MacAddress|subscriberId|IMSI|IMEI|ICCID|serial|account|phone|owner(?:Uid)?)\s*[:=]\s*[^\s,}\]]*', '')
+        if ($stripped -ne $line) { $identityRemoved = $true; $line = $stripped }
         $parts = New-Object 'System.Collections.Generic.List[string]'
         if ($Name -in @('connectivity', 'dnsresolver')) {
             foreach ($m in [regex]::Matches($line, '(?i)\b(Active default network|netId|Network ID)\s*[:=]\s*(-?\d+|none)\b|\bnetwork\{(\d+)\}')) {
@@ -219,6 +220,7 @@ function ConvertTo-A8ReviewText {
         elseif ($Name -eq 'version' -and $line -match '^Android Debug Bridge version [0-9.]+$') {
             $parts.Add($line)
         }
+        if ($identityRemoved) { $parts.Add('[identity values removed; inspect raw locally]') }
         if ($parts.Count) { $result.Add(('L{0}: {1}' -f $lineNumber, ($parts -join '; '))) }
     }
     if ($result.Count -eq 2) { $result.Add('NO RECOGNIZED FIELDS. Inspect raw locally; absence here proves nothing.') }

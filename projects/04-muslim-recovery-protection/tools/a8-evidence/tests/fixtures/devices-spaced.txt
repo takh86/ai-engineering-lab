@@ -1,0 +1,3 @@
+List of devices attached
+adb-SYNTHETIC-abc._adb-tls-connect._tcp device product:a56xnaeea model:SM_A566B device:a56x transport_id:2
+adb-SYNTHETIC-abc (2)._adb-tls-connect._tcp device product:a56xnaeea model:SM_A566B device:a56x transport_id:3

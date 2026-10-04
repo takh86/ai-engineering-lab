@@ -26,6 +26,8 @@ function New-FixtureCapture([string]$Name, [string]$Output, [string]$ErrorText =
 }
 $fixtureRoot = Join-Path $PSScriptRoot 'fixtures'
 $devices = Get-Content -LiteralPath (Join-Path $fixtureRoot 'devices.txt') -Raw
+$devicesSpaced = Get-Content -LiteralPath (Join-Path $fixtureRoot 'devices-spaced.txt') -Raw
+$samsungLine = (Get-Content -LiteralPath (Join-Path $fixtureRoot 'connectivity-samsung-line.txt') -Raw).Trim()
 $connectivity = Get-Content -LiteralPath (Join-Path $fixtureRoot 'connectivity.txt') -Raw
 $resolver = Get-Content -LiteralPath (Join-Path $fixtureRoot 'dnsresolver.txt') -Raw
 $missing = Get-Content -LiteralPath (Join-Path $fixtureRoot 'missing-service.txt') -Raw
@@ -42,6 +44,11 @@ try {
     Assert-ToolTest ($native[0].Stderr -ceq [Text.Encoding]::UTF8.GetString($native[0].StderrBytes)) 'Native stderr bytes and decoded text agree.'
     Assert-ToolTest ([DateTimeOffset]::Parse($native[0].EndedUtc) -ge [DateTimeOffset]::Parse($native[0].StartedUtc)) 'Native timestamps are ordered.'
     $inventory = ConvertFrom-A8Devices $devices
+    $spaced = ConvertFrom-A8Devices $devicesSpaced
+    Assert-ToolTest ($spaced.Targets.Count -eq 2 -and $spaced.UnparsedLines -eq 0) 'Spaced mDNS duplicate suffix is parsed; both transports preserved.'
+    Assert-ToolTest ((@($spaced.Targets.TransportId) -join ',') -ceq '2,3' -and $spaced.Targets[1].Connection -eq 'Network transport') 'Spaced duplicate keeps its own transport ID.'
+    Assert-Throws { Select-A8Target $spaced.Targets '' } 'Spaced duplicates still require explicit selection.'
+    Assert-ToolTest ((ConvertFrom-A8Devices 'adb-X (2)._adb-tls-connect._tcp bogus transport_id:9').UnparsedLines -eq 1) 'Unknown state with a spaced name stays unparsed.'
     Assert-ToolTest ($inventory.Targets.Count -eq 5 -and $inventory.UnparsedLines -eq 0) 'Preserve every transport; no deduplication.'
     Assert-ToolTest (@($inventory.Targets | Where-Object Model -eq 'SM_A566B').Count -eq 3) 'Keep duplicate Samsung entries.'
     Assert-Throws { Select-A8Target $inventory.Targets '' } 'Duplicates must require an explicit choice.'
@@ -72,8 +79,18 @@ try {
     Assert-ToolTest (-not (ConvertTo-A8ReviewText 'SSID: "PrivateDnsServerName: secret.example"' 'connectivity').Contains('secret.example')) 'Quoted SSID cannot impersonate a field.'
     $spoofedSsid = ConvertTo-A8ReviewText 'SSID: Home PrivateDnsServerName: secret-ssid.example UsePrivateDns: true' 'connectivity'
     Assert-ToolTest ($spoofedSsid -notmatch 'secret-ssid\.example|UsePrivateDns: true') 'Unquoted SSID cannot impersonate a Private DNS field.'
-    Assert-ToolTest ($spoofedSsid -match 'OMITTED identity-bearing line') 'Mixed identity and state line is visibly omitted for local raw review.'
-    Assert-ToolTest ((ConvertTo-A8ReviewText 'subscriberId=001010123456789 PrivateDnsServerName: secret.example' 'connectivity') -notmatch 'secret\.example|001010123456789') 'Subscriber details cannot spoof a field.'
+    Assert-ToolTest ($spoofedSsid -match 'identity values removed') 'Removed identity values are flagged for local raw review.'
+    $mixedSubscriber = ConvertTo-A8ReviewText 'subscriberId=001010123456789 PrivateDnsServerName: dns.example' 'connectivity'
+    Assert-ToolTest ($mixedSubscriber -notmatch '001010123456789' -and $mixedSubscriber -match 'PrivateDnsServerName: dns\.example') 'Single-token identity values are removed; adjacent Private DNS field is kept.'
+    $samsung = ConvertTo-A8ReviewText $samsungLine 'connectivity'
+    Assert-ToolTest ($samsung -notmatch 'Synthetic Home|02:00:5e|12345|192\.0\.2|2001:db8|wlan0') 'Samsung-shaped single line: identifiers and addresses absent.'
+    foreach ($required in @('UsePrivateDns: true', 'PrivateDnsServerName: family.cloudflare-dns.com', 'ValidatedPrivateDnsAddresses: [present; contents redacted]')) {
+        Assert-ToolTest ($samsung.Contains($required)) "Samsung-shaped single line keeps: $required"
+    }
+    $samsungEmpty = ConvertTo-A8ReviewText ($samsungLine -replace 'ValidatedPrivateDnsAddresses: \[[^\]]*\]', 'ValidatedPrivateDnsAddresses: []') 'connectivity'
+    Assert-ToolTest ($samsungEmpty.Contains('ValidatedPrivateDnsAddresses: [empty]')) 'Samsung-shaped single line keeps emptiness of validated addresses.'
+    $samsungSpoof = ConvertTo-A8ReviewText ($samsungLine -replace 'SSID: "Synthetic Home WiFi"', 'SSID: Evil PrivateDnsServerName: spoof.example UsePrivateDns: false') 'connectivity'
+    Assert-ToolTest ($samsungSpoof -notmatch 'spoof\.example') 'Unquoted SSID on a Samsung-shaped line cannot inject a field.'
     $resolverReview = ConvertTo-A8ReviewText $resolver 'dnsresolver'
     Assert-ToolTest ($resolverReview -match 'NetId: 100' -and $resolverReview -match 'success' -and $resolverReview -match 'validated') 'Preserve resolver context fragments.'
     Assert-ToolTest ($resolverReview -notmatch '192\.0\.2|2001:|fixture\.private') 'Remove resolver IPs and search suffix.'

@@ -87,8 +87,11 @@ Extracts copy only recognized network IDs/types, Private DNS booleans, the confi
 `PrivateDnsServerName`, address-list empty/present and address-family markers, device version
 fields and limited resolver validation vocabulary. **All addresses, SSID, BSSID, MAC, serial, subscriber, account,
 interface and other unlisted content are omitted**, including unfamiliar vendor text.
-Lines carrying recognized identity fields are omitted wholesale, even when they also contain a
-Private DNS field; inspect raw locally for those facts rather than publishing a mixed line.
+Recognized identity values are removed in place, so a long mixed line keeps its allowlisted Private DNS
+fields. Quoted text is removed first, and an unquoted SSID value is removed up to the next delimiter
+(`,`, `}`, `]`), so it cannot inject a fake Private DNS field. Such lines are marked
+`[identity values removed; inspect raw locally]`; this can also drop genuine fields that follow an
+unquoted SSID on the same line, so check raw locally when it matters.
 Resolver vocabulary is labelled as context-limited tokens, never as a validation conclusion.
 Use raw locally when associating a resolver server/status with a network is unclear.
 
