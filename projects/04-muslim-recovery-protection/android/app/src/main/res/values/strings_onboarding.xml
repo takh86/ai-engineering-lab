@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- F1 Onboarding. Key prefix = file suffix (onboarding_). Draft copy: content status DRAFT until the content review record (OD-W1-5) approves it. No app name in copy. -->
+    <string name="onboarding_progress">Step %1$d of %2$d</string>
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_start">Get started</string>
+    <string name="onboarding_welcome_title">Welcome</string>
+    <string name="onboarding_welcome_body">This app is a private support tool for people who want to leave a habit behind and build healthier routines. Every step after this one is a simple choice.</string>
+    <string name="onboarding_limits_title">What this app is and is not</string>
+    <string name="onboarding_limits_body">It offers support and tools. It does not diagnose, treat or cure anything, and it cannot guarantee any result. It is not a replacement for professional or medical help. If you are in danger or in crisis, contact your local emergency services.</string>
+    <string name="onboarding_language_title">Choose your language</string>
+    <string name="onboarding_language_body">The app changes language right away. You can also use the language of your device.</string>
+    <string name="onboarding_language_system">Use device language</string>
+    <string name="onboarding_language_english">English</string>
+    <string name="onboarding_language_arabic">العربية</string>
+    <string name="onboarding_language_german">Deutsch</string>
+    <string name="onboarding_mode_title">Choose your path</string>
+    <string name="onboarding_mode_body">Pick what fits you today.</string>
+    <string name="onboarding_mode_recovery_title">Recovery</string>
+    <string name="onboarding_mode_recovery_description">Practical support for your recovery, without religious content.</string>
+    <string name="onboarding_mode_faith_title">Recovery with Faith</string>
+    <string name="onboarding_mode_faith_description">The same support, with optional faith-based content added.</string>
+    <string name="onboarding_reasons_title">Your reasons (optional)</string>
+    <string name="onboarding_reasons_body">Why do you want to change? Write it in your own words. These reasons are only for you. You can skip this step.</string>
+    <string name="onboarding_reasons_input_label">Your reason</string>
+    <string name="onboarding_reasons_add">Add this reason</string>
+    <string name="onboarding_reasons_list_title">Reasons you added: %1$d</string>
+    <string name="onboarding_reasons_remove">Remove</string>
+    <string name="onboarding_reasons_remove_description">Remove this reason: %1$s</string>
+    <string name="onboarding_reasons_skip">Skip this step</string>
+    <string name="onboarding_reasons_error_too_long">This reason is too long. Please use at most %1$d characters.</string>
+    <string name="onboarding_reasons_error_too_many">You can add up to %1$d reasons here.</string>
+    <string name="onboarding_finish_title">Almost done</string>
+    <string name="onboarding_finish_summary_mode">Path: %1$s</string>
+    <string name="onboarding_finish_summary_reasons">Reasons added: %1$d</string>
+    <string name="onboarding_privacy_title">Privacy</string>
+    <string name="onboarding_privacy_body">This app has no account. Nothing you enter here is sent to anyone. During setup the app asks for no permissions and does not start any protection.</string>
+    <string name="onboarding_start_plan_option">Help me build my first plan next</string>
+    <string name="onboarding_finish">Finish setup</string>
+    <string name="onboarding_retry">Try again</string>
+    <string name="onboarding_saving">Saving…</string>
+    <string name="onboarding_error_locked">Your private space is locked right now. Nothing was saved. Please try again.</string>
+    <string name="onboarding_error_unavailable">Saving is not available on this device right now. Nothing was saved. Please try again later.</string>
+    <string name="onboarding_error_failed">Something went wrong and nothing was saved. Please try again.</string>
+    <string name="onboarding_warning_icon_description">Warning</string>
+</resources>

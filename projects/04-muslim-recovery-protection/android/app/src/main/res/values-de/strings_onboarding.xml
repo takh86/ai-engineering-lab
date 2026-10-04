@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- F1 Onboarding. Key prefix = file suffix (onboarding_). German draft copy: needs native review (DRAFT). -->
+    <string name="onboarding_progress">Schritt %1$d von %2$d</string>
+    <string name="onboarding_back">Zurück</string>
+    <string name="onboarding_next">Weiter</string>
+    <string name="onboarding_start">Los geht’s</string>
+    <string name="onboarding_welcome_title">Willkommen</string>
+    <string name="onboarding_welcome_body">Diese App ist ein privates Hilfsmittel für Menschen, die eine Gewohnheit hinter sich lassen und gesündere Routinen aufbauen möchten. Jeder weitere Schritt ist eine einfache Auswahl.</string>
+    <string name="onboarding_limits_title">Was diese App ist und was nicht</string>
+    <string name="onboarding_limits_body">Sie bietet Unterstützung und Werkzeuge. Sie stellt keine Diagnose, behandelt und heilt nichts und kann kein Ergebnis garantieren. Sie ersetzt keine professionelle oder medizinische Hilfe. Wenn du in Gefahr oder in einer Krise bist, wende dich an den örtlichen Notruf.</string>
+    <string name="onboarding_language_title">Sprache wählen</string>
+    <string name="onboarding_language_body">Die App wechselt sofort die Sprache. Du kannst auch die Sprache deines Geräts verwenden.</string>
+    <string name="onboarding_language_system">Gerätesprache verwenden</string>
+    <string name="onboarding_language_english">English</string>
+    <string name="onboarding_language_arabic">العربية</string>
+    <string name="onboarding_language_german">Deutsch</string>
+    <string name="onboarding_mode_title">Deinen Weg wählen</string>
+    <string name="onboarding_mode_body">Wähle, was heute zu dir passt.</string>
+    <string name="onboarding_mode_recovery_title">Genesung</string>
+    <string name="onboarding_mode_recovery_description">Praktische Unterstützung für deine Genesung, ohne religiöse Inhalte.</string>
+    <string name="onboarding_mode_faith_title">Genesung mit Glauben</string>
+    <string name="onboarding_mode_faith_description">Dieselbe Unterstützung, ergänzt um optionale glaubensbasierte Inhalte.</string>
+    <string name="onboarding_reasons_title">Deine Gründe (optional)</string>
+    <string name="onboarding_reasons_body">Warum möchtest du etwas ändern? Schreibe es in deinen eigenen Worten. Diese Gründe sind nur für dich. Du kannst diesen Schritt überspringen.</string>
+    <string name="onboarding_reasons_input_label">Dein Grund</string>
+    <string name="onboarding_reasons_add">Diesen Grund hinzufügen</string>
+    <string name="onboarding_reasons_list_title">Hinzugefügte Gründe: %1$d</string>
+    <string name="onboarding_reasons_remove">Entfernen</string>
+    <string name="onboarding_reasons_remove_description">Diesen Grund entfernen: %1$s</string>
+    <string name="onboarding_reasons_skip">Diesen Schritt überspringen</string>
+    <string name="onboarding_reasons_error_too_long">Dieser Grund ist zu lang. Bitte höchstens %1$d Zeichen.</string>
+    <string name="onboarding_reasons_error_too_many">Du kannst hier bis zu %1$d Gründe hinzufügen.</string>
+    <string name="onboarding_finish_title">Fast geschafft</string>
+    <string name="onboarding_finish_summary_mode">Weg: %1$s</string>
+    <string name="onboarding_finish_summary_reasons">Hinzugefügte Gründe: %1$d</string>
+    <string name="onboarding_privacy_title">Datenschutz</string>
+    <string name="onboarding_privacy_body">Diese App hat kein Konto. Nichts, was du hier eingibst, wird an jemanden gesendet. Während der Einrichtung fragt die App keine Berechtigungen an und startet keinen Schutz.</string>
+    <string name="onboarding_start_plan_option">Danach beim ersten Plan helfen</string>
+    <string name="onboarding_finish">Einrichtung abschließen</string>
+    <string name="onboarding_retry">Erneut versuchen</string>
+    <string name="onboarding_saving">Wird gespeichert…</string>
+    <string name="onboarding_error_locked">Dein privater Bereich ist gerade gesperrt. Es wurde nichts gespeichert. Bitte versuche es erneut.</string>
+    <string name="onboarding_error_unavailable">Speichern ist auf diesem Gerät gerade nicht verfügbar. Es wurde nichts gespeichert. Bitte versuche es später erneut.</string>
+    <string name="onboarding_error_failed">Etwas ist schiefgelaufen und es wurde nichts gespeichert. Bitte versuche es erneut.</string>
+    <string name="onboarding_warning_icon_description">Warnung</string>
+</resources>

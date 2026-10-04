@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- F1 Onboarding. Key prefix = file suffix (onboarding_). Arabic draft copy: needs native review (DRAFT). -->
+    <string name="onboarding_progress">الخطوة %1$d من %2$d</string>
+    <string name="onboarding_back">رجوع</string>
+    <string name="onboarding_next">التالي</string>
+    <string name="onboarding_start">ابدأ</string>
+    <string name="onboarding_welcome_title">مرحبًا بك</string>
+    <string name="onboarding_welcome_body">هذا التطبيق أداة دعم خاصة لمن يريد ترك عادة والتخلّص منها وبناء روتين أكثر صحة. كل خطوة بعد هذه خيار بسيط.</string>
+    <string name="onboarding_limits_title">ما هو هذا التطبيق وما ليس هو</string>
+    <string name="onboarding_limits_body">يقدّم التطبيق دعمًا وأدوات. وهو لا يشخّص ولا يعالج ولا يشفي، ولا يضمن أي نتيجة، ولا يغني عن المساعدة المتخصصة أو الطبية. إذا كنت في خطر أو أزمة فاتصل بخدمات الطوارئ المحلية.</string>
+    <string name="onboarding_language_title">اختر لغتك</string>
+    <string name="onboarding_language_body">تتغير لغة التطبيق فورًا. يمكنك أيضًا استخدام لغة جهازك.</string>
+    <string name="onboarding_language_system">استخدام لغة الجهاز</string>
+    <string name="onboarding_language_english">English</string>
+    <string name="onboarding_language_arabic">العربية</string>
+    <string name="onboarding_language_german">Deutsch</string>
+    <string name="onboarding_mode_title">اختر مسارك</string>
+    <string name="onboarding_mode_body">اختر ما يناسبك اليوم.</string>
+    <string name="onboarding_mode_recovery_title">التعافي</string>
+    <string name="onboarding_mode_recovery_description">دعم عملي لتعافيك دون محتوى ديني.</string>
+    <string name="onboarding_mode_faith_title">التعافي مع الإيمان</string>
+    <string name="onboarding_mode_faith_description">الدعم نفسه مع إضافة محتوى إيماني اختياري.</string>
+    <string name="onboarding_reasons_title">أسبابك (اختياري)</string>
+    <string name="onboarding_reasons_body">لماذا تريد التغيير؟ اكتب ذلك بكلماتك. هذه الأسباب لك وحدك. يمكنك تخطي هذه الخطوة.</string>
+    <string name="onboarding_reasons_input_label">سببك</string>
+    <string name="onboarding_reasons_add">أضف هذا السبب</string>
+    <string name="onboarding_reasons_list_title">الأسباب المضافة: %1$d</string>
+    <string name="onboarding_reasons_remove">حذف</string>
+    <string name="onboarding_reasons_remove_description">حذف هذا السبب: %1$s</string>
+    <string name="onboarding_reasons_skip">تخطي هذه الخطوة</string>
+    <string name="onboarding_reasons_error_too_long">هذا السبب طويل جدًا. يرجى ألا يتجاوز %1$d حرفًا.</string>
+    <string name="onboarding_reasons_error_too_many">يمكنك إضافة حتى %1$d من الأسباب هنا.</string>
+    <string name="onboarding_finish_title">أوشكنا على الانتهاء</string>
+    <string name="onboarding_finish_summary_mode">المسار: %1$s</string>
+    <string name="onboarding_finish_summary_reasons">الأسباب المضافة: %1$d</string>
+    <string name="onboarding_privacy_title">الخصوصية</string>
+    <string name="onboarding_privacy_body">لا يوجد حساب في هذا التطبيق. لا يُرسَل أي شيء تكتبه هنا إلى أي جهة. لا يطلب التطبيق أي أذونات أثناء الإعداد ولا يبدأ أي حماية.</string>
+    <string name="onboarding_start_plan_option">ساعدني في بناء خطتي الأولى بعد ذلك</string>
+    <string name="onboarding_finish">إنهاء الإعداد</string>
+    <string name="onboarding_retry">حاول مرة أخرى</string>
+    <string name="onboarding_saving">جارٍ الحفظ…</string>
+    <string name="onboarding_error_locked">مساحتك الخاصة مقفلة الآن. لم يُحفظ شيء. يرجى المحاولة مرة أخرى.</string>
+    <string name="onboarding_error_unavailable">الحفظ غير متاح على هذا الجهاز الآن. لم يُحفظ شيء. يرجى المحاولة لاحقًا.</string>
+    <string name="onboarding_error_failed">حدث خطأ ولم يُحفظ شيء. يرجى المحاولة مرة أخرى.</string>
+    <string name="onboarding_warning_icon_description">تحذير</string>
+</resources>
