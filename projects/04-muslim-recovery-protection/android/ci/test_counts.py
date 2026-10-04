@@ -2,7 +2,9 @@
 """Summarize and compare JUnit XML results (M3-01 W0a: existing tests must be preserved).
 
   test_counts.py summarize <results-dir>   -> JSON {class: {tests, failures, errors, skipped, cases}}
-  test_counts.py compare <baseline.json> <current.json>
+  test_counts.py compare <baseline.json> <current.json> [--exclude-prefix PREFIX]...
+      (W0b: the play flavor legitimately no longer contains the moved historical vpn/dns tests;
+       baseline classes starting with an excluded prefix are skipped, nothing else is)
       exit 0 only if every baseline class exists in current with the identical test count, every
       baseline test case name is still present, and the current class has no failures, errors or
       skips. New classes in current are allowed.
@@ -29,9 +31,11 @@ def summarize(results_dir):
     return summary
 
 
-def compare(baseline, current):
+def compare(baseline, current, exclude_prefixes=()):
     problems = []
     for name, base in sorted(baseline.items()):
+        if any(name.startswith(prefix) for prefix in exclude_prefixes):
+            continue
         cur = current.get(name)
         if cur is None:
             problems.append("missing test class: %s" % name)
@@ -55,12 +59,21 @@ def main(argv):
         json.dump(summary, sys.stdout, indent=2, sort_keys=True)
         print()
         return 0
-    if len(argv) == 4 and argv[1] == "compare":
+    if len(argv) >= 4 and argv[1] == "compare":
+        extra = argv[4:]
+        if len(extra) % 2 != 0 or any(extra[i] != "--exclude-prefix" for i in range(0, len(extra), 2)):
+            print(__doc__, file=sys.stderr)
+            return 2
+        excluded = extra[1::2]
         with open(argv[2]) as handle:
             baseline = json.load(handle)
         with open(argv[3]) as handle:
             current = json.load(handle)
-        problems = compare(baseline, current)
+        problems = compare(baseline, current, excluded)
+        for prefix in excluded:
+            leaked = sorted(n for n in current if n.startswith(prefix))
+            for name in leaked:
+                problems.append("excluded prefix %s must not exist in this flavor but found %s" % (prefix, name))
         total_base = sum(c["tests"] for c in baseline.values())
         total_cur = sum(c["tests"] for c in current.values())
         print("baseline: %d classes / %d tests; current: %d classes / %d tests" % (len(baseline), total_base, len(current), total_cur))

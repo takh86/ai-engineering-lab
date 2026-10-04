@@ -20,12 +20,11 @@ android {
 
     flavorDimensions += "distribution"
     productFlavors {
-        // PLAY: the only flavor that may ever be uploaded anywhere. Until W0b isolation is complete
-        // it still contains the historical experimental code, so it is explicitly NON-RELEASABLE
-        // engineering evidence (M3-01 Amendment W0a). The suffix is removed by W0b.
+        // PLAY: the only flavor that may ever be uploaded anywhere (and only with Owner approval).
+        // Since W0b it is structurally free of the historical M1 DNS/VPN experiment, which lives
+        // only in src/internal; the release-boundary checker proves that on the built artifact.
         create("play") {
             dimension = "distribution"
-            versionNameSuffix = "-nonreleasable-w0a"
         }
         // INTERNAL: may contain separately approved experimental capabilities. The base
         // applicationId is unchanged (D-4); only a suffix lets both flavors coexist on a device.

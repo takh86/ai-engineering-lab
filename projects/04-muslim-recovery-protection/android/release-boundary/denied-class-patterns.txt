@@ -3,3 +3,4 @@
 com.muslimrecovery.protection.experimental.
 com.muslimrecovery.protection.vpn.
 com.muslimrecovery.protection.dns.
+com.muslimrecovery.protection.ExperimentalHarnessActivity

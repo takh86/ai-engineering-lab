@@ -140,8 +140,27 @@ def scan_apk(apk_path, denied_prefixes):
     return found, code_entries
 
 
+def scan_bundle(bundle_path, denied_prefixes):
+    """Denied dotted prefixes found as type descriptors in any *.dex entry of an AAB (base/dex/...)."""
+    found = set()
+    try:
+        archive = zipfile.ZipFile(bundle_path)
+    except (OSError, zipfile.BadZipFile) as error:
+        raise InputError("cannot open bundle %s: %s" % (bundle_path, error))
+    with archive:
+        dex_names = [n for n in archive.namelist() if n.lower().endswith(".dex")]
+        if not dex_names:
+            raise InputError("bundle %s contains no .dex entries" % bundle_path)
+        for name in dex_names:
+            data = archive.read(name)
+            for prefix in denied_prefixes:
+                if ("L" + prefix.replace(".", "/")).encode("utf-8") in data:
+                    found.add(prefix)
+    return found
+
+
 def evaluate(manifest_xml, apk_path, dependencies_text, allowed, denied_prefixes, r8_mapping_path, version_name,
-             baseline, expected_package=EXPECTED_PACKAGE):
+             baseline, expected_package=EXPECTED_PACKAGE, bundle_path=None):
     """Returns (findings, hard_findings, discovered)."""
     manifest = parse_manifest(manifest_xml)
     dependencies = parse_dependencies(dependencies_text)
@@ -156,6 +175,8 @@ def evaluate(manifest_xml, apk_path, dependencies_text, allowed, denied_prefixes
     findings |= {"dependency|" + d for d in dependencies - allowed["dependencies"]}
     findings |= {"class|" + p for p in denied_found}
     findings |= {"code-entry|" + e for e in code_entries - allowed["code_entries"]}
+    if bundle_path:
+        findings |= {"bundle-class|" + p for p in scan_bundle(bundle_path, denied_prefixes)}
 
     hard = set()
     if r8_mapping_path and os.path.exists(r8_mapping_path):
@@ -230,6 +251,7 @@ def main(argv=None):
     parser.add_argument("--r8-mapping", help="path an R8 mapping.txt would have; presence is a hard failure")
     parser.add_argument("--version-name", default="")
     parser.add_argument("--expected-package", default=EXPECTED_PACKAGE)
+    parser.add_argument("--bundle", help="the playRelease .aab; its dex entries are scanned with the same deny-list")
     parser.add_argument("--mode", choices=("enforce", "report"), default="enforce")
     parser.add_argument("--report-out")
     args = parser.parse_args(argv)
@@ -257,7 +279,7 @@ def main(argv=None):
             dependencies_text = handle.read()
         findings, hard, discovered = evaluate(
             manifest_xml, args.apk, dependencies_text, allowed, denied, args.r8_mapping, args.version_name, baseline,
-            args.expected_package,
+            args.expected_package, args.bundle,
         )
     except (InputError, OSError) as error:
         print("input error: %s" % error, file=sys.stderr)

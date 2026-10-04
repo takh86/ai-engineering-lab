@@ -32,6 +32,30 @@ class CompareTest(unittest.TestCase):
             cur["A"][field] = 1
             self.assertEqual(1, len(tc.compare(self.base, cur)))
 
+    def test_excluded_prefixes_skip_only_the_moved_classes(self):
+        base = {
+            "p.vpn.A": {"tests": 1, "failures": 0, "errors": 0, "skipped": 0, "cases": ["a"]},
+            "p.core.B": {"tests": 1, "failures": 0, "errors": 0, "skipped": 0, "cases": ["b"]},
+        }
+        cur = {"p.core.B": base["p.core.B"]}
+        self.assertEqual(1, len(tc.compare(base, cur)))
+        self.assertEqual([], tc.compare(base, cur, ["p.vpn."]))
+        cur_missing_other = {}
+        self.assertEqual(1, len(tc.compare(base, cur_missing_other, ["p.vpn."])))
+
+    def test_cli_rejects_an_excluded_class_that_leaks_into_the_flavor(self):
+        import json, subprocess, sys
+        with tempfile.TemporaryDirectory() as d:
+            case = {"tests": 1, "failures": 0, "errors": 0, "skipped": 0, "cases": ["a"]}
+            base_p, cur_p = os.path.join(d, "b.json"), os.path.join(d, "c.json")
+            json.dump({"p.core.B": case}, open(base_p, "w"))
+            json.dump({"p.core.B": case, "p.vpn.A": case}, open(cur_p, "w"))
+            here = os.path.dirname(os.path.abspath(__file__))
+            result = subprocess.run([sys.executable, os.path.join(here, "test_counts.py"), "compare", base_p, cur_p,
+                                     "--exclude-prefix", "p.vpn."], capture_output=True, text=True)
+            self.assertEqual(1, result.returncode, result.stdout)
+            self.assertIn("must not exist in this flavor", result.stdout)
+
     def test_swapping_one_test_for_another_is_rejected(self):
         base = {"A": {"tests": 2, "failures": 0, "errors": 0, "skipped": 0, "cases": ["one", "two"]}}
         cur = {"A": {"tests": 2, "failures": 0, "errors": 0, "skipped": 0, "cases": ["one", "three"]}}

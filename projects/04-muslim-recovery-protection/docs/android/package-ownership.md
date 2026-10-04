@@ -13,7 +13,9 @@ Source: M3-01 §2, §18 and Amendment A5. One `:app` module; boundaries are pack
 | `feature/<name>/` | the matching feature agent (F1–F9, F14, F15) | `feature/settings` belongs to F9. A feature may import `core/**` only. |
 | `protection/appblocking/` | F10 | Separately gated. |
 | `experimental/{webguard,dns,api}/` | F11–F13, F16 | Exists only in `src/internal`. |
-| `vpn/`, `dns/`, `domain/` | historical | Not moved, renamed or edited in W0a. `domain/protection/ProtectionState` is the single protection-state source of truth. |
+| `vpn/`, `dns/` | historical, internal-only | Live in `src/internal` (W0b), not in the product. See `historical-code-map.md`. |
+| `domain/` | historical, shared | Stays in `src/main`. `domain/protection/ProtectionState` is the single protection-state source of truth. |
+| `ExperimentalHarnessActivity`, `app/InternalToolsEntry` (internal) | Integration Agent | Internal composition wiring; the play flavor has an empty `InternalToolsEntry`. |
 
 Dependency rules (enforced by `PackageBoundaryTest` over every non-test source set under `src/`, `.kt` and `.java`,
 strict by default; comments are ignored, string literals are not):
@@ -24,7 +26,8 @@ strict by default; comments are ignored, string literals are not):
   `src/play`, `core`, `feature` or any other source set (Amendment A5);
 - `core` never depends on `feature` or `app`;
 - `feature/<a>` never depends on `feature/<b>` or `app`;
-- `core`, `feature` and `app` do not use the historical `vpn` or `dns` packages.
+- product source sets (everything except `src/internal`) never reference the historical `vpn` or `dns` packages or `ExperimentalHarnessActivity`, in any file (W0b);
+- inside `src/internal`, `core`, `feature` and `app` code still must not use `vpn`/`dns`.
 
 Not encoded (best effort or by design): `feature` using `domain.*`, `core`/`feature` using `protection.*`, and Kotlin type aliases.
 

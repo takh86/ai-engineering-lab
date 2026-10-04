@@ -1,27 +1,32 @@
 # Release boundary (Play vs Internal)
 
-Source: M3-01 §4, §7, §17 and Amendments A1, A2, A5. Tooling lives in `android/release-boundary/`; CI in
+Source: M3-01 §4, §7, §17 and Amendments A1, A2, A5, and the W0b isolation. Tooling lives in `android/release-boundary/`; CI in
 `.github/workflows/project-04-android-ci.yml`.
 
 ## Variants
 
 | Flavor | applicationId | May contain | May be uploaded |
 |---|---|---|---|
-| `play` | unchanged (`com.muslimrecovery.protection`) | release-approved features only (after W0b) | `playRelease` only, and only with Owner approval |
+| `play` | unchanged (`com.muslimrecovery.protection`) | release-approved features only | `playRelease` only, and only with Owner approval |
 | `internal` | base + `.internal` | separately approved experiments, diagnostics | never; `internalRelease` is disabled |
 
 Compile-time absence is the isolation. Runtime flags are never the boundary.
 
-## W0a status: NON-RELEASABLE
+## W0b status: structural isolation
 
-Until W0b the historical VPN/DNS experiment still lives in `src/main`, so the play flavor still contains it.
-Therefore in W0a:
+Since W0b the historical M1 VPN/DNS experiment lives only in `src/internal` (see `historical-code-map.md`). The play flavor therefore
+contains no `vpn`/`dns` classes, no `ExperimentalHarnessActivity`, no VPN service and none of the historical M1 permissions, and the
+W0a "NON-RELEASABLE" machinery is gone:
 
-- `playRelease` is assembled only as engineering evidence; no `playRelease` binary is uploaded by CI;
-- the play `versionName` carries `-nonreleasable-w0a`;
-- the checker runs with `w0a-known-historical.txt`, the exact set of known violations. Anything outside it
-  fails, and an entry that no longer appears also fails (stale). W0b deletes the baseline file and the
-  `-nonreleasable-w0a` suffix together; the checker enforces that both appear or disappear together.
+- `w0a-known-historical.txt` is deleted: the checker runs with **zero** historical exceptions, and CI fails if that file reappears;
+- the `-nonreleasable-w0a` versionName suffix is removed (the checker rejects a marker without a baseline and a baseline without a marker);
+- `denied-class-patterns.txt` additionally denies `ExperimentalHarnessActivity`;
+- CI scans the built play **APK** (manifest, dex, native entries, dependencies) and **AAB** (dex), and separately proves the
+  **internal** debug APK still contains the experiment (`check_internal_artifact.py`: permissions, VPN service guard, harness not exported,
+  `.internal` application id, required classes).
+
+This is *engineering* isolation evidence. Play artifacts are still **not authorized for Google Play upload**; no `playRelease`
+binary is uploaded by CI, and release gates (R8 hardening, native-library / 16 KB alignment, Play declarations) remain open.
 
 ## What the checker reads (final play release artifact)
 
@@ -69,13 +74,11 @@ While minification is off, class and package names are intact and the dex-descri
 The later hardening gate must then verify experimental exclusion through variant/source-set evidence and/or the R8
 mapping and artifact evidence, and the checker's R8 guard will fail until that gate is implemented.
 
-## Known limits of the W0a checker
+## Known limits of the checker
 
 - It checks the `playRelease` artifact only (not `playDebug`, whose debug-only test manifests add noise).
 - Dex scanning matches type descriptors; a reference to a denied class from allowed code is also flagged (intended).
   It cannot see code hidden inside compressed archives within the APK, or logic that is not a class reference.
 - `<meta-data>`, `<uses-feature>`, `<uses-library>` and `<queries>` are not inspected.
-- During W0a the baseline is at package-prefix granularity, so a new class under the baselined `vpn.`/`dns.` packages would not
-  be flagged by the checker; the CI diff guard (which forbids edits under `vpn/`, `dns/`, `domain/`) covers that until W0b.
 - The checker trusts the versionName and manifest files CI passes it; they come from the same build.
-- AAB inspection (`bundletool`) is not part of W0a.
+- The AAB is scanned for denied classes in its dex entries only; its (protobuf) manifest is not decoded, so manifest evidence comes from the same variant's APK.

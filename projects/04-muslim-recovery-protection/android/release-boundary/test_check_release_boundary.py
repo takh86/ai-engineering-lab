@@ -23,7 +23,7 @@ ALLOWED = {
     "code_entries": {"lib/x86/libok.so"},
 }
 APP = '<application android:allowBackup="false">'
-DENIED = {PKG + ".experimental.", PKG + ".vpn.", PKG + ".dns."}
+DENIED = {PKG + ".experimental.", PKG + ".vpn.", PKG + ".dns.", PKG + ".ExperimentalHarnessActivity"}
 
 GOOD_MANIFEST = """<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="%s">
   <permission android:name="%s.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"/>
@@ -324,17 +324,33 @@ class CheckerTest(unittest.TestCase):
                           "android.permission.FOREGROUND_SERVICE", "android.permission.POST_NOTIFICATIONS"):
             self.assertNotIn(forbidden, permissions)
 
-    def test_committed_baseline_only_contains_historical_vpn_dns_evidence(self):
-        baseline = crb.load_list(os.path.join(HERE, "w0a-known-historical.txt"))
-        self.assertEqual(9, len(baseline))
-        for entry in baseline:
-            self.assertTrue(
-                entry.startswith(("class|%s.dns." % PKG, "class|%s.vpn." % PKG,
-                                  "component|service|%s.vpn." % PKG, "permission|android.permission.",
-                                  "component|activity|%s.ExperimentalHarnessActivity|" % PKG)),
-                entry,
-            )
-        self.assertFalse(any("experimental" in entry for entry in baseline))
+    def test_w0a_baseline_is_gone_in_w0b_and_the_harness_is_denied(self):
+        # W0b structural isolation: the play boundary has ZERO historical exceptions.
+        self.assertFalse(os.path.exists(os.path.join(HERE, "w0a-known-historical.txt")))
+        denied = crb.load_list(os.path.join(HERE, "denied-class-patterns.txt"))
+        self.assertIn(PKG + ".ExperimentalHarnessActivity", denied)
+
+    def test_the_harness_class_is_rejected_in_a_play_artifact(self):
+        apk = make_apk(self.dir, ["com/muslimrecovery/protection/ExperimentalHarnessActivity"], name="harness.apk")
+        findings, _, _ = self.run_eval(apk=apk)
+        self.assertIn("class|%s.ExperimentalHarnessActivity" % PKG, findings)
+
+    def test_bundle_scan_rejects_denied_classes_in_an_aab_and_accepts_a_clean_one(self):
+        bad = os.path.join(self.dir, "bad.aab")
+        with zipfile.ZipFile(bad, "w") as archive:
+            archive.writestr("base/dex/classes.dex", b"dex\n035\x00Lcom/muslimrecovery/protection/vpn/Leak;")
+        clean = os.path.join(self.dir, "clean.aab")
+        with zipfile.ZipFile(clean, "w") as archive:
+            archive.writestr("base/dex/classes.dex", b"dex\n035\x00Landroidx/core/Foo;")
+        findings, _, _ = crb.evaluate(GOOD_MANIFEST, self.good_apk, GOOD_DEPS, ALLOWED, DENIED, None, "0.1.0", None, PKG, bad)
+        self.assertIn("bundle-class|%s.vpn." % PKG, findings)
+        findings, _, _ = crb.evaluate(GOOD_MANIFEST, self.good_apk, GOOD_DEPS, ALLOWED, DENIED, None, "0.1.0", None, PKG, clean)
+        self.assertEqual(set(), findings)
+        empty = os.path.join(self.dir, "empty.aab")
+        with zipfile.ZipFile(empty, "w") as archive:
+            archive.writestr("base/manifest/AndroidManifest.xml", b"x")
+        with self.assertRaises(crb.InputError):
+            crb.evaluate(GOOD_MANIFEST, self.good_apk, GOOD_DEPS, ALLOWED, DENIED, None, "0.1.0", None, PKG, empty)
 
 
 if __name__ == "__main__":

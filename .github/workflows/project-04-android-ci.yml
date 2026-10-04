@@ -30,7 +30,7 @@ concurrency:
 
 env:
   PYTHONDONTWRITEBYTECODE: "1"
-  # W0a: enforce with the known-historical baseline (release-boundary/w0a-known-historical.txt).
+  # W0b: enforce with ZERO historical exceptions (the W0a baseline file no longer exists).
   BOUNDARY_MODE: enforce
 
 jobs:
@@ -202,12 +202,13 @@ jobs:
           fi
           echo "Flavor invariants OK: no internalRelease task, play/internal tasks present, R8 off."
 
-      - name: Build, unit-test and lint both flavors
+      - name: "Build, unit-test and lint both flavors (instrumentation tests are compiled, not run - D-17)"
         run: >
           ./gradlew
           testInternalDebugUnitTest testPlayDebugUnitTest
           lintInternalDebug lintPlayRelease
-          assembleInternalDebug assemblePlayRelease
+          assembleInternalDebug assemblePlayRelease bundlePlayRelease
+          assembleInternalDebugAndroidTest assemblePlayDebugAndroidTest
           --no-daemon
 
       - name: Summarize current test counts per flavor
@@ -229,35 +230,46 @@ jobs:
       - name: Resolve the playRelease runtime dependencies
         run: ./gradlew --no-daemon -q :app:dependencies --configuration playReleaseRuntimeClasspath > "$RUNNER_TEMP/evidence/play-release-dependencies.txt"
 
-      - name: Release-boundary check on the play release artifact
+      - name: Release-boundary check on the play artifacts (zero historical exceptions) and internal inclusion check
         run: |
           set -euo pipefail
+          # W0b: structural isolation. The W0a baseline must be gone; the checker then has no exceptions.
+          if [ -f release-boundary/w0a-known-historical.txt ]; then
+            echo "::error::release-boundary/w0a-known-historical.txt must not exist after W0b"; exit 1
+          fi
           apkanalyzer="$(find "$ANDROID_HOME" -path '*/bin/apkanalyzer' -type f | head -1)"
           if [ -z "$apkanalyzer" ]; then
             sdkmanager "cmdline-tools;latest"
             apkanalyzer="$(find "$ANDROID_HOME" -path '*/bin/apkanalyzer' -type f | head -1)"
           fi
           test -n "$apkanalyzer" || { echo "::error::apkanalyzer not available"; exit 1; }
+
           apk="$(ls app/build/outputs/apk/play/release/*.apk | head -1)"
-          echo "play release artifact (engineering evidence only, never uploaded): $apk"
+          aab="$(ls app/build/outputs/bundle/playRelease/*.aab | head -1)"
+          echo "play release artifacts (engineering evidence only, never uploaded): $apk $aab"
           "$apkanalyzer" manifest print "$apk" > "$RUNNER_TEMP/evidence/play-release-manifest.xml"
           version="$("$apkanalyzer" manifest version-name "$apk")"
-          echo "versionName: $version"
-          baseline_args=()
-          if [ -f release-boundary/w0a-known-historical.txt ]; then
-            baseline_args=(--baseline release-boundary/w0a-known-historical.txt)
-          fi
+          echo "play versionName: $version"
           python3 release-boundary/check_release_boundary.py \
             --label play-release \
             --apk "$apk" \
+            --bundle "$aab" \
             --manifest-xml "$RUNNER_TEMP/evidence/play-release-manifest.xml" \
             --dependencies-file "$RUNNER_TEMP/evidence/play-release-dependencies.txt" \
             --r8-mapping app/build/outputs/mapping/playRelease/mapping.txt \
             --version-name "$version" \
             --expected-package com.muslimrecovery.protection \
             --mode "$BOUNDARY_MODE" \
-            "${baseline_args[@]}" \
             --report-out "$RUNNER_TEMP/evidence/release-boundary-report.txt"
+
+          iapk="$(ls app/build/outputs/apk/internal/debug/*.apk | head -1)"
+          echo "internal debug artifact: $iapk"
+          "$apkanalyzer" manifest print "$iapk" > "$RUNNER_TEMP/evidence/internal-debug-manifest.xml"
+          iversion="$("$apkanalyzer" manifest version-name "$iapk")"
+          python3 release-boundary/check_internal_artifact.py \
+            --apk "$iapk" \
+            --manifest-xml "$RUNNER_TEMP/evidence/internal-debug-manifest.xml" \
+            --version-name "$iversion" | tee "$RUNNER_TEMP/evidence/internal-artifact-report.txt"
 
       - name: Print Gradle task-graph evidence (Amendment A2)
         if: always()
@@ -367,7 +379,11 @@ jobs:
           set -euo pipefail
           tool=projects/04-muslim-recovery-protection/android/ci/test_counts.py
           python3 "$tool" summarize baseline-results > baseline.json
-          for flavor in internal play; do
-            echo "== $flavor =="
-            python3 "$tool" compare baseline.json "$(find current -name "current-test-counts-$flavor.json" | head -1)"
-          done
+          current_internal="$(find current -name "current-test-counts-internal.json" | head -1)"
+          current_play="$(find current -name "current-test-counts-play.json" | head -1)"
+          echo "== internal (must contain every baseline class, including the moved vpn/dns tests) =="
+          python3 "$tool" compare baseline.json "$current_internal"
+          echo "== play (the moved historical vpn/dns tests must be ABSENT; everything else preserved) =="
+          python3 "$tool" compare baseline.json "$current_play" \
+            --exclude-prefix com.muslimrecovery.protection.vpn. \
+            --exclude-prefix com.muslimrecovery.protection.dns.
