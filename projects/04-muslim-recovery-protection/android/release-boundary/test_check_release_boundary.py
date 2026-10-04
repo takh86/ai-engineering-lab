@@ -20,6 +20,7 @@ ALLOWED = {
     "permissions": {PKG + ".DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"},
     "components": {"activity|%s.MainActivity|exported=true|permission=none|filters=no" % PKG},
     "dependencies": {"androidx.core:core-ktx", "org.jetbrains.kotlin:kotlin-stdlib"},
+    "code_entries": {"lib/x86/libok.so"},
 }
 APP = '<application android:allowBackup="false">'
 DENIED = {PKG + ".experimental.", PKG + ".vpn.", PKG + ".dns."}
@@ -146,6 +147,15 @@ class CheckerTest(unittest.TestCase):
         self.assertIn("code-entry|assets/extra.dex", findings)
         self.assertIn("class|%s.vpn." % PKG, findings)
 
+    def test_allow_listed_native_library_is_accepted_but_others_are_not(self):
+        path = os.path.join(self.dir, "native.apk")
+        with zipfile.ZipFile(path, "w") as archive:
+            archive.writestr("classes.dex", b"dex\n035\x00Landroidx/core/Foo;")
+            archive.writestr("lib/x86/libok.so", b"x")
+            archive.writestr("lib/x86/libnew.so", b"x")
+        findings, _, _ = self.run_eval(apk=path)
+        self.assertEqual({"code-entry|lib/x86/libnew.so"}, findings)
+
     # --- known-bad: dex ---
     def test_experimental_vpn_and_dns_classes_are_rejected(self):
         for package in ("experimental/webguard", "vpn", "dns"):
@@ -246,6 +256,7 @@ class CheckerTest(unittest.TestCase):
             ("allowed-permissions.txt", ALLOWED["permissions"]),
             ("allowed-components.txt", ALLOWED["components"]),
             ("allowed-dependencies.txt", ALLOWED["dependencies"]),
+            ("allowed-code-entries.txt", ALLOWED["code_entries"]),
             ("denied-class-patterns.txt", DENIED),
         ):
             with open(os.path.join(rules, name), "w", encoding="utf-8") as handle:
@@ -305,7 +316,7 @@ class CheckerTest(unittest.TestCase):
     def test_committed_rule_files_load_and_deny_the_experimental_packages(self):
         denied = crb.load_list(os.path.join(HERE, "denied-class-patterns.txt"))
         self.assertEqual(DENIED, denied)
-        for name in ("allowed-permissions.txt", "allowed-components.txt", "allowed-dependencies.txt"):
+        for name in ("allowed-permissions.txt", "allowed-components.txt", "allowed-dependencies.txt", "allowed-code-entries.txt"):
             crb.load_list(os.path.join(HERE, name))
         # A permission that belongs only to the historical VPN experiment must never be allowed.
         permissions = crb.load_list(os.path.join(HERE, "allowed-permissions.txt"))

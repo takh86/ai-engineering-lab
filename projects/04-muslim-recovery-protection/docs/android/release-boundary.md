@@ -34,7 +34,8 @@ Therefore in W0a:
    - hard failures: `allowBackup` not explicitly `false`, `debuggable="true"`, `usesCleartextTraffic="true"`, and a
      package/applicationId other than `com.muslimrecovery.protection` (D-11: unchanged before the first Play publication).
 2. Every `*.dex` entry: must not contain the type-descriptor prefixes in `denied-class-patterns.txt`
-   (`experimental.`, `vpn.`, `dns.`). Any `.so`, `.jar` or non-standard `.dex` entry is reported as embedded code.
+   (`experimental.`, `vpn.`, `dns.`). Any `.so`, `.jar` or non-standard `.dex` entry is reported as embedded code unless it is in
+   `allowed-code-entries.txt`.
 3. `playReleaseRuntimeClasspath` (`gradlew dependencies`): coordinates (`group:artifact`, versions not pinned) must be in
    `allowed-dependencies.txt`. An empty or unparsable dependency file is an input error, never a pass.
 4. R8 guard: if `app/build/outputs/mapping/playRelease/mapping.txt` exists the checker fails; CI also fails if

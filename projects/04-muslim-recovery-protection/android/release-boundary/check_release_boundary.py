@@ -155,7 +155,7 @@ def evaluate(manifest_xml, apk_path, dependencies_text, allowed, denied_prefixes
     findings |= {"component|" + c for c in manifest["components"] - allowed["components"]}
     findings |= {"dependency|" + d for d in dependencies - allowed["dependencies"]}
     findings |= {"class|" + p for p in denied_found}
-    findings |= {"code-entry|" + e for e in code_entries}
+    findings |= {"code-entry|" + e for e in code_entries - allowed["code_entries"]}
 
     hard = set()
     if r8_mapping_path and os.path.exists(r8_mapping_path):
@@ -245,6 +245,7 @@ def main(argv=None):
             "permissions": load_list(os.path.join(args.rules_dir, "allowed-permissions.txt")),
             "components": load_list(os.path.join(args.rules_dir, "allowed-components.txt")),
             "dependencies": load_list(os.path.join(args.rules_dir, "allowed-dependencies.txt")),
+            "code_entries": load_list(os.path.join(args.rules_dir, "allowed-code-entries.txt")),
         }
         denied = load_list(os.path.join(args.rules_dir, "denied-class-patterns.txt"))
         if not denied:
