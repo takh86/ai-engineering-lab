@@ -29,11 +29,17 @@ class TypeScaleTest {
     }
 
     @Test
-    fun bodyFontIsTheBundledTajawalAndHeadingFontIsASinglePlaceholder() {
-        val fonts = File("src/main/java/com/muslimrecovery/protection/core/design/type/Fonts.kt").readText()
-        assertTrue(fonts.contains("R.font.tajawal_regular"))
-        assertTrue("one heading family declaration", Regex("val HeadingFontFamily").findAll(fonts).count() == 1)
-        assertTrue("font file is bundled", File("src/main/res/font/tajawal_regular.ttf").length() > 10_000)
-        assertTrue("no unproven Cairo asset may be bundled", File("src/main/res/font").listFiles().orEmpty().none { it.name.startsWith("cairo") })
+    fun headingsUseCairoBoldBodyUsesTajawalAndNoDefaultFamilyRemains() {
+        val dir = "src/main/java/com/muslimrecovery/protection/core/design/type"
+        val fonts = File("$dir/Fonts.kt").readText()
+        assertTrue(Regex("val BodyFontFamily[^\\n]*R\\.font\\.tajawal_regular").containsMatchIn(fonts))
+        assertTrue(Regex("val HeadingFontFamily[^\\n]*R\\.font\\.cairo_bold").containsMatchIn(fonts))
+        assertTrue("no FontFamily.Default placeholder may remain", !fonts.contains("FontFamily.Default"))
+        val typography = File("$dir/TabsiraTypography.kt").readText()
+        assertTrue("heading styles must use HeadingFontFamily", typography.contains("fontFamily = HeadingFontFamily"))
+        assertTrue("body styles must use BodyFontFamily", typography.contains("fontFamily = BodyFontFamily"))
+        val everywhere = File("src").walkTopDown().filter { it.isFile && it.extension == "kt" && it.invariantSeparatorsPath.contains("/core/design/") && !it.invariantSeparatorsPath.startsWith("src/test") }
+        assertTrue("no design source may use FontFamily.Default", everywhere.none { it.readText().contains("FontFamily.Default") })
+        assertTrue("both fonts are bundled", File("src/main/res/font/cairo_bold.ttf").length() > 10_000 && File("src/main/res/font/tajawal_regular.ttf").length() > 10_000)
     }
 }

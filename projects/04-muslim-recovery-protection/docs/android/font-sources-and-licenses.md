@@ -1,63 +1,62 @@
-# F9 font provenance (T0)
+# F9 fonts: provenance, generation and licenses
 
-Direction (OD-F9-2, approved in principle): **Cairo** for headings and buttons, **Tajawal** for body text, bundled locally,
-SIL OFL 1.1, no downloadable fonts. Execution rule E9: the repository may only contain a font whose authoritative provenance,
-license, SHA-256, glyph coverage, weight and minSdk 24 compatibility are proven. No derivative generation, no minSdk raise,
-no silent substitution.
+Approved direction (OD-F9-2): **Cairo Bold** for headings, titles and buttons, **Tajawal Regular** for body text, bundled locally, SIL OFL 1.1, no downloadable fonts.
+Decision history: T0 (verify) found no authoritative static Cairo Bold, so the E9 STOP rule fired and the alternatives A to E were returned. The Owner then chose
+**Option B (D-F9-FONT)**: generate a static Cairo Bold weight-700 instance from the authoritative upstream variable font, an explicit exception to the STOP rule.
+Not done, by decision: no minSdk change, no substitute font, no third-party pre-generated Cairo, no API-level font branch, no font tooling in the Android build.
 
-Evidence gathered during F9 T0 (fetched with `curl` on 2026-10-04; hashes computed locally; font tables inspected with
-`fontTools`). Nothing here is a license-compliance opinion beyond what the upstream files state.
+`FontCoverageTest` (JVM) verifies the committed files below against these recorded values. **A changed output hash is never accepted silently**: regenerating or
+replacing a font file requires a reviewed update of the hash here and in the test's recorded value.
 
-## Tajawal Regular: PROVEN, bundled
+Machine-checked hashes (do not reformat; `FontCoverageTest` reads these lines):
+
+- cairo_bold.ttf SHA-256: `5fa21b9d998565e30b9a6173240f88869eeccd8bb4634f08e0f77a4404b52feb`
+- tajawal_regular.ttf SHA-256: `6882892da3e03527d5db2bbab3b48bde6ef2e878a43f522d1a4eebda90010a19`
+- OFL-Cairo.txt SHA-256: `a4554e1799d42e1405924b61eb0e0722ae1623b1f1f07f995348f96c496362a9`
+- OFL-Tajawal.txt SHA-256: `9b584984f9db0ee30347391a76eff9c0a6b03dc450c3c6afe3757a2cb3a4db87`
+
+## Cairo Bold: GENERATED static instance (Option B)
 
 | Item | Value |
 |---|---|
-| File | `app/src/main/res/font/tajawal_regular.ttf` (Android resource name `tajawal_regular`) |
-| Source | `google/fonts`, `ofl/tajawal/Tajawal-Regular.ttf` (`https://raw.githubusercontent.com/google/fonts/main/ofl/tajawal/Tajawal-Regular.ttf`) |
-| Upstream project | `https://github.com/googlefonts/tajawal`, commit `2085b8942f234e7afb83dc03c77713d0d5471cc9` (from the `METADATA.pb` in `google/fonts`) |
-| License | SIL Open Font License 1.1. `OFL.txt` (committed at `docs/android/licenses/OFL-Tajawal.txt`) says "Copyright 2018 Boutros International"; the font's own name table says "(c) 2017 by Boutros International". Both are upstream text, not reconciled here. |
-| SHA-256 (font) | `6882892da3e03527d5db2bbab3b48bde6ef2e878a43f522d1a4eebda90010a19` |
-| SHA-256 (OFL.txt) | `9b584984f9db0ee30347391a76eff9c0a6b03dc450c3c6afe3757a2cb3a4db87` |
-| Format | static TrueType outlines (`glyf` present, no `CFF`, no `fvar`), `OS/2.usWeightClass = 400`, version 1.700 |
-| Glyph coverage checked | Latin, digits 0-9, `ä ö ü ß Ä Ö Ü`, Arabic letters, harakat, Arabic-Indic digits U+0661, Arabic comma and question mark: all present. Only U+06F1 (Persian digit one) is absent; Persian is not a supported language. |
-| minSdk 24 | A static TrueType font is the baseline format for `res/font` on all API levels. No variable axes are used. Runtime check: instrumented test loads the family and measures text (`FontFamilyTest`). |
+| Asset | `app/src/main/res/font/cairo_bold.ttf` (Android resource `cairo_bold`), 164,796 bytes |
+| Nature | **a generated static instance, not an upstream-published static font** |
+| Upstream repository | `https://github.com/Gue3bara/Cairo` |
+| Upstream commit | `73d16933c6a0f341c27a69e401da83dcb0d53114` (the commit recorded by `google/fonts` `ofl/cairo/METADATA.pb`) |
+| Input | `fonts/Cairo/variable/Cairo[slnt,wght].ttf` at that commit, 599,548 bytes, SHA-256 `667c987182391c91f4e57a2f455b1794fb5e3ee6ca4ef3383e86bb690fa9c964`; byte-identical to `google/fonts` `ofl/cairo/Cairo[slnt,wght].ttf` |
+| Upstream axes | `wght` 200 to 1000 (default 400), `slnt` -11 to 11 (default 0) |
+| Instance | `wght = 700`, `slnt = 0` (upright), all axes pinned (full instancing) |
+| Tool | `fontTools` **4.55.3** (`fontTools.varLib.instancer.instantiateVariableFont`), pinned in `android/tools/fonts/requirements.txt`; NOT an Android build or runtime dependency |
+| Deterministic command | `pip install -r tools/fonts/requirements.txt` then `python3 tools/fonts/generate_cairo_bold.py <input.ttf> app/src/main/res/font/cairo_bold.ttf` (the script refuses any input whose SHA-256 differs, and any other fontTools version) |
+| Determinism | two independent generations produced the same SHA-256 (head timestamps are not recalculated) |
+| Output SHA-256 | `5fa21b9d998565e30b9a6173240f88869eeccd8bb4634f08e0f77a4404b52feb` |
+| Form | static TrueType: `sfnt` version 0x00010000, `glyf`/`loca` present; `fvar`, `gvar`, `avar`, `STAT`, `HVAR`, `MVAR`, `cvar` all absent; tables `GDEF GPOS GSUB OS/2 cmap gasp glyf head hhea hmtx loca maxp name post prep` |
+| Weight | `OS/2.usWeightClass = 700`, `fsSelection` BOLD set and REGULAR clear, `head.macStyle` bold |
+| name table | 1 `Cairo`, 2 `Bold`, 3 `Cairo Bold;static instance wght=700 slnt=0;upstream 73d16933c6a0;fontTools 4.55.3`, 4 `Cairo Bold`, 6 `Cairo-Bold`, 0 copyright "Copyright 2009 The Cairo Project Authors (https://github.com/Gue3bara/Cairo)", 5 `Version 3.130;gftools[0.9.24]`, 9 designer Mohamed Gaber, 13/14 SIL OFL 1.1 license text and URL. Typographic-family ids 16/17/21/22/25 are removed. Leftover axis/instance label strings (ids 256 and up) from the variable font remain in the table; they are unreferenced by any variation table and harmless. |
+| Glyph coverage (verified) | A-Z a-z 0-9, ä ö ü ß Ä Ö Ü, Arabic letters U+0627-063A and U+0641-064A, harakat U+064B-0652, Arabic-Indic digits U+0660-0669, U+060C, U+061F, U+0640; 699 cmap entries |
+| License | SIL Open Font License 1.1, `OFL-Cairo.txt`. The upstream copyright line declares **no Reserved Font Name**, so a modified instance may keep the family name; this is a factual reading of the notice, not a legal opinion. |
 
-## Cairo Bold: NOT PROVEN, STOP rule E9 triggered
+## Tajawal Regular: upstream static font (not modified)
 
-Required: a static, Android-compatible **Cairo Bold** from an authoritative source with clean provenance.
-
-What exists upstream (verified):
-
-| Source | Result |
+| Item | Value |
 |---|---|
-| `google/fonts` `ofl/cairo/` | ships only the **variable** font `Cairo[slnt,wght].ttf` (axes: `wght` 200 to 1000, `slnt` -11 to 11). `METADATA.pb` lists that single file. License OFL, copyright "2009 The Cairo Project Authors (https://github.com/Gue3bara/Cairo)". |
-| Upstream `Gue3bara/Cairo` at the commit `google/fonts` records (`73d16933c6a0f341c27a69e401da83dcb0d53114`) | `sources/cairo.yaml` has `buildStatic: false`, `buildVariable: true`. The only built font path present is `fonts/Cairo/variable/Cairo[slnt,wght].ttf`. Probed static paths (`fonts/Cairo/{ttf,static,otf,TTF,OTF}/Cairo-Bold.*`, `fonts/ttf/...`) all return 404. |
-| SHA-256 of the variable file (identical in both repos, 599548 bytes) | `667c987182391c91f4e57a2f455b1794fb5e3ee6ca4ef3383e86bb690fa9c964` |
-| Google Fonts CSS API (`fonts.googleapis.com`, `wght@700`) | returns Google-generated, unicode-range-split instances on `fonts.gstatic.com`: a derivative made by a third party, not an authoritative upstream static asset. Not used. |
-| npm packages that repackage Cairo (for example `@expo-google-fonts/cairo`) | third-party derivatives; the Owner explicitly said not to rely on them. Not used. |
+| Asset | `app/src/main/res/font/tajawal_regular.ttf` (`tajawal_regular`), 60,364 bytes |
+| Source | `google/fonts`, `ofl/tajawal/Tajawal-Regular.ttf` (fetched from the `main` ref; the hash above pins the content) |
+| Upstream project | `https://github.com/googlefonts/tajawal`, commit `2085b8942f234e7afb83dc03c77713d0d5471cc9` (from `METADATA.pb`) |
+| Form | static TrueType (`glyf`, no `CFF`, no `fvar`), `OS/2.usWeightClass = 400`, version 1.700 |
+| License | SIL OFL 1.1, `OFL-Tajawal.txt` says "Copyright 2018 Boutros International"; the font's name table says "(c) 2017 by Boutros International". Both are upstream text, not reconciled here. |
+| Glyph coverage (verified) | A-Z a-z 0-9, ä ö ü ß Ä Ö Ü, Arabic letters, harakat, Arabic-Indic digits, U+060C, U+061F, U+0640. Only U+06F1 (Persian) is absent; Persian is not a supported language. |
 
-**Why this is a real problem and not a formality:** Compose variable-font axis selection (`FontVariation`) requires
-API 26, and `minSdk` is 24. A variable-only Cairo cannot be used to render a correct Bold on API 24 and 25 without either a
-derivative static instance, a higher minSdk, or a different heading font. Each of those is an Owner decision (E9).
+## Shipped license notices (D-F9-LICENSE)
 
-### Alternatives returned to the Owner (not decided here)
+`app/src/main/assets/licenses/OFL-Cairo.txt` and `OFL-Tajawal.txt` are packaged into the application (assets), so the license text and copyright notices accompany the
+distributed fonts. CI proves both files are present in the final play release APK (`apkanalyzer files list`). A future About/Licences screen may display them; no such UI
+exists in F9 and none was added.
 
-| ID | Option | Trade-off |
-|---|---|---|
-| A | Use the upstream variable Cairo with `FontVariation` on API 26+, and fall back to Tajawal Bold (static, OFL, upstream) on API 24 and 25 | Faithful Cairo on 26+, a second heading face on the oldest devices. Needs the Tajawal Bold file and a runtime branch on `Build.VERSION.SDK_INT`. |
-| B | Generate a static Cairo Bold instance from the variable font (fontTools instancer) | Modified OFL derivative: needs a check of the font's Reserved Font Name and naming rules, and its provenance is "built by us". Breaks the "authoritative static asset" rule, so it needs explicit approval. |
-| C | Raise minSdk to 26 | Loses API 24 and 25 users; contradicts D-12. Not recommended. |
-| D | Headings in Tajawal Bold (static, upstream, OFL) | One designer family, simple, but departs from the approved identity sheet (Cairo Bold headings). A brand decision. |
-| E | System font for headings until the identity is finalized | Zero assets; headings lose the brand face. |
+## What the tests and CI prove, and what they do not
 
-### Current implementation state
-
-- Body text uses the proven **Tajawal Regular** asset.
-- Headings, titles and buttons use an explicit placeholder: `FontFamily.Default` at Bold weight, defined in one place
-  (`core/design/type/Fonts.kt` as `HeadingFontFamily`). Replacing it is a one-line change after the Owner chooses A to E.
-- No Cairo file, no derivative and no substitute heading font is in the repository.
-
-### Open licensing item for the Owner
-The OFL asks that the license and copyright notice accompany redistributed copies. They are committed under `docs/android/`, but
-nothing in the APK carries them (there is no licenses screen or asset). Whether and where to ship the notice (an in-app licenses entry, a
-bundled asset) is an Owner/legal call; no screen was added because Settings/legal screens are outside F9.
+- JVM `FontCoverageTest`: both committed files match the hashes above, are static TrueType (no variation tables), have the expected `OS/2` weight, and cover the required glyphs by parsing their own cmap;
+  the shipped license assets match their recorded hashes and contain the OFL text and the upstream copyright lines.
+- JVM `TypeScaleTest` and instrumented `TypographyFontsTest`: headings, titles and buttons use Cairo Bold, body text uses Tajawal Regular, and `FontFamily.Default` appears in no design source.
+- Instrumented `FontFamilyTest` (API 30 and 34): both font resources load as typefaces. API 24 to 29 are not exercised by CI; a static TrueType font has no API-gated feature.
+- Not claimed: a licence-compliance opinion, or that the generated instance is byte-identical to any upstream-published static Cairo (none exists).

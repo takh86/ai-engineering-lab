@@ -6,15 +6,14 @@ import androidx.compose.ui.text.font.FontWeight
 import com.muslimrecovery.protection.R
 
 /**
- * Body text: Tajawal Regular, a static TrueType asset with proven provenance
- * (docs/android/font-sources-and-licenses.md). It is bundled; no downloadable fonts.
+ * Body text: Tajawal Regular, an upstream static TrueType asset (docs/android/font-sources-and-licenses.md).
+ * Bundled; no downloadable fonts.
  */
 internal val BodyFontFamily: FontFamily = FontFamily(Font(R.font.tajawal_regular, FontWeight.Normal))
 
 /**
- * Headings, titles and buttons. PLACEHOLDER: the approved face is Cairo Bold, but no static Android-compatible
- * Cairo Bold with authoritative provenance could be proven (E9 STOP rule, see the font provenance document), so
- * the system default family at Bold weight is used until the Owner picks one of the returned alternatives.
- * This is the single place to change; nothing else names a heading font.
+ * Headings, titles and buttons: Cairo Bold (weight 700), a static instance generated from the pinned upstream
+ * variable font (Owner decision D-F9-FONT; the generation, hashes and tool version are recorded in
+ * docs/android/font-sources-and-licenses.md and verified by FontCoverageTest). Bundled; no runtime API-level branch.
  */
-internal val HeadingFontFamily: FontFamily = FontFamily.Default
+internal val HeadingFontFamily: FontFamily = FontFamily(Font(R.font.cairo_bold, FontWeight.Bold))

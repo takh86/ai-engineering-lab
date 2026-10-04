@@ -44,11 +44,10 @@ Rules that follow from the measured contrast (computed WCAG 2.x ratios of the co
 
 ## 3. Typography
 
-Five styles in `sp`: headline 28/36, title 20/28, body 17/26, bodySmall 15/23, label 16/24. `letterSpacing` is always 0, no forced
-uppercase or italics, body leading is at least 1.5x (Arabic). **Body** is the bundled Tajawal Regular. **Headings and buttons use
-a placeholder** (system default at Bold) because a static Android-compatible Cairo Bold could not be proven (E9 STOP, see
-`font-sources-and-licenses.md`); `HeadingFontFamily` in `core/design/type/Fonts.kt` is the single line that changes after the
-Owner picks an alternative. Features never declare a `FontFamily`.
+Five styles in `sp`: headline 28/36, title 20/28, body 17/26, bodySmall 15/23, label 16/24. `letterSpacing` is always 0, no forced uppercase or italics, body leading is at least 1.5x (Arabic).
+**Headings, titles and buttons use Cairo Bold** (`HeadingFontFamily`, a static weight-700 instance generated from the pinned upstream variable font, Owner decision D-F9-FONT) and **body text uses
+Tajawal Regular** (`BodyFontFamily`). Both are bundled; no downloadable fonts, no API-level branch, no `FontFamily.Default` anywhere in the design sources. Features never declare a `FontFamily`.
+Hashes, the generation command, tool version and licenses: `font-sources-and-licenses.md`. The OFL notices ship inside the app (`assets/licenses/`).
 
 ## 4. RTL rules
 
@@ -114,20 +113,22 @@ all visible UI is Compose.
 | Real rendering in Light/Dark, SYSTEM follows device | `ThemeRenderingTest` | managed devices |
 | AR RTL mirroring, EN/DE/AR strings, fallback | `LocaleAndRtlTest` | managed devices |
 | Touch targets, role/state semantics, no clipping at 200% | `ComponentSemanticsTest` | managed devices |
-| The bundled file is the recorded one (SHA-256) and itself covers Latin, German, Arabic letters, harakat and Arabic-Indic digits | `FontCoverageTest` (parses the font's cmap) | JVM |
-| The font resource loads as a Typeface | `FontFamilyTest` (coverage is NOT claimed here: `Paint.hasGlyph` also sees platform fallback fonts) | managed devices |
+| Both bundled fonts are the recorded files (SHA-256), static TrueType with the expected weight (Cairo 700, Tajawal 400), and themselves cover Latin, German, Arabic letters, harakat and Arabic-Indic digits; the OFL assets are the recorded files | `FontCoverageTest` (parses each font's own cmap) | JVM |
+| Headings/titles/buttons use Cairo Bold, body uses Tajawal Regular, no `FontFamily.Default` | `TypeScaleTest` (source), `TypographyFontsTest` (the real theme typography) | JVM; managed devices |
+| Both font resources load as typefaces; the OFL notices are readable assets | `FontFamilyTest` (coverage is NOT claimed here: `Paint.hasGlyph` also sees platform fallback fonts) | managed devices |
+| The final Play APK packages both OFL notices | CI step (`apkanalyzer files list`) | CI |
 | AppCompat locale switch end to end; SYSTEM is empty | `AppLanguageControllerTest` | managed devices |
-| Final Play APK references the generated LocaleConfig; locales exactly en, ar, de | `ci/check_locale_config.py` (via `apkanalyzer`) | CI |
+| The final Play manifest's `android:localeConfig` reference resolves (resource table via `aapt2 dump resources`) to the generated `<locale-config>` resource, which lists exactly en, ar, de; a reference to any other resource cannot pass (mutation-tested) | `ci/check_locale_config.py` (`apkanalyzer` + `aapt2`) | CI |
 | No new permission; dependency/component allow-lists exact | release-boundary checker | CI |
 
-Limits, stated plainly: `ResourceParityTest` does not limit what may be marked `translatable="false"` (review it); the release-boundary component key does not include `android:enabled`; AppCompat locale persistence across process death is not tested; the SYSTEM test injects the night mode through the configuration; the 200% test overrides `Density.fontScale` (not the system setting); API 24 to 29 are not on a managed device;
+Limits, stated plainly: `ResourceParityTest` does not limit what may be marked `translatable="false"` (review it); the AppCompat locale service accepted state (`exported=false`, `enabled=false`, `autoStoreLocales=true`) is part of the release-boundary checker (component key includes `enabled`; metadata verified and mutation-tested); AppCompat locale persistence across process death is not tested; the SYSTEM test injects the night mode through the configuration; the 200% test overrides `Density.fontScale` (not the system setting); API 24 to 29 are not on a managed device;
 none of this establishes accessibility compliance.
 
 ## 8. Manual visual acceptance still required (Owner device + emulator)
 
 EN, AR, DE x Light, Dark; SYSTEM/LIGHT/DARK including a restart where the explicit theme differs from the system theme (E7);
 font scale 1.0, 1.3, 2.0 and largest display size; TalkBack pass; compare against the identity sheet; check nothing is color-only and
-directional icons mirror in Arabic; check the heading font placeholder once the Owner decides the Cairo alternative.
+directional icons mirror in Arabic; check Cairo Bold headings against the identity sheet.
 
 ## 9. Forbidden without a new approved contract
 
