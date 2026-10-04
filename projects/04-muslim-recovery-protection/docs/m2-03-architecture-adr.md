@@ -25,9 +25,9 @@ package-level candidate. The new permission and coverage gate remains conditiona
 
 **Recovery-first addendum (2026-09-27, D14 APPROVED):** Under the
 [recovery-first product baseline](recovery-first-product-baseline.md), this ADR's final decision
-(#42) covers the DNS layer (L2). The Recovery Core V1 (M3) starts after the M2-04 product
-discovery decision and an approved M3-01 contract. The DNS layer joins a build only after #42
-PASS. A8's verification criteria, the frozen runbook and the G0 decisions are unchanged.
+(#42) covers the DNS layer (L2). The Recovery Core V1 (M3) starts after an approved M3-01
+contract; D15 (2026-09-27) canceled the M2-04 product discovery gate that this addendum originally
+required. The DNS layer joins a build only after #42 PASS. A8's verification criteria, the frozen runbook and the G0 decisions are unchanged.
 
 ---
 

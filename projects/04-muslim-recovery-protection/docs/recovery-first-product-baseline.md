@@ -1,7 +1,8 @@
 # Recovery-first product baseline
 
-> **Decision state (updated 2026-09-27): D14 APPROVED by the Owner.** The recovery-first
-> baseline and discovery-before-build restructuring are now the approved product direction.
+> **Decision state (updated 2026-09-27): D14 APPROVED; sequencing superseded by D15.** The recovery-first
+> product scope remains approved. D15 replaces the mandatory discovery-before-build sequence with
+> **Build → Release → Measure → Iterate**; #63–#67 were closed unexecuted.
 > The approval followed two Red-Team review cycles on PR #69 and an independent final verification;
 > the Owner recorded **D14 = APPROVE** in PR #69 comment 5854294320 and separately authorized the
 > bounded live-tracker synchronization. OD1–OD9, OD11 and OD13 are decided; OD10, OD12 and OD14
@@ -13,8 +14,9 @@
 > uninstall-resistance design or spike may begin until H5 is explicitly reopened/amended under the
 > same review discipline.
 >
-> **What this changes:** the product thesis, the layer structure, the feature boundaries and the
-> order of work: discovery before build, and the recovery core before protection layers.
+> **What this changes:** the product thesis, layer structure and feature boundaries remain D14's.
+> The recovery core still precedes optional protection layers. **Execution sequencing is now D15:**
+> freeze MVP → approve M3-01 → build → verify → security/privacy/Play review → controlled release → iterate.
 >
 > **What it does not change:** H4–H12 ([M2-01](m2-01-approved-threat-model.md)) remain operative unless explicitly reopened by a later Owner decision, and the
 > [M2-02 baseline](m2-02-architecture-options.md), A8's AC/RJ criteria, the frozen V0–V13
@@ -60,7 +62,7 @@ This puts M2-01 H6 ("recovery-first with a self-protection/filter layer"), H12 (
 filtering) and the M2-01 §4 thesis into practice. Category: **private recovery companion**, not a
 pornography blocker.
 
-**First user (hypothesis, tested in M2-04):** adults (18+) of any gender who decided for
+**First user (product hypothesis; not pre-validated because D15 canceled M2-04):** adults (18+) of any gender who decided for
 themselves to stop or reduce pornography use, for personal or religious reasons. Most competitors
 assume a male user [Inference].
 
@@ -93,7 +95,7 @@ impossible together, that returns to the Owner.
 
 | Layer | What it does | Current state | Gate before build |
 |---|---|---|---|
-| **L0 Recovery core** (on-device) | Help now (60–120 s), if–then plans, non-shaming lapse reflection without reset, weekly review. A mode choice — **Recovery Mode** or **Recovery + Faith Mode** (opt-in, OD9) — and **optional secure free-text notes** (B2, local-first; sensitive-data handling, biometric protection and backup behavior specified before implementation). "I'm at risk now" (OD5, user-configurable duration). | Not built. The content brief is a DRAFT. | M2-04 GO, clinical review of the content, M3-01 contract |
+| **L0 Recovery core** (on-device) | Help now (60–120 s), if–then plans, non-shaming lapse reflection without reset, weekly review. A mode choice — **Recovery Mode** or **Recovery + Faith Mode** (opt-in, OD9) — and **optional secure free-text notes** (B2, local-first; sensitive-data handling, biometric protection and backup behavior specified before implementation). "I'm at risk now" (OD5, user-configurable duration). | Not built. The content brief is a DRAFT. | **D15 removed M2-04 GO.** M3-01 contract + any content review required by the approved task contract |
 | **L1 App interruption** ([PR #60](app-blocking-architecture-decision.md)) | A selected app opens in a risk window → interruption → Help now, Home or trusted person. Normal mode: pause → Help now → continue may be available. "At risk now" mode: hard block during the active window (OD6 = HYBRID). Commitment delay inside the app only (AB3). | **D13 product/architecture boundary APPROVED. Mechanism UNKNOWN.** | AB-01 (#61), bounded task contract, device evidence, Play review |
 | **L2 DNS filter guidance** (A8) | Private DNS setup guidance, "check now" and a truthful Filter Active state | Verification candidate. #40 is in execution, paused at V1-CELL. | #40, #41 and #42 PASS for the claimed configuration |
 | **L2b Web Guard — domain & keyword blocking** (new, Owner-approved product scope, [#68](https://github.com/takh86/ai-engineering-lab/issues/68#issuecomment-5853562123)) | Custom domain/website blocking, and keyword blocking in Arabic and English where technically feasible, with a truthful coverage state distinct from L2's | Product scope approved. **Mechanism UNKNOWN and not DNS** — a new architecture/security/Play-policy decision, separate from AB1–AB7 (§5). | That new decision, a technical spike on Arabic/English matching, and its own task contract |
@@ -221,9 +223,11 @@ Competitor features are the vendors' own descriptions. None was installed or aud
 - **Realistic ceiling:** tens of thousands of euros a year in the best scenario of the 2026-09-26
   evaluation. This is a sustainable project, not a large company [Scenario].
 
-## 8. Sequencing: discovery before build
+## 8. Historical pre-build discovery design — SUPERSEDED BY D15
 
-> **Revised 2026-09-27** in response to the Owner's Red-Team review
+> **Historical record only.** This protocol was revised on 2026-09-27 in response to the Owner's Red-Team review, then canceled before execution by D15. No E1/E2/E3 result exists.
+>
+> Original revision context:
 > ([comment](https://github.com/takh86/ai-engineering-lab/pull/69#issuecomment-5853232456)),
 > which found E2 experimentally confounded (Blocker 3), E3's "anonymous" design incompatible with
 > its own longitudinal/safety requirements (Blocker 2), undefined gray zones between success and
@@ -377,22 +381,17 @@ combined if both phases run.
 - **Explicit limit:** uncontrolled, self-selected. Shows feasibility and use only, **never**
   therapeutic efficacy (recovery brief §4).
 
-### Decision (#67)
+### Decision (#67) — historical, not executed
 
-Synthesis of E1–E3 and AB-01. The Owner records **GO / PIVOT / STOP** and the MVP scope.
-PIVOT: an open resource or a partnership with existing programs. STOP: end the commercial
-ambition and keep the portfolio value.
+The planned synthesis of E1–E3 and AB-01 would have produced **GO / PIVOT / STOP**. D15 canceled
+this gate before execution; #67 is closed unexecuted and must not be treated as a validation result.
 
-AB-01's voluntary product check (#61) can run inside E1 and E3 so participants are recruited only
-once. The Owner decides.
+D15 canceled AB-01's participant/product-check portion. #61 is now a bounded **technical-only**
+L1 viability spike, gated by its own approved task contract.
 
-**90-day planning outline** (intent, not a commitment; the roadmap commits no dates):
-
-- Weeks 1–4: E1 and E2 Phase 2a in parallel.
-- Weeks 3–4: E2 Phase 2b, if 2a succeeded.
-- Weeks 3–8: E3. In parallel, the AB-01 technical spike (at most two working days, after its
-  product check) and the #40/#41 A8 verification.
-- Weeks 9–12: the M2-04 decision. If GO, write the M3-01 contract for L0, plus L1 if AB-01 passed.
+**Historical 90-day outline — not executed.** D15 cancels this schedule. The current sequence is:
+**M3-01 → Build → Verify → Security/Privacy/Play → controlled Google Play release → real-world iteration.**
+AB-01, if pursued, is technical-only and separately task-contract gated; #40/#41 remain independent.
 
 ## 9. Red-team register
 
@@ -434,31 +433,32 @@ No app today can show that it helps people overcome pornography. The first thing
 people use it at the urge moment, say it helped, and feel no more shame. A larger claim needs a
 controlled study.
 
-**Stop criteria:** failed demand in E1 or E2 → PIVOT to an open resource or a partnership, or STOP
-the commercial ambition. Failed retention or safety in E3 → STOP the recovery layer in this form.
+**D15 note:** the historical pre-build stop criteria were never exercised. Post-release
+iterate/stop criteria must be defined later in the controlled-release plan and must not be inferred
+from unrun E1/E2/E3 thresholds.
 
 ## 11. Effect on the roadmap
 
-> **Note, 2026-09-27:** An earlier revision of this PR had already edited the live GitHub
+> **Historical D14 governance note, 2026-09-27:** An earlier revision of this PR had already edited the live GitHub
 > milestone/issue trackers (#23–#26, #43–#48, #50–#52) to reflect the change described below,
 > before the Owner approved it. That was a human-gate violation (§9, R14) and has been corrected:
 > those 16 trackers are restored to their pre-D14 text with an explicit "proposed, not yet in
 > effect" note. Everything in this section remains a **proposal** — it takes effect only after the
 > Owner records D14 = APPROVE and requests the sync step.
 
-- M2 would gain M2-04, the discovery gate (#63), and AB-01 (#61). #40–#42 would continue unchanged
-  as the DNS-layer (L2) track; L2b Web Guard would need its own new architecture decision (§5).
-- **M3 would become "Recovery Core V1."** It would start after the M2-04 GO decision and an
-  approved M3-01 contract, not after the L2 ADR. L1 would join M3 only after D13 approval (now satisfied), AB-01's
-  record, AB-01 and its own task contract. L2 would join only after #42 PASS. L2b would join only
-  after its own new architecture/security/Play-policy decision.
+- D14 originally added M2-04 (#63) and AB-01 (#61). **D15 closes M2-04 unexecuted** and makes
+  AB-01 technical-only. #40–#42 continue unchanged as the DNS-layer (L2) track; L2b Web Guard still
+  needs its own Conservative-Gate architecture/security/Play decision.
+- **M3 is "Recovery Core V1."** It now starts after an approved M3-01 contract, not after M2-04 or
+  the L2 ADR. L1 joins only after D13 plus a passing technical AB-01 and its own task contract. L2
+  joins only after #42 supports the claimed configuration. L2b joins only after its own gate.
 - M4 would add German and Arabic copy, the referral directory, the user-selectable presentation
   (OD2) and Faith Mode (OD9).
 - M5 would add Play declarations for whichever permissions the included layers actually select,
   and the open-source-core boundary (OD7).
-- M6 would become a controlled pilot in Germany (DE/AR) with the pseudonymous, pre-registered
-  feasibility and no-harm criteria from §8 — not E3's criteria copied as-is, since a pilot at
-  scale needs its own review of the same design questions.
+- **M6 becomes a controlled Google Play release and real-world iteration loop in Germany (DE/AR).**
+  It defines fresh release/rollback/evidence rules and does not inherit E3 criteria, because E3 was
+  never executed.
 
 ## 12. Open Owner decisions
 
@@ -475,7 +475,7 @@ remain in #68.
 | OD3 | Trusted-person shortcut | **C — Call + Message.** Shortcut only; no reports, screenshots, monitoring feed or accountability dashboard. | [issue #68](https://github.com/takh86/ai-engineering-lab/issues/68#issuecomment-5853686614) |
 | OD4 | Biometric lock | **B — whole app.** Device-supported biometrics only. Fallback TBD. **Open tension with Help Now — see below.** | [issue #68](https://github.com/takh86/ai-engineering-lab/issues/68#issuecomment-5853686614) |
 | OD5 | "I'm at risk now" duration | **C — user-configurable.** Exact options/default TBD in the task contract/UX; subject to L1 feasibility. | [issue #68](https://github.com/takh86/ai-engineering-lab/issues/68#issuecomment-5853648678) |
-| OD6 | Interruption mode | **HYBRID.** Normal: pause → Help Now → continue possible. Emergency ("at risk now"): hard block during the active window. Exact timing/escape/failure semantics require AB-01/E3. | [issue #68](https://github.com/takh86/ai-engineering-lab/issues/68#issuecomment-5853648678) |
+| OD6 | Interruption mode | **HYBRID.** Normal: pause → Help Now → continue possible. Emergency ("at risk now"): hard block during the active window. Exact timing/escape/failure semantics require AB-01 and the relevant task contract; E3 was canceled by D15. | [issue #68](https://github.com/takh86/ai-engineering-lab/issues/68#issuecomment-5853648678) |
 | OD7 | Open source | **A — core only.** Exact "core" boundary TBD before M5. Not the whole app/UI/content/business layer. | [issue #68](https://github.com/takh86/ai-engineering-lab/issues/68#issuecomment-5853686614) |
 | OD8 | Review structure | **A — clinical + religious, separate roles.** Faith-mode material needs both; one does not substitute for the other. Named reviewers TBD. | [issue #68](https://github.com/takh86/ai-engineering-lab/issues/68#issuecomment-5853648678) |
 | OD9 | Faith Mode | **A — optional, opt-in.** Recovery Mode stays independent and available without religious content. Reviewed per OD8. | [issue #68](https://github.com/takh86/ai-engineering-lab/issues/68#issuecomment-5853686614) |
@@ -500,7 +500,7 @@ detailed in §5.
 
 | ID | Decision | Recommendation |
 |---|---|---|
-| OD10 | Pricing, supporter plan and nonprofit vehicle | Decide after E1 and E2, reading subscription-WTP and donation/supporter-intent as two separate signals (§7, §8) |
+| OD10 | Pricing, supporter plan and nonprofit vehicle | **OPEN.** D15 canceled E1/E2; decide later from the Owner's business-model choice and/or released-product evidence. |
 | OD12 | iOS timing | After Android MVP evidence |
 | OD14 | DNS provider choice and allowlist needs | Desk research first, then extra V rows if pursued, after #42 |
 

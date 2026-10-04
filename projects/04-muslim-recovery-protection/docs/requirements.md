@@ -2,9 +2,11 @@
 
 > **Scope note (2026-09-27):** The M1 requirements below are historical records. Product
 > requirements for later milestones come from M2-01 (H4–H12), the **approved D13 app-blocking
-> boundary AB1–AB7**, and the **approved D14**
-> [recovery-first product baseline](recovery-first-product-baseline.md). The M3-01 task contract
-> freezes only the implementation scope whose own entry gates have passed before any code.
+> boundary AB1–AB7**, the **approved D14**
+> [recovery-first product baseline](recovery-first-product-baseline.md), and **D15**, which
+> supersedes the pre-build discovery sequence with Build → Release → Measure → Iterate. The M3-01
+> task contract freezes only the implementation scope whose own entry gates have passed before any
+> code.
 
 ## Milestone M1 — DNS-based VPN filtering hypothesis
 
