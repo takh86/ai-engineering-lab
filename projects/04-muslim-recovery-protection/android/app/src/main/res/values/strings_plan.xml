@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- F5 My Plan. Key prefix = file suffix (plan_). Owner: F5 (feature/plan).
+         ALL copy here is DRAFT (not clinically or religiously reviewed); see docs/android/f5-my-plan-task-record.md.
+         No example if-then prompts are shipped (OD-F5-4 recommendation). -->
+    <string name="plan_title">My plan</string>
+    <string name="plan_intro">Write this in a calm moment. Only you can see it, and nothing is sent anywhere.</string>
+    <string name="plan_loading">Loading your plan…</string>
+    <string name="plan_locked_title">Your plan is locked or unavailable</string>
+    <string name="plan_locked_body">Nothing is shown right now. Please try again later.</string>
+
+    <string name="plan_section_reasons_title">Reasons</string>
+    <string name="plan_section_reasons_hint">Why this matters to you.</string>
+    <string name="plan_section_steps_title">My steps</string>
+    <string name="plan_section_steps_hint">Small things you choose to do.</string>
+    <string name="plan_section_ifthen_title">If-then plans</string>
+    <string name="plan_section_ifthen_hint">If a situation happens, then you do something you decided in advance.</string>
+
+    <string name="plan_empty_reasons">No reasons yet. Add the first one when you are ready.</string>
+    <string name="plan_empty_steps">No steps yet. Add the first one when you are ready.</string>
+    <string name="plan_empty_ifthen">No if-then plans yet. Add the first one when you are ready.</string>
+
+    <string name="plan_add_reason">Add a reason</string>
+    <string name="plan_add_step">Add a step</string>
+    <string name="plan_add_ifthen">Add an if-then plan</string>
+    <string name="plan_limit_reached">You have reached the limit of %1$d items here. Delete one to add another.</string>
+
+    <string name="plan_field_reason">Reason</string>
+    <string name="plan_field_step">Step</string>
+    <string name="plan_field_situation">If this happens</string>
+    <string name="plan_field_action">Then I will</string>
+    <string name="plan_count">%1$d of %2$d characters</string>
+    <string name="plan_error_empty">Please write something first.</string>
+    <string name="plan_error_too_long">This is too long. Please keep it to %1$d characters or fewer.</string>
+    <string name="plan_error_invalid_characters">This contains characters that are not allowed.</string>
+    <string name="plan_duplicate_note">You already have something very similar. You can still save it.</string>
+
+    <string name="plan_save">Save</string>
+    <string name="plan_saving">Saving…</string>
+    <string name="plan_retry">Try again</string>
+    <string name="plan_save_as_new">Save as a new item</string>
+    <string name="plan_save_failed">It could not be saved. Your text is still here.</string>
+    <string name="plan_item_gone">This item was changed or removed elsewhere. You can save your text as a new item.</string>
+
+    <string name="plan_edit">Edit</string>
+    <string name="plan_delete">Delete</string>
+    <string name="plan_edit_item_description">Edit: %1$s</string>
+    <string name="plan_delete_item_description">Delete: %1$s</string>
+    <string name="plan_delete_confirm">Delete this item? This cannot be undone.</string>
+    <string name="plan_delete_confirm_action">Yes, delete</string>
+    <string name="plan_keep">Keep</string>
+    <string name="plan_delete_failed">It could not be deleted. Please try again.</string>
+    <string name="plan_if_label">If: %1$s</string>
+    <string name="plan_then_label">Then: %1$s</string>
+</resources>

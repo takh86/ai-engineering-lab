@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DRAFT translation (not reviewed). -->
+    <string name="plan_title">Mein Plan</string>
+    <string name="plan_intro">Schreibe das in einem ruhigen Moment auf. Nur du kannst es sehen, und nichts wird irgendwohin gesendet.</string>
+    <string name="plan_loading">Dein Plan wird geladen…</string>
+    <string name="plan_locked_title">Dein Plan ist gesperrt oder nicht verfügbar</string>
+    <string name="plan_locked_body">Im Moment wird nichts angezeigt. Bitte versuche es später noch einmal.</string>
+
+    <string name="plan_section_reasons_title">Gründe</string>
+    <string name="plan_section_reasons_hint">Warum dir das wichtig ist.</string>
+    <string name="plan_section_steps_title">Meine Schritte</string>
+    <string name="plan_section_steps_hint">Kleine Dinge, die du dir vornimmst.</string>
+    <string name="plan_section_ifthen_title">Wenn-dann-Pläne</string>
+    <string name="plan_section_ifthen_hint">Wenn eine Situation eintritt, tust du etwas, das du vorher festgelegt hast.</string>
+
+    <string name="plan_empty_reasons">Noch keine Gründe. Füge den ersten hinzu, wenn du bereit bist.</string>
+    <string name="plan_empty_steps">Noch keine Schritte. Füge den ersten hinzu, wenn du bereit bist.</string>
+    <string name="plan_empty_ifthen">Noch keine Wenn-dann-Pläne. Füge den ersten hinzu, wenn du bereit bist.</string>
+
+    <string name="plan_add_reason">Grund hinzufügen</string>
+    <string name="plan_add_step">Schritt hinzufügen</string>
+    <string name="plan_add_ifthen">Wenn-dann-Plan hinzufügen</string>
+    <string name="plan_limit_reached">Du hast die Grenze von %1$d Einträgen hier erreicht. Lösche einen, um einen neuen hinzuzufügen.</string>
+
+    <string name="plan_field_reason">Grund</string>
+    <string name="plan_field_step">Schritt</string>
+    <string name="plan_field_situation">Wenn das passiert</string>
+    <string name="plan_field_action">Dann werde ich</string>
+    <string name="plan_count">%1$d von %2$d Zeichen</string>
+    <string name="plan_error_empty">Bitte schreibe zuerst etwas.</string>
+    <string name="plan_error_too_long">Das ist zu lang. Bitte höchstens %1$d Zeichen verwenden.</string>
+    <string name="plan_error_invalid_characters">Das enthält Zeichen, die nicht erlaubt sind.</string>
+    <string name="plan_duplicate_note">Du hast bereits etwas sehr Ähnliches. Du kannst es trotzdem speichern.</string>
+
+    <string name="plan_save">Speichern</string>
+    <string name="plan_saving">Wird gespeichert…</string>
+    <string name="plan_retry">Erneut versuchen</string>
+    <string name="plan_save_as_new">Als neuen Eintrag speichern</string>
+    <string name="plan_save_failed">Es konnte nicht gespeichert werden. Dein Text ist noch da.</string>
+    <string name="plan_item_gone">Dieser Eintrag wurde anderswo geändert oder entfernt. Du kannst deinen Text als neuen Eintrag speichern.</string>
+
+    <string name="plan_edit">Bearbeiten</string>
+    <string name="plan_delete">Löschen</string>
+    <string name="plan_edit_item_description">Bearbeiten: %1$s</string>
+    <string name="plan_delete_item_description">Löschen: %1$s</string>
+    <string name="plan_delete_confirm">Diesen Eintrag löschen? Das lässt sich nicht rückgängig machen.</string>
+    <string name="plan_delete_confirm_action">Ja, löschen</string>
+    <string name="plan_keep">Behalten</string>
+    <string name="plan_delete_failed">Es konnte nicht gelöscht werden. Bitte versuche es erneut.</string>
+    <string name="plan_if_label">Wenn: %1$s</string>
+    <string name="plan_then_label">Dann: %1$s</string>
+</resources>

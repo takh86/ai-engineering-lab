@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DRAFT translation (not reviewed). -->
+    <string name="plan_title">خطتي</string>
+    <string name="plan_intro">اكتب هذا في لحظة هادئة. أنت وحدك من يراه، ولا يُرسل أي شيء إلى أي مكان.</string>
+    <string name="plan_loading">جارٍ تحميل خطتك…</string>
+    <string name="plan_locked_title">خطتك مقفلة أو غير متاحة</string>
+    <string name="plan_locked_body">لا يُعرض أي شيء الآن. يُرجى المحاولة لاحقًا.</string>
+
+    <string name="plan_section_reasons_title">الأسباب</string>
+    <string name="plan_section_reasons_hint">لماذا يهمّك هذا.</string>
+    <string name="plan_section_steps_title">خطواتي</string>
+    <string name="plan_section_steps_hint">أشياء صغيرة تختار أن تفعلها.</string>
+    <string name="plan_section_ifthen_title">خطط «إذا… فإنني»</string>
+    <string name="plan_section_ifthen_hint">إذا حدث موقف معيّن، فستفعل شيئًا قررته مسبقًا.</string>
+
+    <string name="plan_empty_reasons">لا توجد أسباب بعد. أضف أول سبب عندما تكون مستعدًا.</string>
+    <string name="plan_empty_steps">لا توجد خطوات بعد. أضف أول خطوة عندما تكون مستعدًا.</string>
+    <string name="plan_empty_ifthen">لا توجد خطط «إذا… فإنني» بعد. أضف أول خطة عندما تكون مستعدًا.</string>
+
+    <string name="plan_add_reason">إضافة سبب</string>
+    <string name="plan_add_step">إضافة خطوة</string>
+    <string name="plan_add_ifthen">إضافة خطة «إذا… فإنني»</string>
+    <string name="plan_limit_reached">بلغت الحد الأقصى وهو %1$d عنصرًا هنا. احذف عنصرًا لإضافة آخر.</string>
+
+    <string name="plan_field_reason">السبب</string>
+    <string name="plan_field_step">الخطوة</string>
+    <string name="plan_field_situation">إذا حدث هذا</string>
+    <string name="plan_field_action">فإنني سأفعل</string>
+    <string name="plan_count">%1$d من %2$d حرفًا</string>
+    <string name="plan_error_empty">يُرجى كتابة شيء أولًا.</string>
+    <string name="plan_error_too_long">النص طويل جدًا. يُرجى ألا يتجاوز %1$d حرفًا.</string>
+    <string name="plan_error_invalid_characters">يحتوي هذا على رموز غير مسموح بها.</string>
+    <string name="plan_duplicate_note">لديك بالفعل شيء مشابه جدًا. يمكنك حفظه مع ذلك.</string>
+
+    <string name="plan_save">حفظ</string>
+    <string name="plan_saving">جارٍ الحفظ…</string>
+    <string name="plan_retry">حاول مرة أخرى</string>
+    <string name="plan_save_as_new">حفظ كعنصر جديد</string>
+    <string name="plan_save_failed">تعذّر الحفظ. نصّك ما زال هنا.</string>
+    <string name="plan_item_gone">تم تغيير هذا العنصر أو إزالته في مكان آخر. يمكنك حفظ نصّك كعنصر جديد.</string>
+
+    <string name="plan_edit">تعديل</string>
+    <string name="plan_delete">حذف</string>
+    <string name="plan_edit_item_description">تعديل: %1$s</string>
+    <string name="plan_delete_item_description">حذف: %1$s</string>
+    <string name="plan_delete_confirm">هل تريد حذف هذا العنصر؟ لا يمكن التراجع عن ذلك.</string>
+    <string name="plan_delete_confirm_action">نعم، احذف</string>
+    <string name="plan_keep">إبقاء</string>
+    <string name="plan_delete_failed">تعذّر الحذف. يُرجى المحاولة مرة أخرى.</string>
+    <string name="plan_if_label">إذا: %1$s</string>
+    <string name="plan_then_label">إذن: %1$s</string>
+</resources>
