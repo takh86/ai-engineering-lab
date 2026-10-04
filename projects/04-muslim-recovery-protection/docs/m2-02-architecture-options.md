@@ -892,7 +892,7 @@ limitations.
 | U10 | Cloudflare's availability record and terms | Desk research (§G.6 #5, #7) | H18 |
 | U11 | Play listing wording for an app that guides users to a third-party DNS (policy pages †) | The Tech Lead reads the Play Console | Distribution |
 | U12 | Whether the malware test name separates the two Families tiers (†) | V0 | Use the nudity name as the family oracle |
-| U13 | Whether the recovery layer is valuable enough on its own | Product research in M4/M6 with a privacy plan; not an architecture gate. **Re-sequenced by D14 (proposed, 2026-09-27):** now the M2-04 product discovery gate before M3. | Product |
+| U13 | Whether the recovery layer is valuable enough on its own | Product research in M4/M6 with a privacy plan; not an architecture gate. **Re-sequenced by D14, then superseded by D15 (2026-09-27):** the M2-04 discovery gate was canceled unexecuted; this is now answered by released-product evidence (M6), not a pre-M3 gate. | Product |
 | U14 | Whether A2 works under Android's default Private DNS | Only if A2 is reopened | A2 |
 | U15 | Whether a resolver-diagnostic page (for example `1.1.1.1/help`) can give browser-path evidence equivalent to opening the category page | Validation, then a recorded Tech Lead decision | The NOT VERIFIABLE path (§E.1) |
 | U16 | Whether a 10-minute `CHECK_TTL` suits real use | V14 (later) | §F.4; it may only be shortened without a new decision |
