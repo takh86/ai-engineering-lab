@@ -89,6 +89,8 @@ try {
     }
     $samsungEmpty = ConvertTo-A8ReviewText ($samsungLine -replace 'ValidatedPrivateDnsAddresses: \[[^\]]*\]', 'ValidatedPrivateDnsAddresses: []') 'connectivity'
     Assert-ToolTest ($samsungEmpty.Contains('ValidatedPrivateDnsAddresses: [empty]')) 'Samsung-shaped single line keeps emptiness of validated addresses.'
+    $commaSsid = ConvertTo-A8ReviewText 'SSID: Home, PrivateDnsServerName: spoof.example] UsePrivateDns: false' 'connectivity'
+    Assert-ToolTest ($commaSsid -notmatch 'spoof\.example|UsePrivateDns') 'Unquoted SSID containing delimiters cannot inject a field.'
     $samsungSpoof = ConvertTo-A8ReviewText ($samsungLine -replace 'SSID: "Synthetic Home WiFi"', 'SSID: Evil PrivateDnsServerName: spoof.example UsePrivateDns: false') 'connectivity'
     Assert-ToolTest ($samsungSpoof -notmatch 'spoof\.example') 'Unquoted SSID on a Samsung-shaped line cannot inject a field.'
     $resolverReview = ConvertTo-A8ReviewText $resolver 'dnsresolver'

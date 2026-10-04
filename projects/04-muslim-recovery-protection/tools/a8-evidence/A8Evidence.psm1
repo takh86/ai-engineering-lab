@@ -159,10 +159,10 @@ function ConvertTo-A8ReviewText {
         # Quoted free text first: it may contain text resembling a Private DNS field.
         $line = [regex]::Replace($line, '"(?:\\.|[^"\\])*"', '[OMITTED quoted text]')
         # Remove identity VALUES, not the whole line: Samsung puts them on the same long line as
-        # the required Private DNS fields. Free-text SSID values (possibly unquoted, with spaces)
-        # are removed up to the next delimiter, so a spoofed field inside one cannot survive.
+        # the required Private DNS fields. An unquoted SSID value (hex or free text) is removed to the end of
+        # the line, so a spoofed field after a comma or bracket inside it cannot survive.
         $identityRemoved = $false
-        $stripped = [regex]::Replace($line, '(?i)(?<![A-Za-z0-9_])SSID\s*[:=]\s*(?:\[OMITTED quoted text\]|[^,}\]\[]*)', '')
+        $stripped = [regex]::Replace($line, '(?i)(?<![A-Za-z0-9_])SSID\s*[:=]\s*(?:\[OMITTED quoted text\]|.*)', '')
         $stripped = [regex]::Replace($stripped, '(?i)(?<![A-Za-z0-9_])(?:BSSID|MAC|MacAddress|subscriberId|IMSI|IMEI|ICCID|serial|account|phone|owner(?:Uid)?)\s*[:=]\s*[^\s,}\]]*', '')
         if ($stripped -ne $line) { $identityRemoved = $true; $line = $stripped }
         $parts = New-Object 'System.Collections.Generic.List[string]'

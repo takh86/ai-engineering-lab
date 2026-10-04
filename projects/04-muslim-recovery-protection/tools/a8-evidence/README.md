@@ -88,10 +88,12 @@ Extracts copy only recognized network IDs/types, Private DNS booleans, the confi
 fields and limited resolver validation vocabulary. **All addresses, SSID, BSSID, MAC, serial, subscriber, account,
 interface and other unlisted content are omitted**, including unfamiliar vendor text.
 Recognized identity values are removed in place, so a long mixed line keeps its allowlisted Private DNS
-fields. Quoted text is removed first, and an unquoted SSID value is removed up to the next delimiter
-(`,`, `}`, `]`), so it cannot inject a fake Private DNS field. Such lines are marked
-`[identity values removed; inspect raw locally]`; this can also drop genuine fields that follow an
-unquoted SSID on the same line, so check raw locally when it matters.
+fields. Quoted text is removed first; an unquoted SSID value is removed to the end of the line, so it cannot
+inject a fake Private DNS field. Such lines are marked `[identity values removed; inspect raw locally]`,
+and genuine fields after an unquoted SSID on the same line are lost from the extract.
+**Residual limit:** Android prints a quoted SSID without escaping embedded quotes, so a hostile SSID containing
+`", PrivateDnsServerName: x, "` could still produce a fake field in the extract. The extract is a reading aid
+only; confirm Private DNS facts against the raw stream before relying on them.
 Resolver vocabulary is labelled as context-limited tokens, never as a validation conclusion.
 Use raw locally when associating a resolver server/status with a network is unclear.
 
