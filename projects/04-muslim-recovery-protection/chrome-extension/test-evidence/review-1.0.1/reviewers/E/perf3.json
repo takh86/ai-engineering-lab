@@ -1,0 +1,12 @@
+{
+ "window_s": 300,
+ "workerStartsObserved": 0,
+ "startOffsets_s": [],
+ "cpuSecondsAllBrowserProcs": 0.55,
+ "alarmInfo": [
+  {
+   "n": "tabsira-verify",
+   "p": 1
+  }
+ ]
+}

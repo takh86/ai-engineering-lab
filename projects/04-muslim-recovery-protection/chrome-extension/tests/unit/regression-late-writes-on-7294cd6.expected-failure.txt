@@ -1,0 +1,178 @@
+TAP version 13
+# Subtest: REVIEW 7294cd6: a frozen SAVE that removes sites, resumed after the lease expired, newer save and START_SESSION, must not empty the list
+not ok 1 - REVIEW 7294cd6: a frozen SAVE that removes sites, resumed after the lease expired, newer save and START_SESSION, must not empty the list
+  ---
+  duration_ms: 23.58017
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old4/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/late-writes.test.mjs:56:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    stored sites survive (old save finished as ok)
+    + actual - expected
+    
+    + []
+    - [
+    -   'example.com',
+    -   'newer.org'
+    - ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'example.com'
+    1: 'newer.org'
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old4/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/late-writes.test.mjs:70:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: REVIEW variant: the newer instance only starts a session (no save); the frozen weakening save must still not land
+not ok 2 - REVIEW variant: the newer instance only starts a session (no save); the frozen weakening save must still not land
+  ---
+  duration_ms: 11.339316
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old4/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/late-writes.test.mjs:77:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    a weakening write from before the session cannot land during it
+    + actual - expected
+    
+    + []
+    - [
+    -   'example.com'
+    - ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'example.com'
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old4/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/late-writes.test.mjs:89:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: late ROLLBACK: a save whose write fails after a freeze must not restore its old snapshot over a newer state
+ok 3 - late ROLLBACK: a save whose write fails after a freeze must not restore its old snapshot over a newer state
+  ---
+  duration_ms: 10.651732
+  type: 'test'
+  ...
+# Subtest: late IMPORT: a frozen import resumed after newer saves cannot overwrite them
+not ok 4 - late IMPORT: a frozen import resumed after newer saves cannot overwrite them
+  ---
+  duration_ms: 5.217937
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old4/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/late-writes.test.mjs:113:1'
+  failureType: 'testCodeFailure'
+  error: '["example.com","imported.org"]'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old4/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/late-writes.test.mjs:125:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: late writes in a chain: three frozen older saves landing in any order never beat the newest save
+not ok 5 - late writes in a chain: three frozen older saves landing in any order never beat the newest save
+  ---
+  duration_ms: 20.200785
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old4/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/late-writes.test.mjs:129:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+    +   'old-0.org'
+    -   'newest.org'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'newest.org'
+  actual:
+    0: 'old-0.org'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old4/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/late-writes.test.mjs:148:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: late RULE WRITE: a save frozen inside its rule write, resumed after a newer save, leaves rules that follow storage
+ok 6 - late RULE WRITE: a save frozen inside its rule write, resumed after a newer save, leaves rules that follow storage
+  ---
+  duration_ms: 8.096809
+  type: 'test'
+  ...
+# Subtest: late ROLLBACK RULE WRITE: a rollback frozen inside its rule restore cannot leave the old snapshot behind a newer save
+not ok 7 - late ROLLBACK RULE WRITE: a rollback frozen inside its rule restore cannot leave the old snapshot behind a newer save
+  ---
+  duration_ms: 4.17569
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old4/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/late-writes.test.mjs:179:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    the stale rollback did not survive
+    + actual - expected
+    
+      [
+        'example.com',
+    -   'newer.org'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'example.com'
+    1: 'newer.org'
+  actual:
+    0: 'example.com'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old4/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/late-writes.test.mjs:194:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: late ROLLBACK STORAGE REMOVAL: a frozen removal of its own record never leaves the store without a configuration
+not ok 8 - late ROLLBACK STORAGE REMOVAL: a frozen removal of its own record never leaves the store without a configuration
+  ---
+  duration_ms: 488.757058
+  type: 'test'
+  location: '/tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old4/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/late-writes.test.mjs:198:1'
+  failureType: 'testCodeFailure'
+  error: 'A reached the removal of its own record'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    until (file:///tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old4/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/late-writes.test.mjs:54:113)
+    async TestContext.<anonymous> (file:///tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old4/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/late-writes.test.mjs:208:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: compaction keeps the two newest records and the highest epoch entry; storage does not grow without bound
+ok 9 - compaction keeps the two newest records and the highest epoch entry; storage does not grow without bound
+  ---
+  duration_ms: 9.052596
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 3
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 715.535582

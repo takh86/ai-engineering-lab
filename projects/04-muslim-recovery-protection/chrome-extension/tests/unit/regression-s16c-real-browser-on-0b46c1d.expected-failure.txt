@@ -1,0 +1,8 @@
+# chromium 141.0.7390.37 on Linux 6.18.44-fc-v51 (x64)
+# package ../../../../../../tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old7/projects/04-muslim-recovery-protection/chrome-extension/dist/tabsira-chromium-1.0.0.zip sha256 21ec84c1decb2ba9b6766a59a696859cefb4e49553e2fa5e7620656c157760d1
+PASS  S16c.1 precondition: the private instance's first session was recorded, then aged to "ended"; the cleanup froze inside the real removal
+PASS  S16c.2 while the frozen worker's lease is valid the private instance fails closed ("busy"); after expiry it starts a NEW 120-minute session
+FAIL  S16c.3 the frozen removal then runs: the NEW session is intact (≈120 min left, active)  -> {"active":false,"minutesLeft":-29848909}
+FAIL  S16c.4 a save that deletes every blocked site is still refused, the sites and rules stay, navigation is still blocked  -> {"weak":"ACCEPTED","domains":[],"blocked":false}
+
+SUMMARY {"PASS":2,"FAIL":2}

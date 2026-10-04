@@ -1,0 +1,39 @@
+TAP version 13
+# Subtest: a repair paused BEFORE its rule write, past its lease, cannot leave stale rules behind a newer save (state follows storage)
+not ok 1 - a repair paused BEFORE its rule write, past its lease, cannot leave stale rules behind a newer save (state follows storage)
+  ---
+  duration_ms: 24.384094
+  type: 'test'
+  location: '/home/user/ai-engineering-lab/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/concurrency.test.mjs:185:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    rules follow storage immediately
+    + actual - expected
+    
+      [
+        'example.com',
+    -   'newer.org'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'example.com'
+    1: 'newer.org'
+  actual:
+    0: 'example.com'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/user/ai-engineering-lab/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/concurrency.test.mjs:201:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 157.000924

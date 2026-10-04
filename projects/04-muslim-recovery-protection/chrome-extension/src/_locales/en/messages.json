@@ -1,0 +1,879 @@
+{
+  "extName": {
+    "message": "تبصرة Tabsira"
+  },
+  "extShortName": {
+    "message": "Tabsira"
+  },
+  "extDescription": {
+    "message": "Block sites and search phrases you choose, with short, respectful help in the moment. Fully local: no accounts, no tracking."
+  },
+  "ui_dir": {
+    "message": "ltr"
+  },
+  "ui_lang": {
+    "message": "en"
+  },
+  "common_back": {
+    "message": "Back"
+  },
+  "common_next": {
+    "message": "Next"
+  },
+  "common_cancel": {
+    "message": "Cancel"
+  },
+  "common_confirm": {
+    "message": "Confirm"
+  },
+  "common_help_now": {
+    "message": "Help me now"
+  },
+  "common_settings": {
+    "message": "Settings"
+  },
+  "common_repair": {
+    "message": "Repair"
+  },
+  "common_loading": {
+    "message": "Checking…"
+  },
+  "common_back_to_tabsira": {
+    "message": "Back to Tabsira"
+  },
+  "common_version": {
+    "message": "Version $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "state_not_configured": {
+    "message": "Blocking is not set up yet — nothing is blocked right now."
+  },
+  "state_active": {
+    "message": "Rules are installed and the required permission is available. Try the safe test to confirm."
+  },
+  "state_partial": {
+    "message": "Setup is incomplete or does not match — blocking may not fully work."
+  },
+  "state_unknown": {
+    "message": "Could not confirm the blocking state. Try again or open Settings."
+  },
+  "reason_host_permission_missing": {
+    "message": "Website access permission is not granted, so blocked pages will not be redirected."
+  },
+  "reason_rules_mismatch": {
+    "message": "The rules in the browser do not match your settings. Press “Repair”."
+  },
+  "reason_phrases_unsupported": {
+    "message": "Some phrases are longer than the browser allows on some search engines, so they are not applied there. Shorten them."
+  },
+  "reason_config_corrupt": {
+    "message": "The saved settings are damaged. Existing rules were left untouched."
+  },
+  "reason_storage_error": {
+    "message": "The saved settings could not be read."
+  },
+  "reason_api_error": {
+    "message": "Could not reach the browser’s blocking interface."
+  },
+  "reason_config_missing_rules_present": {
+    "message": "Saved settings are missing but blocking rules exist in the browser. They were left untouched."
+  },
+  "reason_onboarding_pending": {
+    "message": "Finish the first-time setup to turn blocking on."
+  },
+  "reason_nothing_enabled": {
+    "message": "Every blocking option is switched off."
+  },
+  "incog_on": {
+    "message": "Private browsing: allowed for the extension."
+  },
+  "incog_off": {
+    "message": "Private browsing: not enabled for the extension. Turn it on in the browser’s extensions page if you want it."
+  },
+  "incog_unknown": {
+    "message": "Private browsing: cannot be verified."
+  },
+  "lock_none": {
+    "message": "No commitment session is active."
+  },
+  "lock_active": {
+    "message": "Commitment session active until $P1$. You can only add stronger protection.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "popup_limits": {
+    "message": "Blocks only the sites and phrases you set. It does not scan images or page content. Opened from a link inside a page, the browser may show its own block page instead of this help."
+  },
+  "popup_tagline": {
+    "message": "A space to choose"
+  },
+  "blocked_title": {
+    "message": "Let’s take a moment"
+  },
+  "blocked_body": {
+    "message": "This request matched a rule in the blocking list you chose."
+  },
+  "blocked_note": {
+    "message": "The site will not open from here. You can take a minute and pick a step that suits you."
+  },
+  "blocked_privacy": {
+    "message": "We do not store the page address or the search text that led here."
+  },
+  "blocked_wrong": {
+    "message": "A wrong block? Add the site to Exceptions in Settings (not possible during a commitment session)."
+  },
+  "help_title": {
+    "message": "Make room before deciding"
+  },
+  "help_intro": {
+    "message": "You do not have to solve everything right now. Let’s just change this moment."
+  },
+  "help_timer_title": {
+    "message": "One minute away from the screen"
+  },
+  "help_timer_body": {
+    "message": "Take your hand off the mouse, breathe slowly, and stand up if you can."
+  },
+  "help_timer_label": {
+    "message": "Seconds remaining"
+  },
+  "help_start": {
+    "message": "Start one minute"
+  },
+  "help_again": {
+    "message": "Another minute"
+  },
+  "help_note": {
+    "message": "The minute never opens a site and never turns blocking off."
+  },
+  "help_after": {
+    "message": "Now pick one step: put the device away, change where you are, or talk to someone you trust."
+  },
+  "help_next_title": {
+    "message": "Choose your next step"
+  },
+  "help_next_body": {
+    "message": "Put the device down, go somewhere shared, or reach out to someone you trust."
+  },
+  "help_disclaimer": {
+    "message": "This help is not treatment and not a guarantee of recovery. If you need professional support, contact a qualified professional or a trusted service in your country."
+  },
+  "ob_title": {
+    "message": "Welcome to Tabsira"
+  },
+  "ob_progress": {
+    "message": "Step $P1$ of $P2$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "ob1_title": {
+    "message": "What it does"
+  },
+  "ob1_body": {
+    "message": "It blocks the sites and search phrases you choose, and when something is blocked it shows a calm page with short help. It complements other protections (such as a phone app or family DNS); it is not a replacement and not a proven treatment."
+  },
+  "ob2_title": {
+    "message": "Why it needs website access"
+  },
+  "ob2_body": {
+    "message": "To redirect a blocked page to the help page, the browser asks for “access to websites”. We use it for redirecting only: we do not read page content and do not store what you browse."
+  },
+  "ob3_title": {
+    "message": "Privacy"
+  },
+  "ob3_body": {
+    "message": "No accounts, no analytics, no servers. Your list and settings stay on this device only and may be unencrypted. We do not record block attempts or slips and send nothing to anyone."
+  },
+  "ob4_title": {
+    "message": "Limits"
+  },
+  "ob4_body": {
+    "message": "The extension can be removed or disabled. It does not work in other browsers or on local files, and private browsing needs to be enabled manually. It does not scan images or page content and may miss searches that change in-page without a new load. Ready-made lists can block a site by mistake — use Exceptions."
+  },
+  "ob5_title": {
+    "message": "Choose a start, then test"
+  },
+  "ob5_base": {
+    "message": "Built-in adult-sites list (shipped inside the extension, updated with its releases)"
+  },
+  "ob5_starter": {
+    "message": "Starter search phrases (whole words, Arabic and English)"
+  },
+  "ob5_permission_ok": {
+    "message": "Website access is granted."
+  },
+  "ob5_permission_missing": {
+    "message": "Website access is not granted yet."
+  },
+  "ob5_grant": {
+    "message": "Grant website access"
+  },
+  "ob5_grant_denied": {
+    "message": "The permission was not granted. Blocking will not work without it."
+  },
+  "ob5_start": {
+    "message": "Start blocking"
+  },
+  "ob5_done": {
+    "message": "Setup finished. Run the safe test to confirm."
+  },
+  "ob_already_done": {
+    "message": "First-time setup is already done. You can change everything in Settings."
+  },
+  "safe_test": {
+    "message": "Safe test"
+  },
+  "safe_test_hint": {
+    "message": "Opens a reserved dummy address. If the Tabsira page appears, blocking works in this browser."
+  },
+  "opt_title": {
+    "message": "Tabsira settings"
+  },
+  "opt_status": {
+    "message": "Status"
+  },
+  "opt_base_title": {
+    "message": "Built-in sites list"
+  },
+  "opt_base_label": {
+    "message": "Block sites classified as adult"
+  },
+  "opt_base_info": {
+    "message": "$P1$ domains · snapshot of $P2$. Classification is automated and community-made and can be wrong; each domain is not individually verified.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "opt_starter_label": {
+    "message": "Starter search phrases (whole words)"
+  },
+  "opt_starter_show": {
+    "message": "Show the starter phrases"
+  },
+  "opt_sites_title": {
+    "message": "My sites"
+  },
+  "opt_sites_label": {
+    "message": "Sites to block — one per line"
+  },
+  "opt_sites_hint": {
+    "message": "Blocks the site and its subdomains (example.com blocks mail.example.com but not badexample.com). Enter the domain only, no path."
+  },
+  "opt_allow_title": {
+    "message": "Exceptions"
+  },
+  "opt_allow_label": {
+    "message": "Allowed sites (wrongly blocked) — one per line"
+  },
+  "opt_allow_hint": {
+    "message": "Exceptions apply only to additional domains and phrases; they never bypass the core list. Search engines cannot be excepted. Adding an exception weakens protection and is blocked during commitment."
+  },
+  "opt_phrases_title": {
+    "message": "Search phrases"
+  },
+  "opt_words_label": {
+    "message": "Whole words — one phrase per line (recommended)"
+  },
+  "opt_contains_label": {
+    "message": "Partial match — one phrase per line (broader, may block harmless searches)"
+  },
+  "opt_phrases_hint": {
+    "message": "Matched inside the search parameter only (q, p, search_query or text) on Google, Bing, DuckDuckGo, Yahoo, YouTube, Yandex, Brave, Ecosia and Qwant, with + or %20 spaces, case-insensitive. Arabic diacritics and tatweel are removed from your phrase; alef/ya variants are not unified. A single Arabic phrase is limited to about 10–14 letters (fewer with spaces) by browser limits. In whole-word mode a phrase is usually matched even with quotes, a dot or a hyphen around it, but long phrases are matched with narrower word edges (spaces only) and the status says so; a letter written as a %XX escape is not matched. Searches that do not load a new page are not caught."
+  },
+  "opt_save": {
+    "message": "Save changes"
+  },
+  "opt_saved": {
+    "message": "Saved and rules installed. Try the safe test."
+  },
+  "opt_session_title": {
+    "message": "I need stronger limits right now"
+  },
+  "opt_session_body": {
+    "message": "A commitment session blocks, from inside the extension, everything that weakens protection: deleting a rule, turning off the built-in list, adding an exception, importing weaker settings, or resetting. You can only add stronger protection. It ends on time and then only allows editing; it removes no blocking. Changing the device clock changes the end time, and the extension can still be removed or disabled in the browser."
+  },
+  "opt_session_start": {
+    "message": "$P1$ minutes",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_session_confirm": {
+    "message": "Start a $P1$-minute commitment? Rules and schedules cannot be weakened while active. Early exit requires a request, the selected wait, then password confirmation.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_session_started": {
+    "message": "Commitment session started."
+  },
+  "opt_backup_title": {
+    "message": "Backup"
+  },
+  "opt_backup_body": {
+    "message": "Export saves your settings (sites, phrases, exceptions) to a file on your device. The file is not encrypted, so keep it carefully. Import merges the file with your settings and never weakens protection; it is refused during a commitment session if it adds exceptions."
+  },
+  "opt_export": {
+    "message": "Export settings"
+  },
+  "opt_import": {
+    "message": "Import settings"
+  },
+  "opt_export_hint": {
+    "message": "The export file lists the sites and phrases you chose as plain, unencrypted text. Keep it private."
+  },
+  "opt_saved_partial": {
+    "message": "Saved, but protection is not fully active. See the status above."
+  },
+  "opt_import_confirm": {
+    "message": "This file adds $P1$ sites, $P2$ phrases and $P3$ exceptions to your settings. Merge it?",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      },
+      "p3": {
+        "content": "$3"
+      }
+    }
+  },
+  "opt_import_confirm_exceptions": {
+    "message": "Exceptions in the file (these sites will no longer be blocked):"
+  },
+  "err_in_file": {
+    "message": " — this refers to the imported file; nothing in your settings was changed."
+  },
+  "note_phrases_narrow_edges": {
+    "message": "Note: $P1$ long phrase(s) use narrower word edges on some search engines (a space or the parameter edge only). Quoted or “phrase.com” variants of them are not matched.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "opt_import_locked": {
+    "message": "A commitment session is active: exceptions cannot be added now, so this file cannot be applied."
+  },
+  "opt_imported": {
+    "message": "Imported settings were merged."
+  },
+  "opt_reset_title": {
+    "message": "Clear all rules"
+  },
+  "opt_reset": {
+    "message": "Clear all rules"
+  },
+  "opt_reset_confirm": {
+    "message": "This removes everything and stops blocking. Are you sure?"
+  },
+  "opt_reset_done": {
+    "message": "All rules were cleared."
+  },
+  "opt_privacy_title": {
+    "message": "Privacy and limits"
+  },
+  "opt_privacy_body": {
+    "message": "No accounts, analytics, browsing history or server transmission. Settings are local. Optional notes, covenant and reviews are encrypted when a password is set. Block attempts and your search words are never stored."
+  },
+  "opt_limits_body": {
+    "message": "Only top-level pages are blocked (not embedded frames or images). It does not work in other browsers or on local files. It can be removed or disabled, and private browsing must be enabled manually. It does not read the screen, images or page content. When a blocked site is opened from a link or a search form inside a web page, the browser may show its own “blocked by an extension” page instead of Tabsira’s help page; the site still does not open. The help page appears when you type the address or open it from a bookmark."
+  },
+  "err_domain_invalid": {
+    "message": "This site name is not valid."
+  },
+  "err_domain_empty": {
+    "message": "Empty line."
+  },
+  "err_domain_wildcard_or_space": {
+    "message": "Enter a domain without spaces or asterisks."
+  },
+  "err_domain_has_path": {
+    "message": "Enter the site name only, without a path, port or credentials."
+  },
+  "err_domain_is_ip": {
+    "message": "IP addresses are not supported."
+  },
+  "err_domain_is_shared_suffix": {
+    "message": "This domain hosts many unrelated sites; enter the specific site."
+  },
+  "err_allow_invalid": {
+    "message": "This exception is not valid."
+  },
+  "err_too_many_domains": {
+    "message": "Too many sites (maximum $P1$).",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "err_too_many_phrases": {
+    "message": "Too many phrases (maximum $P1$).",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "err_phrase_invalid": {
+    "message": "This phrase is not valid."
+  },
+  "err_phrase_length": {
+    "message": "Each phrase must be $P1$–$P2$ characters.",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      }
+    }
+  },
+  "err_phrase_control_chars": {
+    "message": "The phrase contains control characters."
+  },
+  "err_phrase_no_letters": {
+    "message": "The phrase needs at least two letters or digits."
+  },
+  "err_phrase_too_complex": {
+    "message": "This phrase is longer than the browser allows for one rule. Shorten it (Arabic ≈ 12–14 letters)."
+  },
+  "err_conflict_domain_allow": {
+    "message": "A blocked site falls under an exception. Remove the conflict."
+  },
+  "err_allow_search_engine": {
+    "message": "A search engine cannot be excepted."
+  },
+  "err_config_invalid": {
+    "message": "The settings are not valid."
+  },
+  "err_config_corrupt": {
+    "message": "The saved settings are damaged. You can clear them in Settings (not possible during a commitment session)."
+  },
+  "err_import_invalid": {
+    "message": "The file is not a valid Tabsira export."
+  },
+  "err_import_version": {
+    "message": "The file version is not supported."
+  },
+  "err_import_too_large": {
+    "message": "The file is too large."
+  },
+  "err_locked_weakening": {
+    "message": "A commitment session is active: this change would weaken protection, so it is not allowed now. You can only add stronger protection."
+  },
+  "err_stale": {
+    "message": "Settings changed from another window. They were reloaded; review and save again."
+  },
+  "err_apply_failed": {
+    "message": "The change could not be applied and the previous state was restored. Try again."
+  },
+  "err_apply_failed_rollback_failed": {
+    "message": "The change failed and the previous state could not be fully restored. Press “Repair” to check."
+  },
+  "err_storage_unavailable": {
+    "message": "Local storage is not available."
+  },
+  "err_session_needs_rules": {
+    "message": "Add sites or phrases, or turn on the built-in list, before starting a session."
+  },
+  "err_session_needs_active_protection": {
+    "message": "A session can only start when the status is “rules installed”. Fix the shown problem first."
+  },
+  "err_session_start_inconsistent": {
+    "message": "Your settings changed while the session was starting, so the start was not confirmed. A commitment session may be running on the new settings; check the status above."
+  },
+  "err_already_onboarded": {
+    "message": "First-time setup was already completed."
+  },
+  "err_busy": {
+    "message": "The extension is busy with another request (possibly from another window). Try again in a moment."
+  },
+  "err_bad_request": {
+    "message": "Invalid request."
+  },
+  "err_unexpected": {
+    "message": "An unexpected error occurred. Try again."
+  },
+  "err_worker_unreachable": {
+    "message": "Could not reach the extension’s background. Try again."
+  },
+  "err_line": {
+    "message": " (line $P1$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "set_language": {
+    "message": "Language"
+  },
+  "set_religion": {
+    "message": "Choose what fits you"
+  },
+  "set_muslim": {
+    "message": "Muslim"
+  },
+  "set_nonmuslim": {
+    "message": "Non-Muslim"
+  },
+  "set_faith": {
+    "message": "Optional faith content"
+  },
+  "set_faith_hint": {
+    "message": "Choosing Muslim initially enables faith content. You can change it independently of language and religion at any time."
+  },
+  "set_theme": {
+    "message": "Appearance"
+  },
+  "set_light": {
+    "message": "Light"
+  },
+  "set_dark": {
+    "message": "Dark"
+  },
+  "set_system": {
+    "message": "System"
+  },
+  "set_home": {
+    "message": "Home"
+  },
+  "set_plan": {
+    "message": "My plan"
+  },
+  "set_filter": {
+    "message": "Filter"
+  },
+  "set_more": {
+    "message": "More"
+  },
+  "set_current": {
+    "message": "Block current site"
+  },
+  "set_current_hint": {
+    "message": "Open Tabsira from the site you want to block. No tab list or history is collected."
+  },
+  "set_current_unavailable": {
+    "message": "No current site is available. Open the Tabsira popup from the intended site."
+  },
+  "set_core": {
+    "message": "The core list is mandatory after setup and cannot be exempted."
+  },
+  "set_sites": {
+    "message": "Websites"
+  },
+  "set_phrases": {
+    "message": "Search phrases"
+  },
+  "set_preview": {
+    "message": "Preview the actual bundled list"
+  },
+  "set_search": {
+    "message": "Filter domains"
+  },
+  "set_add_selected": {
+    "message": "Add selected to my list"
+  },
+  "set_selection_limit": {
+    "message": "You can select up to 1,000 additional domains in total."
+  },
+  "set_preview_count": {
+    "message": "$P1$ results · page $P2$ of $P3$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      },
+      "p2": {
+        "content": "$2"
+      },
+      "p3": {
+        "content": "$3"
+      }
+    }
+  },
+  "set_preview_error": {
+    "message": "Could not load the bundled list."
+  },
+  "set_schedule": {
+    "message": "Additional protection schedule"
+  },
+  "set_schedule_hint": {
+    "message": "Schedules never stop core protection. Overnight periods end the following day. A schedule cannot be weakened during commitment."
+  },
+  "set_start": {
+    "message": "Start"
+  },
+  "set_end": {
+    "message": "End"
+  },
+  "set_add": {
+    "message": "Add"
+  },
+  "set_edit": {
+    "message": "Edit"
+  },
+  "set_delete": {
+    "message": "Delete"
+  },
+  "set_day_0": {
+    "message": "Sunday"
+  },
+  "set_day_1": {
+    "message": "Monday"
+  },
+  "set_day_2": {
+    "message": "Tuesday"
+  },
+  "set_day_3": {
+    "message": "Wednesday"
+  },
+  "set_day_4": {
+    "message": "Thursday"
+  },
+  "set_day_5": {
+    "message": "Friday"
+  },
+  "set_day_6": {
+    "message": "Saturday"
+  },
+  "set_duration": {
+    "message": "Commitment duration"
+  },
+  "set_minutes": {
+    "message": "Minutes"
+  },
+  "set_hours": {
+    "message": "Hours"
+  },
+  "set_days": {
+    "message": "Days"
+  },
+  "set_weeks": {
+    "message": "Weeks"
+  },
+  "set_months": {
+    "message": "Months (30 days)"
+  },
+  "set_exit_delay": {
+    "message": "Early exit delay in minutes (at least 60)"
+  },
+  "set_commit": {
+    "message": "Start or extend commitment"
+  },
+  "set_commit_hint": {
+    "message": "Up to one year (525,600 minutes). Extension never shortens the duration or exit delay. An exit request does not end protection automatically: wait, then confirm with your password."
+  },
+  "set_request_exit": {
+    "message": "Request early exit"
+  },
+  "set_cancel_exit": {
+    "message": "Cancel exit request"
+  },
+  "set_confirm_exit": {
+    "message": "Confirm exit after the wait with password"
+  },
+  "set_wait_until": {
+    "message": "Confirmation available: $P1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1"
+      }
+    }
+  },
+  "set_covenant": {
+    "message": "Personal covenant"
+  },
+  "set_covenant_now": {
+    "message": "Create covenant now"
+  },
+  "set_covenant_later": {
+    "message": "You can create your covenant later in My plan."
+  },
+  "set_password": {
+    "message": "Optional local password"
+  },
+  "set_password_hint": {
+    "message": "Locks settings and private data reading. Help and protection are always available. It cannot prevent extension removal. No account, biometrics or device password."
+  },
+  "set_password_new": {
+    "message": "New password (at least 8 characters)"
+  },
+  "set_password_repeat": {
+    "message": "Repeat password"
+  },
+  "set_password_set": {
+    "message": "Set password"
+  },
+  "set_unlock": {
+    "message": "Unlock access"
+  },
+  "set_lock": {
+    "message": "Lock access now"
+  },
+  "set_recover": {
+    "message": "Recover with your previous code"
+  },
+  "set_recovery_code": {
+    "message": "Recovery code"
+  },
+  "set_recovery_hint": {
+    "message": "Save this code outside the extension now. It is displayed only once. Recovery never changes protection or commitment."
+  },
+  "set_locked": {
+    "message": "Private access is locked. Unlock with your password; help remains available."
+  },
+  "set_unlocked": {
+    "message": "Private access is temporarily unlocked. It may lock automatically when the extension background worker stops; unlock again with your password."
+  },
+  "set_no_password": {
+    "message": "No password is set."
+  },
+  "set_mismatch": {
+    "message": "Passwords do not match."
+  },
+  "set_notes": {
+    "message": "Optional locally saved notes"
+  },
+  "set_notes_hint": {
+    "message": "Saved only when you press Save. Encrypted when a password is set."
+  },
+  "set_note": {
+    "message": "New note"
+  },
+  "set_save_note": {
+    "message": "Save note"
+  },
+  "set_news": {
+    "message": "Version news inside the tool"
+  },
+  "set_news_body": {
+    "message": "This version adds covenant, help and local settings. Cloud accounts, email recovery and news subscriptions are deferred and unavailable."
+  },
+  "set_prayer": {
+    "message": "Optional prayer notifications"
+  },
+  "set_prayer_hint": {
+    "message": "Off by default. Requires separate consent and a manually entered location; no automatic geolocation."
+  },
+  "set_invalid_duration": {
+    "message": "Enter a valid duration up to one year, and an exit delay between 60 and 525600 minutes."
+  },
+  "set_saved": {
+    "message": "Changes saved."
+  },
+  "set_unavailable": {
+    "message": "This operation is unavailable now. Your input is retained so you can retry."
+  },
+  "set_setup_title": {
+    "message": "Set up Tabsira"
+  },
+  "set_profile_title": {
+    "message": "Your language and choices"
+  },
+  "set_protection_title": {
+    "message": "Clear core protection"
+  },
+  "set_setup_password": {
+    "message": "Set a password now or leave it empty and continue."
+  },
+  "set_setup_done": {
+    "message": "Setup completed. Check protection status, then try the safe test."
+  },
+  "set_choose": {
+    "message": "Choose an option"
+  },
+  "set_choose_required": {
+    "message": "Choose Muslim or non-Muslim to continue."
+  },
+  "set_optional_title": {
+    "message": "Optional choices for your needs"
+  },
+  "set_code_saved": {
+    "message": "I saved the recovery code outside the extension"
+  },
+  "set_code_required": {
+    "message": "Save the recovery code and confirm before continuing."
+  },
+  "set_password_pending": {
+    "message": "Press Set password, or clear both fields to continue without one."
+  },
+  "set_duration_unit": {
+    "message": "Commitment duration unit"
+  },
+  "err_access_locked": {
+    "message": "Private access is locked. Unlock with your password to continue."
+  },
+  "err_exit_not_requested": {
+    "message": "Request early exit first; no valid request exists now."
+  },
+  "err_exit_waiting": {
+    "message": "The waiting period has not ended. Protection continues."
+  },
+  "err_invalid_recovery": {
+    "message": "The recovery code is invalid."
+  },
+  "err_password_invalid": {
+    "message": "The password is incorrect or invalid."
+  },
+  "err_prayer_invalid": {
+    "message": "Check the location, time zone and prayer calculation method."
+  },
+  "err_prayer_permission": {
+    "message": "Notification permission was not granted. Prayer notifications are off."
+  },
+  "err_recovery_unavailable": {
+    "message": "There is no password to recover."
+  },
+  "err_schedule_conflict": {
+    "message": "This schedule overlaps another, including periods after midnight."
+  },
+  "err_schedule_invalid": {
+    "message": "Choose at least one day and valid, different start and end times."
+  },
+  "err_security_corrupt": {
+    "message": "Private data could not be verified. Access stays closed until verification succeeds."
+  },
+  "err_security_unavailable": {
+    "message": "Local encryption is unavailable in this browser."
+  },
+  "err_session_expired": {
+    "message": "The commitment already ended; early exit is unnecessary."
+  },
+  "err_storage_error": {
+    "message": "The local operation failed. Keep your input and try again."
+  },
+  "err_verify_failed": {
+    "message": "Protection rule installation could not be verified."
+  },
+  "set_exit_password_required": {
+    "message": "Early exit requires a local password. If you start without one, you cannot confirm early exit until you set a password; the commitment expires automatically at its deadline."
+  },
+  "err_commitment_release_limit": {
+    "message": "The early-exit record has reached capacity. A new exit request cannot be accepted; the commitment continues until natural expiry and protection remains active."
+  }
+}

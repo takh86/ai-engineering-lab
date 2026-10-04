@@ -1,0 +1,89 @@
+{
+  "date": "2026-10-03",
+  "scope": "Local follow-up changes only; no GitHub update",
+  "productSourceLocalCommit": "6adaa69a6314e7df6e24d7bcc9bb72f1927789ac",
+  "unitStatic": {
+    "pass": 153,
+    "fail": 0,
+    "includes": "4 crypto cases including downgrade/AAD substitution; 2 legacy controller migration cases; full packaged/static/reproducibility checks"
+  },
+  "controllerRegressions": {
+    "repo": "/workspace/scratch/bcf19308400d/tabsira-product/projects/04-muslim-recovery-protection/chrome-extension",
+    "coverage": "Node real controllers with fake browser APIs, no browser/DNR claim",
+    "results": [
+      {
+        "name": "RT1 valid password confirms mature explicit early exit (actual feature controller)",
+        "result": "PASS",
+        "ms": 285
+      },
+      {
+        "name": "RT2 released older long lock cannot delete shorter new commitment (verifier stub isolates protection)",
+        "result": "PASS",
+        "ms": 9
+      },
+      {
+        "name": "RT3 eligible opted-in prayer alarm delivers notification (actual feature controller)",
+        "result": "PASS",
+        "ms": 36
+      },
+      {
+        "name": "RT4 valid large private records remain readable after encrypted save/restart/recovery",
+        "result": "PASS",
+        "ms": 939
+      },
+      {
+        "name": "RT5 locked gates/private status redaction/page capabilities/recovery preserve commitment",
+        "result": "PASS",
+        "ms": 458
+      },
+      {
+        "name": "RT6 frozen valid confirmation rejects cancel",
+        "result": "PASS",
+        "ms": 290
+      },
+      {
+        "name": "RT6 frozen valid confirmation rejects new-session",
+        "result": "PASS",
+        "ms": 225
+      },
+      {
+        "name": "RT6 frozen valid confirmation rejects rotate-password",
+        "result": "PASS",
+        "ms": 378
+      },
+      {
+        "name": "RT6 frozen valid confirmation rejects natural-expiry",
+        "result": "PASS",
+        "ms": 225
+      },
+      {
+        "name": "RT7 ciphertext corruption fails closed without weakening protection or revealing private text",
+        "result": "PASS",
+        "ms": 331
+      }
+    ]
+  },
+  "workerCapabilities": {
+    "repo": "/workspace/scratch/bcf19308400d/tabsira-product/projects/04-muslim-recovery-protection/chrome-extension",
+    "result": "PASS",
+    "coverage": "Actual service-worker listener with fake WebExtension APIs; sender capability boundaries, worker password gates, status redaction, recovery protection invariance"
+  },
+  "independentRedTeam": "Reviewed by /root/review_followup_redteam; no new high/medium defect substantiated within reviewed changes",
+  "installedBrowser": {
+    "status": "NOT_RUN",
+    "newAssertions": 6,
+    "reason": "Local extension browser launch environment previously rejected persistent profile sockets; no CI writes authorized. Prior 57 passes belong to historical candidate."
+  },
+  "unresolved": [
+    "Local 1.0.1/12-commit branch unavailable for reconciliation",
+    "Full findings 7–10,12,13 unavailable",
+    "Real-browser mature early exit and temporal DNR schedule transitions",
+    "Idle worker termination in real browser",
+    "Real prayer notification delivery",
+    "Firefox runtime and separate 184-check suite",
+    "Owner store purpose/privacy release review"
+  ],
+  "publication": "LOCAL ONLY; not cleared for merge or store publication",
+  "evidenceScope": "Historical candidate evidence; superseded for current local tree by second-followup-local.json",
+  "reviewStatus": "OPEN: 1.0.1 bundle reconciliation, installed-browser verification and owner store/privacy decision"
+}

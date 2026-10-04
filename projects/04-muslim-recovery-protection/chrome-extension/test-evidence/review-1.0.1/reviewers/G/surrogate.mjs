@@ -1,0 +1,12 @@
+import { createController } from '/home/user/ai-engineering-lab/projects/04-muslim-recovery-protection/chrome-extension/src/background/controller.js';
+import { validateMessage } from '/home/user/ai-engineering-lab/projects/04-muslim-recovery-protection/chrome-extension/src/background/messages.js';
+import { createFakeBrowser } from '/home/user/ai-engineering-lab/projects/04-muslim-recovery-protection/chrome-extension/tests/unit/fake-browser.mjs';
+const { api, state } = createFakeBrowser(); const c = createController(api);
+const send = m => c.handle(validateMessage(m));
+let r = await send({ type: 'COMPLETE_ONBOARDING', baseList: false, starterTerms: false });
+const none = { baseList:false, starterTerms:false, domains:[], allow:[], contains:[] };
+r = await send({ type:'SAVE_SETTINGS', baseRevision: r.status.revision, settings:{...none, words:['ab\ud800cd']} });
+console.log('SAVE lone surrogate ->', r.ok, JSON.stringify(r.error), r.status?.state);
+const text = JSON.stringify({format:'tabsira-settings',version:2,settings:{...none,words:['ab\ud800cd']}});
+r = await send({ type:'IMPORT_SETTINGS', baseRevision: 1, text });
+console.log('IMPORT lone surrogate ->', r.ok, JSON.stringify(r.error));

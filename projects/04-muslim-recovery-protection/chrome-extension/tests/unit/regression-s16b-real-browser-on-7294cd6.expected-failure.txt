@@ -1,0 +1,8 @@
+# chromium 141.0.7390.37 on Linux 6.18.44-fc-v51 (x64)
+# package ../../../../../../tmp/claude-0/-home-user-ai-engineering-lab/daeb8ebd-dc1b-50ba-b3ed-f56d4b6ce201/scratchpad/old3/projects/04-muslim-recovery-protection/chrome-extension/dist/tabsira-chromium-1.0.0.zip sha256 2babb4430eeb66c79fbdb8d991d8542f8c84443881a237fdcc230425e59db50f
+PASS  S16b.1 while the frozen holder's lease is valid the private instance fails closed ("busy")
+PASS  S16b.2 after the lease expired the private instance saves newer sites and starts a session
+FAIL  S16b.3 the frozen "delete every site" write then resumes: stored sites are NOT emptied, rules still block the newer sites, the session is active  -> {"domains":[],"lock":true,"state":"not_configured","keep":false,"added":false,"oldLoads":true,"lateSave":"ok"}
+PASS  S16b.4 the normal-window instance sees the same final state (one shared truth)
+
+SUMMARY {"PASS":3,"FAIL":1}

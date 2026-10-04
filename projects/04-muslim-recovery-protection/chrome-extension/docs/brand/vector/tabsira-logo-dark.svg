@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1536 560" width="1536" height="560" role="img" aria-labelledby="title desc"><title id="title">Tabsira — تبصرة</title><desc id="desc">Reconstructed Arabic wordmark and filter symbol. Curved vector paths; no embedded bitmap or font dependency.</desc><defs>
+<linearGradient id="top" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#22C5F3"/><stop offset=".46" stop-color="#1456C5"/><stop offset="1" stop-color="#06266E"/></linearGradient>
+<linearGradient id="mid" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#13D4E8"/><stop offset=".5" stop-color="#039CF3"/><stop offset="1" stop-color="#0854AC"/></linearGradient>
+<linearGradient id="low" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#18C6EF"/><stop offset="1" stop-color="#0769ED"/></linearGradient>
+<linearGradient id="lime" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#CBF845"/><stop offset="1" stop-color="#9BDA20"/></linearGradient>
+</defs><g fill="#FFFFFF" fill-rule="evenodd">
+<path d="M124 232 C73 260 34 295 34 344 C34 395 69 423 123 423 C181 423 213 392 213 342 C213 292 173 258 124 232 Z M124 300 C142 311 158 323 158 340 C158 357 145 369 125 369 C105 369 91 357 91 340 C91 323 105 310 124 300 Z"/>
+<path d="M250 293 L308 262 L308 342 Q308 365 334 365 L352 365 Q374 365 374 345 L374 307 L430 280 L430 328 C468 284 511 253 565 253 C631 253 662 285 662 337 L661 365 L685 365 Q718 365 718 343 L718 280 L777 251 L777 341 Q777 365 804 365 L839 365 Q865 365 865 341 L865 280 L919 253 L919 354 C919 397 896 418 845 418 L803 418 Q770 418 750 398 C733 413 707 418 681 418 L337 418 Q319 418 307 411 C300 469 263 500 207 500 Q181 500 165 493 L181 449 Q248 452 250 394 Z M448 365 L593 365 Q605 357 605 341 C605 318 587 308 559 308 C524 308 483 328 448 365 Z"/>
+<path d="M54 186 L91 149 L127 186 L91 222 Z M127 186 L165 149 L202 186 L165 222 Z M807 197 L843 161 L878 197 L843 233 Z M878 197 L911 161 L945 197 L911 233 Z M698 467 L735 430 L773 467 L735 504 Z"/>
+</g><g transform="translate(948 0)"><g>
+<path fill="url(#top)" d="M82 20 H550 Q569 20 558 38 L520 93 Q499 121 463 121 H24 Q5 121 14 103 L46 52 Q60 20 82 20 Z"/>
+<path fill="url(#mid)" d="M128 158 H466 Q485 158 475 174 L435 229 Q413 264 377 264 H123 C57 264 57 158 128 158 Z"/>
+<path fill="url(#low)" d="M173 294 H380 Q400 294 388 312 L345 372 Q331 391 312 391 H182 Q167 391 159 376 L143 349 C129 323 147 294 173 294 Z"/>
+<path fill="url(#lime)" d="M198 420 H296 Q311 420 303 437 L254 522 Q244 540 234 522 L186 437 Q177 420 198 420 Z"/>
+</g></g></svg>

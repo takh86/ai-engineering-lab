@@ -1,0 +1,90 @@
+{
+  "status": "LOCAL_INTEGRATED_CANDIDATE_NOT_RELEASE_APPROVED",
+  "parents": {
+    "frozen101": "efc735777bd9dd096ce69da0717438f72fa99023",
+    "features": "1817d0a25d598086878e41e8c28992c0e390d838"
+  },
+  "unit": {
+    "pass": 189,
+    "fail": 0,
+    "old101Regressions": 28,
+    "scope": "Node unit/static with simulated WebExtension APIs"
+  },
+  "controllerRegression": {
+    "repo": "/workspace/scratch/bcf19308400d/tabsira-integration-101/projects/04-muslim-recovery-protection/chrome-extension",
+    "coverage": "Node real controllers with fake browser APIs, no browser/DNR claim",
+    "results": [
+      {
+        "name": "RT1 valid password confirms mature explicit early exit (actual feature controller)",
+        "result": "PASS",
+        "ms": 246
+      },
+      {
+        "name": "RT2 released older long lock cannot delete shorter new commitment (verifier stub isolates protection)",
+        "result": "PASS",
+        "ms": 8
+      },
+      {
+        "name": "RT3 eligible opted-in prayer alarm delivers notification (actual feature controller)",
+        "result": "PASS",
+        "ms": 43
+      },
+      {
+        "name": "RT4 valid large private records remain readable after encrypted save/restart/recovery",
+        "result": "PASS",
+        "ms": 824
+      },
+      {
+        "name": "RT5 locked gates/private status redaction/page capabilities/recovery preserve commitment",
+        "result": "PASS",
+        "ms": 456
+      },
+      {
+        "name": "RT6 frozen valid confirmation rejects cancel",
+        "result": "PASS",
+        "ms": 229
+      },
+      {
+        "name": "RT6 frozen valid confirmation rejects new-session",
+        "result": "PASS",
+        "ms": 227
+      },
+      {
+        "name": "RT6 frozen valid confirmation rejects rotate-password",
+        "result": "PASS",
+        "ms": 381
+      },
+      {
+        "name": "RT6 frozen valid confirmation rejects natural-expiry",
+        "result": "PASS",
+        "ms": 245
+      },
+      {
+        "name": "RT7 ciphertext corruption fails closed without weakening protection or revealing private text",
+        "result": "PASS",
+        "ms": 385
+      }
+    ]
+  },
+  "workerCapabilities": "PASS simulated actual worker listener",
+  "browser": "NOT_RUN: native Chrome startup socket()/ptrace denied before extension load",
+  "oldE2E": "Historical suite incompatible with new UI/mandatory-core contract; not run against integrated candidate",
+  "packages": [
+    {
+      "file": "tabsira-chromium-1.1.0.zip",
+      "bytes": 1379664,
+      "sha256": "59278872baebc8a2eec2951b299fc47a5dad63e6fa23716ed7711ca32189541e"
+    },
+    {
+      "file": "tabsira-firefox-1.1.0.zip",
+      "bytes": 1379792,
+      "sha256": "30e3185e85a3ac9473cbd6d040811d2d1c79a6ad640bb4584dd896bf3d95a037"
+    }
+  ],
+  "publication": "No push/PR comment/remote merge/store submission/privacy deployment",
+  "uiSmoke": {
+    "pass": 26,
+    "pageErrors": [],
+    "scope": "Packaged UI in Chromium headless shell, light/dark13states; real JS and controllers with simulated extension APIs/demo data; onboarding next/back exercised. No installed DNR claim."
+  }
+}

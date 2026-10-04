@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "browser": "Chromium",
+    "version": "not started",
+    "os": "Linux 6.18.44 (x64)",
+    "node": "v24.19.0",
+    "date": "2026-10-03T12:54:13.420Z",
+    "target": "chromium",
+    "zip": "dist/tabsira-chromium-1.1.0.zip",
+    "zipSha256": "28479151a5fa8e7fe5ba0a3cad8bd16b7addc1c26aa754ad2030b277dcc97180",
+    "files": 69,
+    "manifestVersion": "1.1.0",
+    "variants": {
+      "release": "unmodified extraction of the ZIP",
+      "test": "manifest + declarativeNetRequestFeedback only",
+      "optional": "manifest: host access optional + declarativeNetRequestFeedback",
+      "live": "copy of release; manifest version raised in place for the update test"
+    }
+  },
+  "summary": {
+    "NOT_RUN": 1
+  },
+  "results": [
+    {
+      "id": "installed-extension acceptance",
+      "status": "NOT_RUN",
+      "detail": "browserType.launchPersistentContext: Target page, context or browser has been closed\n[pid=21][err] [21:21:1003/145413.509141:FATAL:chrome/browser/process_singleton_posix.cc:292] Check failed: . socket() failed: Operation not permitted (1)\n[pid=21][err] [1003/145413.510794:ERROR:third_party/crashpad/crashpad/util/linux/scoped_ptrace_attach.cc:27] ptrace: Operation not permitted (1)\n\u001b[2m  - [pid=21][err] [21:21:1003/145413.509141:FATAL:chrome/browser/process_singleton_posix.cc:292] Check failed: . socket() failed: Operation not permitted (1)\u001b[22m\n\u001b[2m  - [pid=21][err] [1003/145413.510794:ERROR:third_party/crashpad/crashpad/util/linux/scoped_ptrace_attach.cc:27] ptrace: Operation not permitted (1)\u001b[22m"
+    }
+  ],
+  "notes": []
+}

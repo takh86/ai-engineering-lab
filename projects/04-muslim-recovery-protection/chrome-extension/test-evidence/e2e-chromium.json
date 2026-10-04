@@ -1,0 +1,1004 @@
+{
+  "meta": {
+    "browser": "chromium",
+    "version": "141.0.7390.37",
+    "os": "Linux 6.18.44-fc-v51 (x64)",
+    "node": "v22.22.0",
+    "date": "2026-10-02T18:23:40.627Z",
+    "package": {
+      "target": "chromium",
+      "zip": "dist/tabsira-chromium-1.0.1.zip",
+      "zipSha256": "61942949005aa35c07b7cff1ad90ffd735812618234c8a545146d9489712b700",
+      "files": 48,
+      "manifestVersion": "1.0.1",
+      "variants": {
+        "release": "unmodified extraction of the ZIP",
+        "test": "manifest + declarativeNetRequestFeedback only",
+        "optional": "manifest: host access optional + declarativeNetRequestFeedback",
+        "live": "copy of release; manifest version raised in place for the update test"
+      }
+    }
+  },
+  "summary": {
+    "PASS": 184,
+    "NOT_RUN": 2
+  },
+  "results": [
+    {
+      "id": "S1.1 onboarding page opens on install",
+      "status": "PASS",
+      "detail": "about:blank chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/onboarding.html"
+    },
+    {
+      "id": "S1.2 fresh install reports not_configured, no rules, base list off",
+      "status": "PASS",
+      "detail": "{\"state\":\"not_configured\",\"reasons\":[\"onboarding_pending\"]}"
+    },
+    {
+      "id": "S1.3 nothing is blocked before onboarding (honest \"not configured\")",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S1.4 base list metadata is bundled and readable",
+      "status": "PASS",
+      "detail": "domainCount=242750"
+    },
+    {
+      "id": "S2.1 Arabic UI is RTL (browser language ar)",
+      "status": "PASS",
+      "detail": "rtl/ar/مرحبًا بك في تبصرة"
+    },
+    {
+      "id": "S2.2 five onboarding steps reachable (progress text, final step shows controls)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S2.3 defaults: base list and starter terms preselected",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S2.4 after onboarding: state active, base ruleset enabled, permission present",
+      "status": "PASS",
+      "detail": "{\"state\":\"active\",\"reasons\":[]}"
+    },
+    {
+      "id": "S2.5 safe self-test domain redirects to the stop page (real DNR redirect)",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "S2.6 stop page shows no blocked address or search text",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "S2.7 stop page is RTL Arabic with a Help-now link",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S2.8 reloading the stop page does not loop or leave it",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S2.9 help timer ends without opening any site and without changing blocking",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S2.9b stop/help pages cannot talk to the worker (not an allowed sender page)",
+      "status": "PASS",
+      "detail": "undefined"
+    },
+    {
+      "id": "S2.10 extension pages are not web-accessible (no fingerprinting from websites)",
+      "status": "PASS",
+      "detail": "blocked"
+    },
+    {
+      "id": "S3.1 sampled listed domains match the static ruleset (6 across the list)",
+      "status": "PASS",
+      "detail": "1,1,1,1,1,1"
+    },
+    {
+      "id": "S3.2 their subdomains match (DNS label boundary)",
+      "status": "PASS",
+      "detail": "1,1,1,1,1,1"
+    },
+    {
+      "id": "S3.3 lookalike (prefix without dot boundary) is not matched",
+      "status": "PASS",
+      "detail": "0,0,0,0,0,0"
+    },
+    {
+      "id": "S3.4 listed name used as a prefix label of another domain is not matched",
+      "status": "PASS",
+      "detail": "0,0,0,0,0,0"
+    },
+    {
+      "id": "S3.5 all 140 known-benign canary sites are NOT matched",
+      "status": "PASS",
+      "detail": "hits=0"
+    },
+    {
+      "id": "S3.5b names that an earlier snapshot held and the licence-only rule removed are NOT in the ruleset (12 samples; names only, never requested)",
+      "status": "PASS",
+      "detail": "0,0,0,0,0,0,0,0,0,0,0,0"
+    },
+    {
+      "id": "S3.5c ShadowWhisperer-only domains ARE in the ruleset (12 samples)",
+      "status": "PASS",
+      "detail": "1,1,1,1,1,1,1,1,1,1,1,1"
+    },
+    {
+      "id": "S3.5d Sinfonietta-only domains ARE in the ruleset (12 samples)",
+      "status": "PASS",
+      "detail": "1,1,1,1,1,1,1,1,1,1,1,1"
+    },
+    {
+      "id": "S3.5e domains listed by both sources ARE in the ruleset (12 samples)",
+      "status": "PASS",
+      "detail": "1,1,1,1,1,1,1,1,1,1,1,1"
+    },
+    {
+      "id": "S3.6 match comes from the bundled static ruleset",
+      "status": "PASS",
+      "detail": "base_adult"
+    },
+    {
+      "id": "S3.7 switching the base list off removes its effect (real navigation)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S3.8 switching it on again restores the redirect",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S3.9 exception overrides the base list (precedence allow > base)",
+      "status": "PASS",
+      "detail": "{\"ok\":true,\"real\":true}"
+    },
+    {
+      "id": "S4.1 blocks blocked-user.test",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked."
+    },
+    {
+      "id": "S4.1 blocks sub.blocked-user.test",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked."
+    },
+    {
+      "id": "S4.1 blocks a.b.blocked-user.test",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked."
+    },
+    {
+      "id": "S4.1 does not block notblocked-user.test",
+      "status": "PASS",
+      "detail": "http://notblocked-user.test:36529/"
+    },
+    {
+      "id": "S4.1 does not block blocked-user.test.evil.example",
+      "status": "PASS",
+      "detail": "http://blocked-user.test.evil.example:36529/"
+    },
+    {
+      "id": "S4.1 does not block blocked-user.tests.example",
+      "status": "PASS",
+      "detail": "http://blocked-user.tests.example:36529/"
+    },
+    {
+      "id": "S4.2 exception for a subdomain beats the parent block; siblings stay blocked",
+      "status": "PASS",
+      "detail": "{\"ok\":true,\"deeper\":true,\"sibling\":true}"
+    },
+    {
+      "id": "S4.3 block inside an exception is rejected as a conflict",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S4.4 shared public suffix is refused",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S4.5 a search engine cannot be excepted",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S4.6 stale settings from another window are rejected, nothing lost",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S5.0 phrases accepted by the real regex engine",
+      "status": "PASS",
+      "detail": "{}"
+    },
+    {
+      "id": "S5.1 www.google.com: phrase blocked, ordinary search not blocked",
+      "status": "PASS",
+      "detail": "hit.blocked=true ordinary: loaded"
+    },
+    {
+      "id": "S5.1 www.google.de: phrase blocked, ordinary search not blocked",
+      "status": "PASS",
+      "detail": "hit.blocked=true ordinary: loaded"
+    },
+    {
+      "id": "S5.1 www.google.com.eg: phrase blocked, ordinary search not blocked",
+      "status": "PASS",
+      "detail": "hit.blocked=true ordinary: loaded"
+    },
+    {
+      "id": "S5.1 www.bing.com: phrase blocked, ordinary search not blocked",
+      "status": "PASS",
+      "detail": "hit.blocked=true ordinary: loaded"
+    },
+    {
+      "id": "S5.1 www.bing.com: phrase blocked, ordinary search not blocked",
+      "status": "PASS",
+      "detail": "hit.blocked=true ordinary: loaded"
+    },
+    {
+      "id": "S5.1 duckduckgo.com: phrase blocked, ordinary search not blocked",
+      "status": "PASS",
+      "detail": "hit.blocked=true ordinary: loaded"
+    },
+    {
+      "id": "S5.1 search.yahoo.com: phrase blocked, ordinary search not blocked",
+      "status": "PASS",
+      "detail": "hit.blocked=true ordinary: loaded"
+    },
+    {
+      "id": "S5.1 images.search.yahoo.com: phrase blocked, ordinary search not blocked",
+      "status": "PASS",
+      "detail": "hit.blocked=true ordinary: loaded"
+    },
+    {
+      "id": "S5.1 www.youtube.com: phrase blocked, ordinary search not blocked",
+      "status": "PASS",
+      "detail": "hit.blocked=true ordinary: loaded"
+    },
+    {
+      "id": "S5.2 blocked: plus-encoded",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "S5.2 blocked: percent20",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "S5.2 blocked: upper case",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "S5.2 blocked: extra params before",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "S5.2 blocked: arabic percent-encoded",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "S5.2 blocked: arabic lower-hex",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "S5.2 blocked: word inside longer query",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "S5.2 blocked: contains mode substring",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "S5.3 allowed: phrase only in another parameter",
+      "status": "PASS",
+      "detail": "http://www.google.com:36529/search?q=ordinary&note=tabsira+word"
+    },
+    {
+      "id": "S5.3 allowed: param name boundary (aq)",
+      "status": "PASS",
+      "detail": "http://www.google.com:36529/search?aq=tabsira+word"
+    },
+    {
+      "id": "S5.3 allowed: word mode: embedded in a longer word",
+      "status": "PASS",
+      "detail": "http://www.google.com:36529/search?q=xtabsira+words"
+    },
+    {
+      "id": "S5.3 allowed: phrase in the path, not the query",
+      "status": "PASS",
+      "detail": "http://www.google.com:36529/search?x=1"
+    },
+    {
+      "id": "S5.3 allowed: different engine param (p on google)",
+      "status": "PASS",
+      "detail": "http://www.google.com:36529/search?p=tabsira+word"
+    },
+    {
+      "id": "S5.3 allowed: phrase in path only",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S5.4 phrase on a non-search site is not inspected",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S5.5 over-long Arabic phrase is refused with a line number (real regex memory limit)",
+      "status": "PASS",
+      "detail": "{\"code\":\"phrase_too_complex\",\"params\":{\"line\":1,\"list\":\"contains\"}}"
+    },
+    {
+      "id": "S5.6 every starter term is accepted by the real regex engine",
+      "status": "PASS",
+      "detail": "[]"
+    },
+    {
+      "id": "S5.7 starter term blocks; unrelated search stays allowed",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "R1.1 whole word blocked with punctuation around it: quoted",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "R1.1 whole word blocked with punctuation around it: \".com\" suffix",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "R1.1 whole word blocked with punctuation around it: comma",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "R1.1 whole word blocked with punctuation around it: hyphen before",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "R1.1 whole word blocked with punctuation around it: encoded parentheses",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "R1.1 whole word blocked with punctuation around it: site: operator",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "R1.1 whole word blocked with punctuation around it: question mark",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "R1.1 whole word blocked with punctuation around it: lower-case hex comma",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "R1.2 whole word still NOT blocked inside a longer word: letter before",
+      "status": "PASS",
+      "detail": "http://www.google.com:36529/search?q=xtabsira+word"
+    },
+    {
+      "id": "R1.2 whole word still NOT blocked inside a longer word: letter after",
+      "status": "PASS",
+      "detail": "http://www.google.com:36529/search?q=tabsira+words"
+    },
+    {
+      "id": "R1.2 whole word still NOT blocked inside a longer word: digit after",
+      "status": "PASS",
+      "detail": "http://www.google.com:36529/search?q=tabsira+word2"
+    },
+    {
+      "id": "R1.3 safe-test domain is redirected to the stop page even with the built-in list OFF (own site configured)",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "R1.4 a 13-letter Arabic whole word is refused (does not fit the longest search parameter) instead of being saved as partial",
+      "status": "PASS",
+      "detail": "{\"code\":\"phrase_too_complex\",\"params\":{\"line\":1,\"list\":\"words\"}}"
+    },
+    {
+      "id": "R1.5 a 12-letter Arabic whole word is accepted, state active, and blocked on YouTube (narrow-boundary fallback)",
+      "status": "PASS",
+      "detail": "{\"state\":\"active\",\"reasons\":[]}"
+    },
+    {
+      "id": "R1.8 the narrow-edge fallback is reported as a note (not shown as plain full protection); its quoted variant is NOT matched on YouTube (documented limit)",
+      "status": "PASS",
+      "detail": "{\"notes\":[{\"code\":\"phrases_narrow_edges\",\"count\":1}],\"quotedBlocked\":false}"
+    },
+    {
+      "id": "S6.1 blocked navigation: single redirect to the stop page, no loop",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "S6.2 the stop page is requested exactly once",
+      "status": "PASS",
+      "detail": "1"
+    },
+    {
+      "id": "S6.3 documented limit: sub-frames are not redirected (main_frame only)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S7.1 session start requires an explicit confirmation step",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S7.2 session active (60 min) and shown in the UI",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S7.3 deleting a site is refused with a clear message and rules remain",
+      "status": "PASS",
+      "detail": "جلسة الالتزام نشطة: هذا التغيير يخفّف الحماية فلا يُسمح به ا"
+    },
+    {
+      "id": "S7.4 refused during session: disable base list",
+      "status": "PASS",
+      "detail": "{\"code\":\"locked_weakening\",\"params\":{\"reasons\":[\"base_list_disabled\"]}}"
+    },
+    {
+      "id": "S7.4 refused during session: remove phrase",
+      "status": "PASS",
+      "detail": "{\"code\":\"locked_weakening\",\"params\":{\"reasons\":[\"phrase_removed\"]}}"
+    },
+    {
+      "id": "S7.4 refused during session: add exception",
+      "status": "PASS",
+      "detail": "{\"code\":\"locked_weakening\",\"params\":{\"reasons\":[\"exception_added\"]}}"
+    },
+    {
+      "id": "S7.5 reset is refused during session",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S7.6 importing weaker settings is refused during session",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S7.7 adding stronger protection is allowed during session",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S7.8 session survives a real service-worker stop/restart (old instance destroyed; new one recovers state from storage; no timer)",
+      "status": "PASS",
+      "detail": "{\"oldInstanceAlive\":false,\"state\":\"active\",\"lockActive\":true,\"sameUntil\":true}"
+    },
+    {
+      "id": "S7.9 after full browser restart: session, rules and base list persist",
+      "status": "PASS",
+      "detail": "{\"state\":\"active\",\"base\":true}"
+    },
+    {
+      "id": "S7.10 after browser restart: navigation is still blocked",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S7.11 after an extension UPDATE (1.0.1 → 1.0.2, same profile): rules, base list and session are back",
+      "status": "PASS",
+      "detail": "{\"version\":\"1.0.2\",\"state\":\"active\",\"base\":true,\"reasons\":[]}"
+    },
+    {
+      "id": "S7.12 blocking works after the update (real navigation)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S7.13 rules removed behind our back are detected and restored",
+      "status": "PASS",
+      "detail": "{\"state\":\"active\",\"reasons\":[]}"
+    },
+    {
+      "id": "S7.14 device-clock change effect",
+      "status": "NOT_RUN",
+      "detail": "cannot change the OS clock safely here; documented limitation"
+    },
+    {
+      "id": "S8.1 without host permission: status is partial with a specific reason (never \"active\")",
+      "status": "PASS",
+      "detail": "{\"state\":\"partial\",\"reasons\":[\"host_permission_missing\"]}"
+    },
+    {
+      "id": "S8.2 without host permission nothing is redirected (proves the permission is load-bearing)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S8.3 popup and badge show the problem (not a silent failure)",
+      "status": "PASS",
+      "detail": "badge=!"
+    },
+    {
+      "id": "S8.4 commitment cannot start around inactive protection",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S8.5 withdrawn permission is detected live",
+      "status": "NOT_RUN",
+      "detail": "Chromium refused to drop a required host permission via API (error: You cannot remove required permissions.); covered by S8.1 with the optional-permission build"
+    },
+    {
+      "id": "S9.0 setup: rules saved and commitment session started",
+      "status": "PASS",
+      "detail": "{}"
+    },
+    {
+      "id": "S9.1 status reports that private windows are not allowed for the extension (incognitoAllowed=false)",
+      "status": "PASS",
+      "detail": "false"
+    },
+    {
+      "id": "S9.2 private window WITHOUT the switch: extension is not applied, the site loads (documented limit; manual enable needed)",
+      "status": "PASS",
+      "detail": "http://incog-site.test:36529/"
+    },
+    {
+      "id": "S9.3 status reports private windows allowed (incognitoAllowed=true) and protection still active",
+      "status": "PASS",
+      "detail": "{\"incog\":true,\"state\":\"active\"}"
+    },
+    {
+      "id": "S9.4 private window WITH the switch: blocked site shows the Tabsira stop page (split instance)",
+      "status": "PASS",
+      "detail": "chrome-extension://dhaaapinolkilmegkgphbfhooahfkkoc/blocked.html"
+    },
+    {
+      "id": "S9.5 private window: unlisted site loads normally",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S9.6 the private-window instance sees the SAME commitment and rules (shared storage)",
+      "status": "PASS",
+      "detail": "{\"lock\":true,\"domains\":[\"incog-site.test\"]}"
+    },
+    {
+      "id": "S9.7 commitment cannot be weakened from a private window",
+      "status": "PASS",
+      "detail": "locked_weakening"
+    },
+    {
+      "id": "S9.8 adding an exception from a private window is refused too",
+      "status": "PASS",
+      "detail": "locked_weakening"
+    },
+    {
+      "id": "S9.9 rules unchanged after the attempts; normal window still blocks",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S11.1 enabling the full built-in list succeeds",
+      "status": "PASS",
+      "detail": "39 ms"
+    },
+    {
+      "id": "S11.2 enabling takes under 15 s",
+      "status": "PASS",
+      "detail": "39 ms"
+    },
+    {
+      "id": "S11.3 navigation overhead with the list on is under 50 ms (median of 25, local server)",
+      "status": "PASS",
+      "detail": "off 15 ms / on 16 ms"
+    },
+    {
+      "id": "S11.4 per-URL matching cost with the list is under 5 ms",
+      "status": "PASS",
+      "detail": "0.17 ms / 0.17 ms"
+    },
+    {
+      "id": "S11.5 total browser memory increase from the list is under 400 MB",
+      "status": "PASS",
+      "detail": "873 MB → 874 MB"
+    },
+    {
+      "id": "S12.1 keyboard Tab reaches every interactive control on the settings page (17 controls)",
+      "status": "PASS",
+      "detail": "17/17"
+    },
+    {
+      "id": "S12.2 every focused control shows a visible focus outline",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S12.3 keyboard-only save works",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S12.4 measured text/button contrast ≥ 4.5:1 in light and dark schemes",
+      "status": "PASS",
+      "detail": "min 6.97"
+    },
+    {
+      "id": "S12.5 RTL layout: Arabic text starts at the right edge; site list input is LTR",
+      "status": "PASS",
+      "detail": "{\"dir\":\"rtl\",\"align\":\"start\",\"hRight\":16,\"hLeft\":664,\"domainsDir\":\"ltr\"}"
+    },
+    {
+      "id": "S12.7 browser language fr (not shipped): Arabic fallback strings are laid out RTL with lang=\"ar\"",
+      "status": "PASS",
+      "detail": "rtl / ar / إعداد تبصرة"
+    },
+    {
+      "id": "S12.7 browser language tr (not shipped): Arabic fallback strings are laid out RTL with lang=\"ar\"",
+      "status": "PASS",
+      "detail": "rtl / ar / إعداد تبصرة"
+    },
+    {
+      "id": "S12.6 de UI: LTR and translated",
+      "status": "PASS",
+      "detail": "ltr / de / Tabsira-Einstellungen"
+    },
+    {
+      "id": "S12.6 en UI: LTR and translated",
+      "status": "PASS",
+      "detail": "ltr / en / Tabsira settings"
+    },
+    {
+      "id": "S13.1 real storage failure after rules were installed: error reported, previous rules restored (real DNR)",
+      "status": "PASS",
+      "detail": "{\"code\":\"apply_failed\",\"a\":true,\"b\":true}"
+    },
+    {
+      "id": "S13.2 status is consistent after the rollback",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S13.3 rollback failure is reported distinctly and the browser is left with the NEW rules (mismatch visible)",
+      "status": "PASS",
+      "detail": "{\"code\":\"apply_failed_rollback_failed\",\"state\":\"partial\",\"reasons\":[\"rules_mismatch\"]}"
+    },
+    {
+      "id": "S13.4 the next status check repairs the mismatch back to the last stored settings",
+      "status": "PASS",
+      "detail": "{\"state\":\"active\",\"domains\":[\"fault-a.test\"]}"
+    },
+    {
+      "id": "S13.5 four concurrent saves with one base revision: exactly one succeeds, others get \"stale\", state is consistent",
+      "status": "PASS",
+      "detail": "{\"wins\":1,\"final\":[\"fault-a.test\",\"race-1.test\"],\"outcomes\":[\"ok\",\"stale:{}\",\"stale:{}\",\"stale:{}\"]}"
+    },
+    {
+      "id": "S13.6 the winning rule is the one enforced (real navigation)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S13.7 an ordinary web page cannot message the extension",
+      "status": "PASS",
+      "detail": "no-api"
+    },
+    {
+      "id": "S13.8 CSP blocks eval, new Function and inline script on extension pages",
+      "status": "PASS",
+      "detail": "{\"eval\":\"blocked\",\"fn\":\"blocked\",\"inline\":\"blocked\"}"
+    },
+    {
+      "id": "S13.9 malformed or unknown messages are refused and change nothing",
+      "status": "PASS",
+      "detail": "[\"bad_request\",\"bad_request\",\"bad_request\",\"bad_request\",\"bad_request\",\"bad_request\",\"bad_request\"]"
+    },
+    {
+      "id": "S14.1 export downloads a settings file with only user settings (no lock/revision/attempts)",
+      "status": "PASS",
+      "detail": "[\"baseList\",\"starterTerms\",\"domains\",\"allow\",\"words\",\"contains\"]"
+    },
+    {
+      "id": "S14.2 importing the exported file merges without losing newer settings",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S14.3 an invalid import is refused with a specific message and changes nothing",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "R1.6 an invalid import is reported in the message area (not under the \"My sites\" box) and says it refers to the file",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S14.4 a non-Tabsira file is refused",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "R1.7 an import that adds an exception lists it before applying; Cancel applies nothing and returns focus",
+      "status": "PASS",
+      "detail": "{\"previewExceptions\":\"r1-exempt.test\",\"focusBack\":\"importButton\"}"
+    },
+    {
+      "id": "S15.1 [ar] popup in the not-configured state conveys it by text + icon + state attribute (not colour alone)",
+      "status": "PASS",
+      "detail": "{\"glyph\":2,\"text\":39,\"state\":\"not_configured\"}"
+    },
+    {
+      "id": "S15.2 [ar] popup in the active state conveys it by text + icon (a different glyph from the not-configured one)",
+      "status": "PASS",
+      "detail": "{\"glyph\":2,\"text\":56,\"state\":\"active\"}"
+    },
+    {
+      "id": "S15.1 [de] popup in the not-configured state conveys it by text + icon + state attribute (not colour alone)",
+      "status": "PASS",
+      "detail": "{\"glyph\":2,\"text\":75,\"state\":\"not_configured\"}"
+    },
+    {
+      "id": "S15.2 [de] popup in the active state conveys it by text + icon (a different glyph from the not-configured one)",
+      "status": "PASS",
+      "detail": "{\"glyph\":2,\"text\":102,\"state\":\"active\"}"
+    },
+    {
+      "id": "S15.1 [en] popup in the not-configured state conveys it by text + icon + state attribute (not colour alone)",
+      "status": "PASS",
+      "detail": "{\"glyph\":2,\"text\":58,\"state\":\"not_configured\"}"
+    },
+    {
+      "id": "S15.2 [en] popup in the active state conveys it by text + icon (a different glyph from the not-configured one)",
+      "status": "PASS",
+      "detail": "{\"glyph\":2,\"text\":91,\"state\":\"active\"}"
+    },
+    {
+      "id": "S15.3 all 5 pages × ar/de/en × light/dark: Cairo headings + Tajawal text loaded and applied; lime primary action with dark text (contrast ≥ 4.5); navy/white headings; mark loaded; no unverifiable safety claim; no \"stop protection\" action",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S15.4 all 5 pages × ar/de/en × light/dark: no horizontal scrolling, no clipped or off-screen element at normal size, 200% text size and 320 px width (400% zoom)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S16.1 paused save in the normal window + START_SESSION from the private window: the session start waits for the write, both succeed, and the session is intact afterwards",
+      "status": "PASS",
+      "detail": "{\"paused\":true,\"midway\":\"waiting\",\"saved\":true,\"started\":true,\"active\":true}"
+    },
+    {
+      "id": "S16.2 the saved site is enforced and the private instance reports the identical session end",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S16.3a while a frozen holder's lease is valid, the other instance fails closed (\"busy\") instead of writing blindly",
+      "status": "PASS",
+      "detail": "{\"paused2\":true,\"first\":\"busy\",\"waitedMs\":19979}"
+    },
+    {
+      "id": "S16.3b after the lease expired the other instance extends the session to 120 min; when the frozen write then resumes the session is NOT shortened or erased",
+      "status": "PASS",
+      "detail": "{\"extended\":true,\"savedB\":\"busy\",\"remainingMin\":120}"
+    },
+    {
+      "id": "S16.4 afterwards the browser rules match the stored settings (no half-applied state) and weakening is still refused",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S16b.1 while the frozen holder's lease is valid the private instance fails closed (\"busy\")",
+      "status": "PASS",
+      "detail": "{\"frozen\":true,\"first\":\"busy\"}"
+    },
+    {
+      "id": "S16b.2 after the lease expired the private instance saves newer sites and starts a session",
+      "status": "PASS",
+      "detail": "{\"second\":\"ok\",\"started\":\"ok\"}"
+    },
+    {
+      "id": "S16b.3 the frozen \"delete every site\" write then resumes: stored sites are NOT emptied, rules still block the newer sites, the session is active",
+      "status": "PASS",
+      "detail": "{\"domains\":[\"late-keep.test\",\"late-new.test\"],\"lock\":true,\"state\":\"active\",\"keep\":true,\"added\":true,\"oldLoads\":true,\"lateSave\":\"busy\"}"
+    },
+    {
+      "id": "S16b.4 the normal-window instance sees the same final state (one shared truth)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S16c.1 precondition: the private instance's session is active and a dominated session entry exists; the cleanup froze inside the real removal",
+      "status": "PASS",
+      "detail": "{\"first\":true,\"aged\":[1790972793476],\"active\":true,\"frozen\":true}"
+    },
+    {
+      "id": "S16c.2 while the frozen worker's lease is valid the private instance fails closed (\"busy\"); after expiry it starts a LONGER session",
+      "status": "PASS",
+      "detail": "{\"early\":\"busy\",\"second\":\"ok\"}"
+    },
+    {
+      "id": "S16c.3 the frozen removal then runs: the newer session is intact (active, ≈120 min left, ended later than the first one)",
+      "status": "PASS",
+      "detail": "{\"active\":true,\"minutesLeft\":120,\"longerThanFirst\":true}"
+    },
+    {
+      "id": "S16c.4 a save that deletes every blocked site is still refused, the sites and rules stay, navigation is still blocked",
+      "status": "PASS",
+      "detail": "{\"weak\":\"locked_weakening\",\"domains\":[\"clean-keep.test\",\"clean-second.test\"],\"blocked\":true}"
+    },
+    {
+      "id": "S16d.1 preconditions: frozen save, newer sites saved and session started from the other instance, newer sites blocked before the stale write",
+      "status": "PASS",
+      "detail": "{\"frozen\":true,\"newer\":true,\"started\":true,\"beforeRelease\":{\"keep\":true,\"added\":true}}"
+    },
+    {
+      "id": "S16d.2 the stale rule write lands and the worker is terminated before it can reconcile: rules are EMPTY and protection is lost right after (the hazard exists)",
+      "status": "PASS",
+      "detail": "{\"rulesAfterStale\":[],\"lostRightAfter\":{\"keep\":true,\"added\":true},\"extensionPagesOpen\":0}"
+    },
+    {
+      "id": "S16d.3 WITHOUT opening Popup/Options, GET_STATUS or REPAIR, protection is restored automatically (watchdog wake-up); time recorded",
+      "status": "PASS",
+      "detail": "{\"recoveredAfterSec\":42,\"observed\":[{\"atSec\":10,\"keepBlocked\":false,\"newBlocked\":false},{\"atSec\":21,\"keepBlocked\":false,\"newBlocked\":false},{\"atSec\":31,\"keepBlocked\":false,\"newBlocked\":true},{\"atSec\":42,\"keepBlocked\":true,\"newBlocked\":true}]}"
+    },
+    {
+      "id": "S16d.4 afterwards the stored sites and the session are intact and the rules equal the stored settings",
+      "status": "PASS",
+      "detail": "{\"state\":\"active\",\"lock\":true,\"domains\":[\"life-keep.test\",\"life-new.test\"],\"oldSiteLoads\":true}"
+    },
+    {
+      "id": "S18.2a legacy store with an active session: SAVE straight away is accepted and the old session end is stored in a lock key first",
+      "status": "PASS",
+      "detail": "{\"ok\":true,\"locks\":1}"
+    },
+    {
+      "id": "S18.2b after SAVE: the session is active and deleting every site is still refused (locked_weakening)",
+      "status": "PASS",
+      "detail": "{\"lock\":true,\"err\":\"locked_weakening\"}"
+    },
+    {
+      "id": "S18.2c after SAVE: both sites are really blocked by the browser (real DNR navigation)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S18.2a legacy store with an active session: IMPORT straight away is accepted and the old session end is stored in a lock key first",
+      "status": "PASS",
+      "detail": "{\"ok\":true,\"locks\":1}"
+    },
+    {
+      "id": "S18.2b after IMPORT: the session is active and deleting every site is still refused (locked_weakening)",
+      "status": "PASS",
+      "detail": "{\"lock\":true,\"err\":\"locked_weakening\"}"
+    },
+    {
+      "id": "S18.2c after IMPORT: both sites are really blocked by the browser (real DNR navigation)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S18.1a frozen START_SESSION, lease expired, other instance saved WEAKER (empty) settings: the old start does NOT return success",
+      "status": "PASS",
+      "detail": "{\"frozen\":true,\"other\":\"ok\",\"late\":\"session_start_inconsistent\"}"
+    },
+    {
+      "id": "S18.1b the newer weaker settings stay effective (not overwritten by the old start); nothing is blocked any more, honestly reported",
+      "status": "PASS",
+      "detail": "{\"domains\":[],\"state\":\"not_configured\",\"reasons\":[\"nothing_enabled\"]}"
+    },
+    {
+      "id": "S18.1c frozen START_SESSION, lease expired, other instance started its OWN session: the old start fails and the newer session is neither deleted nor shortened",
+      "status": "PASS",
+      "detail": "{\"frozen\":true,\"other\":\"ok\",\"late\":\"session_start_inconsistent\",\"otherEnd\":1790969350828,\"until\":1790969350828,\"state\":\"active\"}"
+    },
+    {
+      "id": "S18.1d after the late write, deleting every site is still refused and the sites are still blocked",
+      "status": "PASS",
+      "detail": "{\"err\":\"locked_weakening\",\"blocked\":true}"
+    },
+    {
+      "id": "S17.1 a hostile web page cannot embed, load, script, fetch or open any extension page or file",
+      "status": "PASS",
+      "detail": "{\"reach\":{\"frameLoaded\":false,\"image\":\"blocked\",\"script\":\"blocked\",\"fetch\":\"blocked\"},\"frameUrls\":[],\"extPages\":[\"chrome-error://chromewebdata/\"]}"
+    },
+    {
+      "id": "S17.2 a hostile page cannot start a session or change settings by messaging the extension",
+      "status": "PASS",
+      "detail": "no-api"
+    },
+    {
+      "id": "S17.3 the three blocked visits were stopped (precondition for the leak scan)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S17.4 after blocked visits, Tabsira's storage (extension settings, state, IndexedDB, local/session storage) contains no visited URL part or search text",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S10.1 no console output in any extension page or worker mentions a tested URL or phrase (2 console messages captured)",
+      "status": "PASS",
+      "detail": ""
+    },
+    {
+      "id": "S10.2 no unexpected console errors from the extension during the whole run (CSP-violation probes of S13.8 excluded)",
+      "status": "PASS",
+      "detail": ""
+    }
+  ],
+  "notes": [
+    {
+      "id": "S7.14",
+      "text": "Clock change: the end time is stored as an absolute timestamp. Not automated (cannot change the OS clock in this sandbox); behaviour documented in README."
+    },
+    {
+      "id": "S11-limits",
+      "text": "{\"MAX_NUMBER_OF_DYNAMIC_RULES\":30000,\"MAX_NUMBER_OF_UNSAFE_DYNAMIC_RULES\":5000,\"MAX_NUMBER_OF_REGEX_RULES\":1000,\"GUARANTEED_MINIMUM_STATIC_RULES\":30000,\"MAX_NUMBER_OF_STATIC_RULESETS\":100,\"MAX_NUMBER_OF_ENABLED_STATIC_RULESETS\":50,\"availableStaticRules\":329999}"
+    },
+    {
+      "id": "S11",
+      "text": "{\"browser\":\"chrome-linux/chrome\",\"listDomains\":242750,\"extensionReadyMs\":605,\"enableBaseListMs\":39,\"navMedianOffMs\":15,\"navMedianOnMs\":16,\"rssOffMB\":873,\"rssOnMB\":874,\"matchMsPerUrl\":0.17,\"phraseMatchMsPerUrl\":0.17}"
+    },
+    {
+      "id": "S12",
+      "text": "contrast ratios {\"light\":{\"text\":14.34,\"hint\":7.65,\"button\":6.97,\"secondary\":10.31},\"dark\":{\"text\":14.94,\"hint\":8.4,\"button\":9.23,\"secondary\":18.36}}"
+    },
+    {
+      "id": "S15",
+      "text": "30 page renderings × 3 sizes checked; 0 problem(s) listed in the failing checks"
+    },
+    {
+      "id": "S16.3",
+      "text": "the frozen save finished as busy"
+    },
+    {
+      "id": "S16b",
+      "text": "the frozen save finished as busy"
+    },
+    {
+      "id": "S16d",
+      "text": "protection restored automatically after 42 s (first checked 10 s after the worker was terminated, then every 10 s; real navigations only)"
+    },
+    {
+      "id": "S18",
+      "text": "weaker-save: late start finished as session_start_inconsistent"
+    },
+    {
+      "id": "S18",
+      "text": "newer-session: late start finished as session_start_inconsistent"
+    },
+    {
+      "id": "S17-history",
+      "text": "Chromium's own history after blocked visits (the browser's behaviour, not the extension's): {\"urls\":7,\"containsBlockedOriginalUrl\":true,\"containsStopPage\":true}"
+    }
+  ]
+}
