@@ -34,8 +34,10 @@ binary is uploaded by CI, and release gates (R8 hardening, native-library / 16 K
    - permissions (`uses-permission`, `-sdk-23`, `-sdk-m`) and declarations (`permission`, `permission-tree`,
      `permission-group`) must be in `allowed-permissions.txt`;
    - components must be in `allowed-components.txt` with the key
-     `<tag>|<class>|exported=<true|false|unset>|permission=<guard|none>|filters=<yes|no>`, so removing a
-     service's `BIND_*` guard or adding an intent filter changes the key and fails;
+     `<tag>|<class>|exported=<true|false|unset>|enabled=<true|false|unset>|permission=<guard|none>|filters=<signature|none>`, so removing a
+     service's `BIND_*` guard, adding an intent filter, or flipping `android:enabled` (F9) changes the key and fails; the accepted state of the
+     AppCompat locale service is `exported=false`, `enabled=false`, and its `<meta-data>` `autoStoreLocales=true` is verified separately
+     (`REQUIRED_COMPONENT_METADATA`; a missing component or a different value is a hard failure, also on the internal artifact);
    - hard failures: `allowBackup` not explicitly `false`, `debuggable="true"`, `usesCleartextTraffic="true"`, and a
      package/applicationId other than `com.muslimrecovery.protection` (D-11: unchanged before the first Play publication).
 2. Every `*.dex` entry: must not contain the type-descriptor prefixes in `denied-class-patterns.txt`

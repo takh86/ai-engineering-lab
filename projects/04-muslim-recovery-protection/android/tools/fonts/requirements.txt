@@ -1,0 +1,2 @@
+# Pinned ONLY for regenerating the committed Cairo Bold asset (F9, D-F9-FONT). Never part of the Android build or runtime.
+fonttools==4.55.3

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_ok">حسنًا</string>
+    <string name="common_cancel">إلغاء</string>
+    <string name="common_back">رجوع</string>
+    <string name="common_close">إغلاق</string>
+    <string name="common_error_icon_description">خطأ</string>
+</resources>

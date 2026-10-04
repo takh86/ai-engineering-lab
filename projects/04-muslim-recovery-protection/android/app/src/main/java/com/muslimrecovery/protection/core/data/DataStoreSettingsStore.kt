@@ -46,31 +46,19 @@ class DataStoreSettingsStore(
             ThemeMode.values().firstOrNull { it.name == stored } ?: ThemeMode.SYSTEM
         }
 
-    override val uiLanguage: Flow<UiLanguage> =
-        preferences.map { prefs ->
-            val stored = prefs[UI_LANGUAGE_KEY]
-            UiLanguage.values().firstOrNull { it.name == stored } ?: UiLanguage.SYSTEM
-        }
-
     override suspend fun setThemeMode(mode: ThemeMode) {
         dataStore.edit { it[THEME_MODE_KEY] = mode.name }
     }
 
-    override suspend fun setUiLanguage(language: UiLanguage) {
-        dataStore.edit { it[UI_LANGUAGE_KEY] = language.name }
-    }
-
     companion object {
         private const val THEME_MODE_NAME = "theme_mode"
-        private const val UI_LANGUAGE_NAME = "ui_language"
 
         private val THEME_MODE_KEY = stringPreferencesKey(THEME_MODE_NAME)
-        private val UI_LANGUAGE_KEY = stringPreferencesKey(UI_LANGUAGE_NAME)
 
         private const val DEFAULT_RETRY_DELAY_MILLIS = 1_000L
 
         /** Every key this store may ever persist. Tests assert nothing else is written (no D1). */
-        internal val persistedKeyNames: Set<String> = setOf(THEME_MODE_NAME, UI_LANGUAGE_NAME)
+        internal val persistedKeyNames: Set<String> = setOf(THEME_MODE_NAME)
     }
 }
 

@@ -11,6 +11,12 @@ vpn/dns directories is a violation. The check is stage-tolerant (any commit of t
 is evaluated per head against the merge-base.
 
   w0b_diff_guard.py <merge-base>      (run from the repository root)
+
+After W0b was merged (F9, IR-D): when the base tree already contains the relocated harness, the relocation rules
+above no longer apply (nothing is being moved any more) and the guard switches to POST-W0B mode: chrome-extension,
+domain and ScaffoldingSanityTest stay frozen, and the relocated historical code (internal vpn/dns, their tests and
+the harness) must not change at all; nothing may reappear in the main vpn/dns directories. `strings.xml` stays frozen except that its content
+may equal the one approved E6 text (F9 marks the placeholder app_name non-translatable) or the base content.
 """
 import collections
 import difflib
@@ -58,8 +64,60 @@ def destination(base_path):
     return None
 
 
+POST_W0B_MARKER = INTERNAL + "/ExperimentalHarnessActivity.kt"
+POST_W0B_FROZEN = [
+    re.compile("^" + re.escape(PROJECT + "/chrome-extension/")),
+    re.compile("^" + re.escape(ANDROID + "/app/src/") + "[^/]+/(java|kotlin)/" + re.escape(PKG + "/domain/")),
+    re.compile("^" + re.escape(TEST + "/ScaffoldingSanityTest.kt") + "$"),
+]
+POST_W0B_NO_RETURN = [
+    ANDROID + "/app/src/" + s + "/" + lang + "/" + PKG + "/" + d + "/"
+    for s in ("main", "play", "test", "testPlay", "androidTest", "androidTestPlay")
+    for lang in ("java", "kotlin")
+    for d in ("vpn", "dns")
+]
+STRINGS_XML = ANDROID + "/app/src/main/res/values/strings.xml"
+# F9 (E6): the only approved change to strings.xml. Anything else is a violation.
+E6_STRINGS_XML = """<resources>
+    <!-- Placeholder working name, NOT the approved public product name (undecided Owner item, D-11/OD-F9-6).
+         Deliberately non-translatable: it must not be rendered into AR/DE as if it were the brand. -->
+    <string name="app_name" translatable="false">Recovery Protection</string>
+</resources>
+"""
+POST_W0B_HISTORICAL = [
+    INTERNAL + "/vpn/", INTERNAL + "/dns/", TEST_INTERNAL + "/vpn/", TEST_INTERNAL + "/dns/",
+    # kotlin/ source roots of the internal source sets (same code, other directory name)
+    ANDROID + "/app/src/internal/kotlin/", ANDROID + "/app/src/testInternal/kotlin/",
+]
+POST_W0B_FROZEN_FILES = {
+    POST_W0B_MARKER,
+    ANDROID + "/app/src/internal/AndroidManifest.xml",  # holds the VPN service, harness and historical permissions
+}
+
+
+def check_post_w0b(changes, read_base=None, read_head=None):
+    """After W0b: frozen paths and the relocated historical code must not change; nothing returns to main vpn/dns."""
+    problems = []
+    if STRINGS_XML in changes:
+        ok = False
+        if changes[STRINGS_XML] == "M" and read_base and read_head:
+            ok = read_head(STRINGS_XML) in (read_base(STRINGS_XML), E6_STRINGS_XML)
+        if not ok:
+            problems.append("%s %s: strings.xml may only change to the approved F9 E6 text" % (changes[STRINGS_XML], STRINGS_XML))
+    for path, status in sorted(changes.items()):
+        if any(pattern.search(path) for pattern in POST_W0B_FROZEN):
+            problems.append("%s %s: frozen path must not change" % (status, path))
+        elif path in POST_W0B_FROZEN_FILES or any(path.startswith(d) for d in POST_W0B_HISTORICAL):
+            problems.append("%s %s: relocated historical code is frozen after W0b" % (status, path))
+        elif any(path.startswith(d) for d in HISTORICAL_DIRS + POST_W0B_NO_RETURN):
+            problems.append("%s %s: nothing may return to a product vpn/dns directory" % (status, path))
+    return problems
+
+
 def check(changes, base_files, read_base, read_head, exists_head, head_files=()):
     """changes: {path: status} from `git diff --no-renames --name-status`. Returns a list of violations."""
+    if POST_W0B_MARKER in base_files:
+        return check_post_w0b(changes, read_base, read_head)
     problems = []
     historical_base = {f for f in base_files if any(f.startswith(d) for d in HISTORICAL_DIRS)}
     service = MAIN + "/" + SERVICE_REL
@@ -123,6 +181,16 @@ def check(changes, base_files, read_base, read_head, exists_head, head_files=())
     return problems
 
 
+def parse_name_status_z(output):
+    """`git diff -z --name-status` output -> {path: status}. NUL separated, so quoted/non-ASCII/tab names are exact
+    (the plain output quotes such paths and would slip past the anchored frozen-path patterns)."""
+    parts = [p for p in output.split("\0") if p != ""]
+    changes = {}
+    for i in range(0, len(parts) - 1, 2):
+        changes[parts[i + 1]] = parts[i][0]
+    return changes
+
+
 def _git(*args):
     return subprocess.run(["git", *args], check=True, capture_output=True, text=True).stdout
 
@@ -132,11 +200,8 @@ def main(argv):
         print(__doc__, file=sys.stderr)
         return 2
     base = argv[1]
-    changes = {}
-    for line in _git("diff", "--no-renames", "--name-status", base, "HEAD").splitlines():
-        status, path = line.split("\t", 1)
-        changes[path] = status[0]
-    base_files = set(_git("ls-tree", "-r", "--name-only", base).splitlines())
+    changes = parse_name_status_z(_git("diff", "--no-renames", "-z", "--name-status", base, "HEAD"))
+    base_files = set(p for p in _git("ls-tree", "-r", "-z", "--name-only", base).split("\0") if p)
 
     def read_base(path):
         return _git("show", "%s:%s" % (base, path))
@@ -147,13 +212,13 @@ def main(argv):
     def exists_head(path):
         return subprocess.run(["git", "cat-file", "-e", "HEAD:" + path], capture_output=True).returncode == 0
 
-    head_files = set(_git("ls-tree", "-r", "--name-only", "HEAD").splitlines())
+    head_files = set(p for p in _git("ls-tree", "-r", "-z", "--name-only", "HEAD").split("\0") if p)
     problems = check(changes, base_files, read_base, read_head, exists_head, head_files)
     for problem in problems:
         print("::error::" + problem)
     if problems:
         return 1
-    print("W0b diff guard OK: %d changed paths, frozen/historical paths only moved as approved." % len(changes))
+    print("Diff guard OK: %d changed paths, frozen/historical paths only moved as approved." % len(changes))
     return 0
 
 

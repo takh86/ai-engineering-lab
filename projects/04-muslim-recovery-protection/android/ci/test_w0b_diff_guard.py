@@ -118,6 +118,75 @@ class GuardTest(unittest.TestCase):
         self.assertEqual(g.INTERNAL + "/vpn/X.kt", g.destination(g.MAIN + "/vpn/X.kt"))
         self.assertEqual(g.TEST_INTERNAL + "/dns/XTest.kt", g.destination(g.TEST + "/dns/XTest.kt"))
 
+class PostW0bHardeningTest(unittest.TestCase):
+    BASE = {g.POST_W0B_MARKER}
+
+    def check(self, changes):
+        return g.check(changes, self.BASE, lambda p: "x", lambda p: "x", lambda p: True, head_files=set())
+
+    def test_the_internal_manifest_and_kotlin_roots_are_frozen(self):
+        for path in (g.ANDROID + "/app/src/internal/AndroidManifest.xml",
+                     g.ANDROID + "/app/src/internal/kotlin/com/muslimrecovery/protection/vpn/X.kt",
+                     g.ANDROID + "/app/src/testInternal/kotlin/com/muslimrecovery/protection/dns/XTest.kt"):
+            self.assertEqual(1, len(self.check({path: "M"})), path)
+
+    def test_vpn_and_dns_may_not_appear_in_any_product_source_set(self):
+        for s in ("play", "androidTestPlay", "testPlay", "main"):
+            for d in ("vpn", "dns"):
+                path = "%s/app/src/%s/java/%s/%s/X.kt" % (g.ANDROID, s, g.PKG, d)
+                self.assertEqual(1, len(self.check({path: "A"})), path)
+
+    def test_name_status_z_parsing_keeps_quoted_and_non_ascii_names_exact(self):
+        out = "A\0%s/chrome-extension/caf\u00e9.js\0M\0%s/chrome-extension/a\tb.js\0" % (g.PROJECT, g.PROJECT)
+        changes = g.parse_name_status_z(out)
+        self.assertEqual({"%s/chrome-extension/caf\u00e9.js" % g.PROJECT: "A", "%s/chrome-extension/a\tb.js" % g.PROJECT: "M"}, changes)
+        self.assertEqual(2, len(self.check(changes)), "both frozen-path violations must be seen")
+
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PostW0bModeTest(unittest.TestCase):
+    """After W0b merged: the base already holds the relocated harness (ExperimentalHarnessActivity)."""
+
+    BASE = {g.POST_W0B_MARKER, g.INTERNAL + "/vpn/LocalProtectionVpnService.kt", g.MAIN_ACTIVITY}
+
+    STRINGS = g.STRINGS_XML
+
+    def run_changes(self, changes, base_text="old", head_text="old"):
+        def read_base(path):
+            assert path == self.STRINGS, "post-W0b mode may only read strings.xml"
+            return base_text
+
+        def read_head(path):
+            assert path == self.STRINGS, "post-W0b mode may only read strings.xml"
+            return head_text
+        return g.check(changes, self.BASE, read_base, read_head, lambda p: True, head_files=set(self.BASE))
+
+    def test_feature_work_passes(self):
+        design = g.MAIN + "/core/design/theme/TabsiraTheme.kt"
+        self.assertEqual([], self.run_changes({design: "A", g.MAIN_ACTIVITY: "M"}))
+
+    def test_strings_xml_may_only_become_the_approved_e6_text(self):
+        self.assertEqual([], self.run_changes({self.STRINGS: "M"}, head_text=g.E6_STRINGS_XML))
+        self.assertEqual([], self.run_changes({self.STRINGS: "M"}, base_text="x", head_text="x"))
+        self.assertEqual(1, len(self.run_changes({self.STRINGS: "M"}, head_text=g.E6_STRINGS_XML + "<!-- extra -->")))
+        self.assertEqual(1, len(self.run_changes({self.STRINGS: "D"})))
+        self.assertEqual(1, len(self.run_changes({self.STRINGS: "A"}, head_text=g.E6_STRINGS_XML)))
+
+    def test_domain_extension_and_scaffolding_stay_frozen(self):
+        for path in (g.ANDROID + "/app/src/main/java/" + g.PKG + "/domain/rules/RuleSet.kt",
+                     g.PROJECT + "/chrome-extension/src/x.js", g.TEST + "/ScaffoldingSanityTest.kt"):
+            self.assertEqual(1, len(self.run_changes({path: "M"})), path)
+
+    def test_relocated_historical_code_is_frozen_in_every_way(self):
+        for path in (g.INTERNAL + "/vpn/LocalProtectionVpnService.kt", g.INTERNAL + "/dns/New.kt",
+                     g.TEST_INTERNAL + "/dns/DnsMessageCodecTest.kt", g.POST_W0B_MARKER):
+            for status in ("A", "M", "D"):
+                self.assertEqual(1, len(self.run_changes({path: status})), (path, status))
+
+    def test_nothing_may_return_to_the_main_vpn_or_dns_directories(self):
+        self.assertEqual(1, len(self.run_changes({g.MAIN + "/dns/Back.kt": "A"})))
+        self.assertEqual(1, len(self.run_changes({g.MAIN + "/vpn/Back.kt": "A"})))
+

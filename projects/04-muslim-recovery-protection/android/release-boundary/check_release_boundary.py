@@ -73,8 +73,11 @@ def filter_signature(element):
 def parse_manifest(xml_text):
     """Returns a dict: package, uses, declared, components and application attributes.
 
-    A component key records everything that decides who can reach it: tag, qualified name, the
-    exported flag, its guarding permission and whether it declares intent filters.
+    A component key records everything that decides who can reach it or whether it runs: tag,
+    qualified name, the exported flag, the enabled flag (F9: a component the allow-list accepts as
+    disabled must not silently become enabled), its guarding permission and its intent filters.
+    `metadata` maps a qualified component name to its <meta-data> name/value pairs, for the few
+    components whose behavior is decided by metadata (see REQUIRED_COMPONENT_METADATA).
     """
     try:
         root = ET.fromstring(xml_text)
@@ -90,6 +93,7 @@ def parse_manifest(xml_text):
         return name
 
     uses, declared, components = set(), set(), set()
+    metadata = {}
     application = {}
     for element in root.iter():
         tag = element.tag
@@ -103,13 +107,40 @@ def parse_manifest(xml_text):
                 application[attribute] = element.get(ANDROID_NS + attribute)
         elif tag in COMPONENT_TAGS and name:
             exported = element.get(ANDROID_NS + "exported")
+            enabled = element.get(ANDROID_NS + "enabled")
             guard = element.get(ANDROID_NS + "permission")
             components.add(
-                "%s|%s|exported=%s|permission=%s|filters=%s"
-                % (tag, qualify(name), exported if exported else "unset", guard if guard else "none",
-                   filter_signature(element))
+                "%s|%s|exported=%s|enabled=%s|permission=%s|filters=%s"
+                % (tag, qualify(name), exported if exported else "unset", enabled if enabled else "unset",
+                   guard if guard else "none", filter_signature(element))
             )
-    return {"package": package, "uses": uses, "declared": declared, "components": components, "application": application}
+            pairs = metadata.setdefault(qualify(name), {})
+            for meta in element.findall("meta-data"):
+                meta_name = meta.get(ANDROID_NS + "name")
+                if meta_name:
+                    pairs[meta_name] = meta.get(ANDROID_NS + "value")
+    return {"package": package, "uses": uses, "declared": declared, "components": components, "application": application,
+            "metadata": metadata}
+
+
+# F9 (E3, C1): components that must be present and carry exact metadata. AppCompat persists the per-app locale on
+# API <= 32 only if this flag is true; flipping it (or dropping the component) silently disables that.
+REQUIRED_COMPONENT_METADATA = {
+    "androidx.appcompat.app.AppLocalesMetadataHolderService": {"autoStoreLocales": "true"},
+}
+
+
+def required_component_problems(manifest):
+    problems = []
+    for component, required in sorted(REQUIRED_COMPONENT_METADATA.items()):
+        if not any(key.split("|")[1] == component for key in manifest["components"]):
+            problems.append("required-component|%s is missing from the artifact" % component)
+            continue
+        found = manifest["metadata"].get(component, {})
+        for name, value in sorted(required.items()):
+            if found.get(name) != value:
+                problems.append("metadata|%s %s expected %r, found %r" % (component, name, value, found.get(name)))
+    return problems
 
 
 _TREE_LINE = re.compile(r"^[\s|]*[+\\]--- (.+)$")
@@ -199,6 +230,7 @@ def evaluate(manifest_xml, apk_path, dependencies_text, allowed, denied_prefixes
         findings |= {"bundle-class|" + p for p in scan_bundle(bundle_path, denied_prefixes)}
 
     hard = set()
+    hard |= {"component-metadata|" + p for p in required_component_problems(manifest)}
     if r8_mapping_path and os.path.exists(r8_mapping_path):
         hard.add("r8|mapping-present: class-name scanning is insufficient once R8 is on; the hardening gate is required")
     has_marker = NONRELEASABLE_MARKER in (version_name or "")

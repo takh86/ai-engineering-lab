@@ -58,7 +58,6 @@ class SettingsStoreTest {
         val store = DataStoreSettingsStore(openDataStore())
 
         assertEquals(ThemeMode.SYSTEM, store.themeMode.first())
-        assertEquals(UiLanguage.SYSTEM, store.uiLanguage.first())
     }
 
     @Test
@@ -66,23 +65,19 @@ class SettingsStoreTest {
         val store = DataStoreSettingsStore(openDataStore())
 
         store.setThemeMode(ThemeMode.DARK)
-        store.setUiLanguage(UiLanguage.ARABIC)
 
         assertEquals(ThemeMode.DARK, store.themeMode.first())
-        assertEquals(UiLanguage.ARABIC, store.uiLanguage.first())
     }
 
     @Test
     fun valuesSurviveReopeningTheStore() = runBlocking {
         val first = DataStoreSettingsStore(openDataStore())
         first.setThemeMode(ThemeMode.LIGHT)
-        first.setUiLanguage(UiLanguage.GERMAN)
         closeAll()
 
         val second = DataStoreSettingsStore(openDataStore())
 
         assertEquals(ThemeMode.LIGHT, second.themeMode.first())
-        assertEquals(UiLanguage.GERMAN, second.uiLanguage.first())
     }
 
     @Test
@@ -92,7 +87,6 @@ class SettingsStoreTest {
         val store = DataStoreSettingsStore(openDataStore(file))
 
         assertEquals(ThemeMode.SYSTEM, store.themeMode.first())
-        assertEquals(UiLanguage.SYSTEM, store.uiLanguage.first())
 
         store.setThemeMode(ThemeMode.DARK)
         assertEquals(ThemeMode.DARK, store.themeMode.first())
@@ -103,12 +97,22 @@ class SettingsStoreTest {
         val dataStore = openDataStore()
         dataStore.edit {
             it[stringPreferencesKey("theme_mode")] = "NEON"
-            it[stringPreferencesKey("ui_language")] = "KLINGON"
         }
         val store = DataStoreSettingsStore(dataStore)
 
         assertEquals(ThemeMode.SYSTEM, store.themeMode.first())
-        assertEquals(UiLanguage.SYSTEM, store.uiLanguage.first())
+    }
+
+    @Test
+    fun aLegacyUiLanguageKeyIsIgnoredBecauseLanguageIsOwnedByAppCompat() = runBlocking {
+        val dataStore = openDataStore()
+        dataStore.edit {
+            it[stringPreferencesKey("theme_mode")] = "LIGHT"
+            it[stringPreferencesKey("ui_language")] = "ARABIC"
+        }
+        val store = DataStoreSettingsStore(dataStore)
+
+        assertEquals(ThemeMode.LIGHT, store.themeMode.first())
     }
 
     @Test
@@ -122,7 +126,6 @@ class SettingsStoreTest {
         val store = DataStoreSettingsStore(failing)
 
         assertEquals(ThemeMode.SYSTEM, store.themeMode.first())
-        assertEquals(UiLanguage.SYSTEM, store.uiLanguage.first())
     }
 
     @Test
@@ -148,10 +151,9 @@ class SettingsStoreTest {
         val store = DataStoreSettingsStore(dataStore)
 
         store.setThemeMode(ThemeMode.DARK)
-        store.setUiLanguage(UiLanguage.ENGLISH)
 
         val persisted = dataStore.data.first().asMap().keys.map { it.name }.toSet()
-        assertEquals(setOf("theme_mode", "ui_language"), persisted)
+        assertEquals(setOf("theme_mode"), persisted)
         assertEquals(DataStoreSettingsStore.persistedKeyNames, persisted)
     }
 }

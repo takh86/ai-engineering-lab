@@ -1,5 +1,5 @@
 <resources>
-    <!-- INTERNAL flavor only: visibly distinguishes the engineering build from the Play build. -->
-    <string name="app_name">Recovery Protection (internal)</string>
-    <string name="internal_harness_entry">Open experimental DNS/VPN harness (internal build)</string>
+    <!-- INTERNAL flavor only: engineering copy, not product-facing localized text (non-translatable). -->
+    <string name="app_name" translatable="false">Recovery Protection (internal)</string>
+    <string name="internal_harness_entry" translatable="false">Open experimental DNS/VPN harness (internal build)</string>
 </resources>

@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">Recovery Protection</string>
+    <!-- Placeholder working name, NOT the approved public product name (undecided Owner item, D-11/OD-F9-6).
+         Deliberately non-translatable: it must not be rendered into AR/DE as if it were the brand. -->
+    <string name="app_name" translatable="false">Recovery Protection</string>
 </resources>

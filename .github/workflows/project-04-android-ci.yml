@@ -293,6 +293,27 @@ jobs:
             --manifest-xml "$RUNNER_TEMP/evidence/internal-debug-manifest.xml" \
             --version-name "$iversion" | tee "$RUNNER_TEMP/evidence/internal-artifact-report.txt"
 
+      - name: LocaleConfig linked-reference proof and shipped font licenses on the final play release APK (F9, E4, C2)
+        run: |
+          set -euo pipefail
+          apkanalyzer="$(find "$ANDROID_HOME" -path '*/bin/apkanalyzer' -type f | head -1)"
+          test -n "$apkanalyzer" || { echo "::error::apkanalyzer not available"; exit 1; }
+          aapt2="$(find "$ANDROID_HOME/build-tools" -name aapt2 -type f | sort -V | tail -1)"
+          test -n "$aapt2" || { echo "::error::aapt2 not available"; exit 1; }
+          echo "apkanalyzer: $apkanalyzer"; echo "aapt2: $aapt2"
+          apk="$(ls app/build/outputs/apk/play/release/*.apk | head -1)"
+          # Evidence log: the resource table lines for xml resources, and what AGP generated.
+          "$aapt2" dump resources "$apk" | grep -A2 -E 'resource 0x[0-9a-f]+ xml/' > "$RUNNER_TEMP/evidence/aapt2-xml-resources.txt" || true
+          cat "$RUNNER_TEMP/evidence/aapt2-xml-resources.txt"
+          find app/build -iname '*locale*config*' -not -path '*/tmp/*' -not -path '*/incremental/*' | sort | tee "$RUNNER_TEMP/evidence/locale-config-files.txt" || true
+          python3 ci/check_locale_config.py --apk "$apk" --apkanalyzer "$apkanalyzer" --aapt2 "$aapt2" --expected en,ar,de | tee "$RUNNER_TEMP/evidence/locale-config-report.txt"
+          # D-F9-LICENSE: the OFL notices ship inside the application.
+          "$apkanalyzer" files list "$apk" | tee "$RUNNER_TEMP/evidence/play-release-files.txt" | grep -E '^/?assets/licenses/' || true
+          for notice in OFL-Cairo.txt OFL-Tajawal.txt; do
+            grep -qE "^/?assets/licenses/$notice$" "$RUNNER_TEMP/evidence/play-release-files.txt" || { echo "::error::$notice is not packaged in the play release APK"; exit 1; }
+          done
+          echo "Font license notices are packaged in the play release APK."
+
       - name: Print Gradle task-graph evidence (Amendment A2)
         if: always()
         run: cat "$RUNNER_TEMP/evidence/task-graph-summary.md" || true
@@ -409,3 +430,91 @@ jobs:
           python3 "$tool" compare baseline.json "$current_play" \
             --exclude-prefix com.muslimrecovery.protection.vpn. \
             --exclude-prefix com.muslimrecovery.protection.dns.
+
+  emulator:
+    name: Managed-device runtime evidence (${{ matrix.device }}, API ${{ matrix.api }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # One pre-33 device (AppCompat per-app locale backport) and one 33+ device (platform LocaleManager).
+          - device: api30
+            api: 30
+          - device: api34
+            api: 34
+    defaults:
+      run:
+        working-directory: projects/04-muslim-recovery-protection/android
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools"
+
+      - name: Install Android API 36
+        run: sdkmanager "platforms;android-36"
+
+      - name: Enable KVM for the emulator (plain shell, no third-party Action)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm
+
+      - name: Install the emulator and the system image used by the managed device
+        run: |
+          set -euo pipefail
+          sdkmanager --list_installed || true
+          sdkmanager "emulator" "system-images;android-${{ matrix.api }};aosp_atd;x86_64"
+          sdkmanager --list_installed | tee "$RUNNER_TEMP/installed-packages.txt"
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Run the instrumentation tests on the managed device (play debug)
+        run: >
+          ./gradlew ${{ matrix.device }}PlayDebugAndroidTest
+          -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
+          --no-daemon
+
+      - name: Executed instrumentation-test evidence (a green run that executed nothing must fail)
+        if: always()
+        run: |
+          set -euo pipefail
+          pkg=com.muslimrecovery.protection
+          python3 ci/check_instrumentation_results.py app/build/outputs/androidTest-results \
+            --min-tests 24 \
+            --require-class $pkg.core.design.ThemeRenderingTest \
+            --require-class $pkg.core.design.LocaleAndRtlTest \
+            --require-class $pkg.core.design.ComponentSemanticsTest \
+            --require-class $pkg.core.design.FontFamilyTest \
+            --require-class $pkg.core.design.TypographyFontsTest \
+            --require-class $pkg.core.design.AppLanguageControllerTest \
+            --require-class $pkg.app.ProductShellTest \
+            --require-class $pkg.app.PlayHasNoHistoricalExperimentTest \
+            | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload managed-device evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulator-evidence-${{ matrix.device }}
+          path: |
+            projects/04-muslim-recovery-protection/android/app/build/outputs/androidTest-results/
+            projects/04-muslim-recovery-protection/android/app/build/reports/androidTests/
+          if-no-files-found: warn
+          retention-days: 14

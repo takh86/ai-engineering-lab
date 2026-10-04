@@ -32,7 +32,17 @@ class ManifestSplitTest {
         val main = checkNotNull(manifest("main")) { "src/main/AndroidManifest.xml must exist" }
         assertFalse("main must declare no permission", main.contains("uses-permission"))
         for (permission in historicalPermissions) assertFalse(permission, main.contains(permission))
-        assertFalse("main must declare no service", main.contains("<service"))
+        // F9 (E3): the only service main may declare is AppCompat's disabled, non-exported locale-storage holder.
+        val services = Regex("<service[^>]*>", RegexOption.DOT_MATCHES_ALL).findAll(main).map { it.value }.toList()
+        assertEquals("main may declare exactly the AppCompat locale holder service: $services", 1, services.size)
+        assertTrue(services[0].contains("android:name=\"androidx.appcompat.app.AppLocalesMetadataHolderService\""))
+        assertTrue(services[0].contains("android:enabled=\"false\""))
+        assertTrue(services[0].contains("android:exported=\"false\""))
+        // C1: the source manifest states the accepted artifact state, and the metadata AppCompat needs to persist locales.
+        val serviceBlock = Regex("<service[^>]*>.*?</service>", RegexOption.DOT_MATCHES_ALL).find(main)!!.value
+        assertTrue("autoStoreLocales must be true", Regex("<meta-data\\s+android:name=\"autoStoreLocales\"\\s+android:value=\"true\"").containsMatchIn(serviceBlock))
+        assertTrue("RTL must be supported (F9)", main.contains("android:supportsRtl=\"true\""))
+        assertFalse("no hand-written LocaleConfig reference (AGP generates it)", main.contains("android:localeConfig"))
         assertFalse(main.contains("BIND_VPN_SERVICE"))
         assertFalse(main.contains("VpnService"))
         assertFalse(main.contains("ExperimentalHarnessActivity"))

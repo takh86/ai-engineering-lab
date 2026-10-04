@@ -18,6 +18,9 @@ GOOD = """<manifest xmlns:android="http://schemas.android.com/apk/res/android" p
     <activity android:name="%s.MainActivity" android:exported="true"><intent-filter>
       <action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity>
     <activity android:name="%s.ExperimentalHarnessActivity" android:exported="false"/>
+    <service android:name="androidx.appcompat.app.AppLocalesMetadataHolderService" android:enabled="false" android:exported="false">
+      <meta-data android:name="autoStoreLocales" android:value="true"/>
+    </service>
     <service android:name="%s.vpn.LocalProtectionVpnService" android:exported="true"
         android:permission="android.permission.BIND_VPN_SERVICE"><intent-filter>
       <action android:name="android.net.VpnService"/></intent-filter></service>
@@ -53,7 +56,8 @@ class InternalArtifactTest(unittest.TestCase):
         self.assertTrue(any("android.permission.INTERNET" in p for p in self.problems(bad)))
 
     def test_missing_service_or_unguarded_service_is_reported(self):
-        gone = GOOD.replace(GOOD[GOOD.index("<service"):GOOD.index("</service>") + len("</service>")], "")
+        start = GOOD.index('<service android:name="%s.vpn' % PKG)
+        gone = GOOD.replace(GOOD[start:GOOD.index("</service>", start) + len("</service>")], "")
         self.assertTrue(any("LocalProtectionVpnService" in p for p in self.problems(gone)))
         unguarded = GOOD.replace('android:permission="android.permission.BIND_VPN_SERVICE"', "")
         self.assertTrue(any("LocalProtectionVpnService" in p for p in self.problems(unguarded)))
@@ -63,6 +67,13 @@ class InternalArtifactTest(unittest.TestCase):
         problems = self.problems(bad)
         self.assertTrue(any("ExperimentalHarnessActivity" in p for p in problems))
         self.assertTrue(any("may be exported" in p for p in problems))
+
+    def test_locale_service_enabled_or_metadata_mutations_are_reported(self):
+        for bad in (GOOD.replace('android:enabled="false"', 'android:enabled="true"'),
+                    GOOD.replace('android:value="true"', 'android:value="false"'),
+                    GOOD.replace('<meta-data android:name="autoStoreLocales" android:value="true"/>', "")):
+            problems = self.problems(bad)
+            self.assertTrue(any("AppLocalesMetadataHolderService" in p or "autoStoreLocales" in p for p in problems), problems)
 
     def test_known_debug_tooling_activities_are_tolerated_but_unknown_exported_ones_are_not(self):
         tooling = GOOD.replace("</application>", '<activity android:name="androidx.activity.ComponentActivity" android:exported="true"/>'
@@ -98,3 +109,4 @@ class InternalArtifactTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
