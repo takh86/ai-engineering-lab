@@ -1,0 +1,12 @@
+# Native/embedded code the Play artifact may contain (zip entry names). Found by the W0a CI run.
+# libandroidx.graphics.path.so: androidx.graphics:graphics-path (Compose). libdatastore_shared_counter.so:
+# androidx.datastore (multi-process support) - added by the approved DataStore dependency.
+# Release gate (not verified in W0a): 16 KB page-size alignment of bundled native libraries.
+lib/arm64-v8a/libandroidx.graphics.path.so
+lib/arm64-v8a/libdatastore_shared_counter.so
+lib/armeabi-v7a/libandroidx.graphics.path.so
+lib/armeabi-v7a/libdatastore_shared_counter.so
+lib/x86/libandroidx.graphics.path.so
+lib/x86/libdatastore_shared_counter.so
+lib/x86_64/libandroidx.graphics.path.so
+lib/x86_64/libdatastore_shared_counter.so
