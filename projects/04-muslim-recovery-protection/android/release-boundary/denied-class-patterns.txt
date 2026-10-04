@@ -3,3 +3,6 @@
 com.muslimrecovery.protection.experimental.
 com.muslimrecovery.protection.vpn.
 com.muslimrecovery.protection.dns.
+com.muslimrecovery.protection.ExperimentalHarnessActivity
+# Any use of the Android VPN API in the product artifact (also catches a harness-like class moved elsewhere).
+android.net.VpnService

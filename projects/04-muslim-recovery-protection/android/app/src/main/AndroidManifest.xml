@@ -1,21 +1,8 @@
-<manifest
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <!-- VPN apps configured via Settings > Network & Internet > VPN are an explicitly
-         documented exemption for the systemExempted foreground-service type; this is not a
-         general-purpose "run anything in the background" permission. -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
-    <!-- Required on API 33+ for the foreground-service notification to actually be shown;
-         the service itself is still permitted to run without it. -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- M1-05 (D11), normal permissions only: INTERNET for the VPN-protected upstream DNS socket
-         and the harness's system-resolver lookups; ACCESS_NETWORK_STATE for ConnectivityManager
-         getActiveNetwork/getNetworkCapabilities/getLinkProperties (underlying DNS server and
-         Private DNS state). -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- PLAY-eligible foundation manifest: no permissions and no historical M1 components.
+         The VPN service, its permissions and the experimental harness live in
+         src/internal/AndroidManifest.xml (M3-01 W0b). -->
 
     <application
         android:name=".app.TabsiraApplication"
@@ -25,6 +12,7 @@
         android:theme="@style/Theme.MuslimRecoveryProtection"
         android:fullBackupContent="false">
 
+        <!-- The product launcher. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -34,33 +22,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- android:exported="true" and this exact intent-filter are required by the
-             VpnService contract so the system can locate/bind this service; the
-             android:permission below restricts binding to the system itself.
-
-             Android documents VPN apps configured through system VPN settings as eligible
-             for the systemExempted foreground-service type. Lint cannot infer that runtime
-             VPN eligibility and otherwise reports the exact-alarm permission branch as
-             mandatory, so suppress only that false positive on this VpnService. -->
-        <service
-            android:name=".vpn.LocalProtectionVpnService"
-            android:permission="android.permission.BIND_VPN_SERVICE"
-            android:exported="true"
-            android:foregroundServiceType="systemExempted"
-            tools:ignore="ForegroundServicePermission">
-            <intent-filter>
-                <action android:name="android.net.VpnService" />
-            </intent-filter>
-            <!-- M1-04/M1-05 do not implement or verify Always-on/boot-start behavior. VpnService
-                 supports Always-on by default unless a service explicitly opts out via this
-                 metadata; opt out now so Android never attempts an Always-on or boot-triggered
-                 start of this service until a future, human-approved milestone implements and
-                 verifies that lifecycle. See docs/decisions.md D10. -->
-            <meta-data
-                android:name="android.net.VpnService.SUPPORTS_ALWAYS_ON"
-                android:value="false" />
-        </service>
     </application>
 
 </manifest>

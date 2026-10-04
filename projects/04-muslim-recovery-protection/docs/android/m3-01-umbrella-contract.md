@@ -210,3 +210,10 @@ ending in a W0a FOUNDATION GATE REPORT. Do not merge.
 - R-W0a-1: bundled AndroidX native libraries accepted for Foundation only; M5 verifies native-library / 16 KB page-size compatibility before Play production release.
 - R-W0a-2: no CODEOWNERS change in W0a; changes to `release-boundary/**`, flavor configuration and `.github/workflows/**` need explicit Tech Lead / Owner review; reconsider CODEOWNERS / branch protection in M5.
 - R-W0a-3: `onboardingComplete` omitted from the D0 `SettingsStore` is accepted; F1/F7 define atomic completion persistence with the required D1 onboarding state.
+
+## W0b status (2026-10-04)
+
+W0b (Foundation isolation) executed under the Owner's authorization after W0a was merged (`main` = `19df2c8`): the historical M1
+DNS/VPN experiment lives only in the internal source sets, the play flavor is structurally free of it, and the W0a non-releasable
+baseline is removed. Details: `historical-code-map.md`, `release-boundary.md`, `w0b-foundation-gate-report.md`. Deviations from the
+proposed W0b plan are recorded in the gate report. F1–F16 remain unauthorized.

@@ -150,8 +150,79 @@ class PackageBoundaryTest {
     }
 
     @Test
-    fun historicalRootHarnessMayStillUseVpnAndDnsInW0a() {
-        val harness = "import com.muslimrecovery.protection.vpn.VpnRuntimeStatus\nclass MainActivity"
-        assertEquals(emptyList<String>(), v("main", "MainActivity.kt", harness))
+    fun productSourceSetsMayNotReferenceTheHistoricalExperimentInAnyFile() {
+        val vpn = "import com.muslimrecovery.protection.vpn.VpnRuntimeStatus"
+        val dns = "val x = com.muslimrecovery.protection.dns.DnsProxyStatus"
+        assertEquals(1, v("main", "MainActivity.kt", vpn).size)
+        assertEquals(1, v("main", "domain/protection/X.kt", dns).size)
+        assertEquals(1, v("play", "app/X.kt", vpn).size)
+        assertEquals(1, v("main", "MainActivity.kt", "import com.muslimrecovery.protection.ExperimentalHarnessActivity").size)
+        assertEquals(1, v("playRelease", "X.kt", "class X { val c = ExperimentalHarnessActivity::class.java }").size)
+    }
+
+    @Test
+    fun theInternalSourceSetMayUseTheHistoricalExperimentAtItsRootAndInItsOwnPackages() {
+        val harness = "import com.muslimrecovery.protection.vpn.VpnRuntimeStatus\nclass ExperimentalHarnessActivity"
+        assertEquals(emptyList<String>(), v("internal", "ExperimentalHarnessActivity.kt", harness))
+        assertEquals(emptyList<String>(), v("internal", "vpn/X.kt", "import com.muslimrecovery.protection.dns.DnsProxyStatus"))
+        assertEquals(
+            emptyList<String>(),
+            v("internal", "app/InternalToolsEntry.kt", "import com.muslimrecovery.protection.ExperimentalHarnessActivity"),
+        )
+    }
+
+    @Test
+    fun relativeSubPackageReferencesFromARootFileAreCaught() {
+        assertEquals(1, v("main", "MainActivity.kt", "val s = vpn.VpnRuntimeStatus").size)
+        assertEquals(1, v("main", "MainActivity.kt", "val d = dns . DnsProxyStatus").size)
+        assertEquals(1, v("main", "MainActivity.kt", "val e = experimental.webguard.Probe()").size)
+        assertEquals(1, v("internal", "MainActivity.kt", "val e = experimental.webguard.Probe()").size)
+        // The internal root harness may name vpn/dns packages (it is the experiment's own entry point).
+        assertEquals(emptyList<String>(), v("internal", "ExperimentalHarnessActivity.kt", "val s = vpn.VpnRuntimeStatus"))
+        // Innocent identifiers that merely start with those letters are not references.
+        assertEquals(emptyList<String>(), v("main", "MainActivity.kt", "val dnsServer = a.dnsServer.vpnLike"))
+    }
+
+    @Test
+    fun insideInternalCoreFeatureAndAppStillMustNotUseVpnOrDns() {
+        assertEquals(1, v("internal", "core/data/X.kt", "import com.muslimrecovery.protection.vpn.VpnRuntimeStatus").size)
+        assertEquals(1, v("internal", "app/X.kt", "import com.muslimrecovery.protection.dns.DnsProxyStatus").size)
+    }
+
+    @Test
+    fun theHistoricalExperimentLivesOnlyInTheInternalSourceSet() {
+        fun files(set: String) = sourceFiles(set).map { it.invariantSeparatorsPath.substringAfter(basePath) }
+        val main = files("main")
+        assertTrue("main must not contain vpn/dns/harness: $main", main.none {
+            it.startsWith("vpn/") || it.startsWith("dns/") || it.contains("ExperimentalHarnessActivity")
+        })
+        val play = files("play")
+        assertTrue("play must not contain vpn/dns/harness: $play", play.none {
+            it.startsWith("vpn/") || it.startsWith("dns/") || it.contains("ExperimentalHarnessActivity")
+        })
+        val internal = files("internal")
+        assertTrue(internal.contains("ExperimentalHarnessActivity.kt"))
+        assertTrue(internal.contains("vpn/LocalProtectionVpnService.kt"))
+        assertEquals(8, internal.count { it.startsWith("vpn/") })
+        assertEquals(7, internal.count { it.startsWith("dns/") })
+    }
+
+    @Test
+    fun historicalTestsLiveInTheInternalTestSourceSetAndNotInTheSharedOne() {
+        fun testFiles(set: String) = File("src/$set/java").walkTopDown().filter { it.isFile && it.extension == "kt" }
+            .map { it.invariantSeparatorsPath.substringAfter(basePath) }.toList()
+        val shared = testFiles("test")
+        assertTrue("shared tests must not need the moved implementation: $shared", shared.none {
+            it.startsWith("vpn/") || it.startsWith("dns/")
+        })
+        val internalTests = testFiles("testInternal")
+        val historicalTests = listOf(
+            "vpn/CapturedNetworkWatchTest.kt", "vpn/UnderlyingNetworkInvalidationLifecycleTest.kt",
+            "vpn/VpnLifecycleControllerTest.kt", "vpn/VpnRuntimeFactsTest.kt",
+            "dns/DnsFilteringEngineTest.kt", "dns/DnsMessageCodecTest.kt", "dns/DnsPacketProcessorTest.kt",
+            "dns/DnsParserRobustnessTest.kt", "dns/Ipv4UdpDnsPacketAdapterTest.kt", "dns/UpstreamDnsSelectorTest.kt",
+            "dns/DnsTestPackets.kt",
+        )
+        assertTrue("missing historical tests: ${historicalTests - internalTests.toSet()}", internalTests.containsAll(historicalTests))
     }
 }

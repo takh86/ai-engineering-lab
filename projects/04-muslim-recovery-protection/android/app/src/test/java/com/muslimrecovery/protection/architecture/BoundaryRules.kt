@@ -1,20 +1,21 @@
 package com.muslimrecovery.protection.architecture
 
 /**
- * Package-boundary rules from M3-01 section 2 and Amendment A5, as a pure function so they can be
+ * Package-boundary rules from M3-01 section 2, Amendment A5 and W0b, as a pure function so they can be
  * tested against synthetic violating sources as well as against the real tree.
  *
  * `sourceSet` is the directory name under `src/` (`main`, `play`, `internal`, ...). `relPath` is the
  * path below `com/muslimrecovery/protection/`, e.g. `core/data/X.kt`.
  *
- * Rules (all strict by default; unknown source sets get no exemption):
- *  - the `package` declaration must match the directory (so path tricks cannot dodge the rules);
+ * Rules (strict by default; an unknown source set gets no exemption):
+ *  - the `package` declaration must match the directory, so path tricks cannot dodge the rules;
  *  - nothing may wildcard-import the project root package;
- *  - the `experimental` package tree may be referenced only from composition wiring (the `app` package tree) in the `internal`
- *    source set (Amendment A5) -- never from `src/main`, `src/play`, the `core` package tree or the `feature` package tree;
- *  - the `core` package tree must not depend on the `feature` package tree or the `app` package tree; features must not depend on other
- *    features or the `app` package tree; the `core` package tree, the `feature` package tree and the `app` package tree must not use the historical
- *    the `vpn` package tree or the `dns` package tree.
+ *  - the experimental package tree may be referenced only from composition wiring (the app package
+ *    tree) in the `internal` source set (Amendment A5), never from `main`, `play`, core or feature code;
+ *  - core must not depend on feature or app code; a feature must not depend on another feature or on app;
+ *  - product source sets (everything except `internal`) must not reference the historical M1 vpn or dns
+ *    packages, nor ExperimentalHarnessActivity, in any file (W0b structural isolation);
+ *  - inside `internal`, core, feature and app code must still keep away from the vpn and dns packages.
  *
  * Comments are ignored; string literals are NOT (a package name inside a string is a reflection
  * path and counts as a reference).
@@ -25,9 +26,12 @@ internal object BoundaryRules {
     private const val FEATURE = "$BASE.feature."
     private const val APP = "$BASE.app."
     private val HISTORICAL = listOf("$BASE.vpn.", "$BASE.dns.")
+    private const val HARNESS = "ExperimentalHarnessActivity"
     private val PACKAGE_DECLARATION = Regex("^\\s*package\\s+([\\w.`]+)", RegexOption.MULTILINE)
     private val WILDCARD_ROOT_IMPORT = Regex("import\\s+${Regex.escape(BASE)}\\s*\\.\\s*\\*")
     private val DOT_SPACING = Regex("\\s*\\.\\s*")
+    // A root-package file may name a sub-package relatively (`vpn.X`, `experimental.Y`) without any full package text.
+    private val RELATIVE_SUBPACKAGE = Regex("(?<![\\w.])(experimental|vpn|dns)\\.[A-Za-z]")
 
     /** Removes `//` and (nested) block comments while leaving string and char literals intact. */
     fun stripComments(source: String): String {
@@ -114,11 +118,32 @@ internal object BoundaryRules {
             found += "$where: references experimental packages"
         }
 
+        // W0b: the product (everything but internal) is structurally free of the historical experiment.
+        val product = sourceSet != "internal"
+        if (product) {
+            for (historical in HISTORICAL.filter { code.contains(it) }) {
+                found += "$where: product source set must not reference historical ${historical.removeSuffix(".")}"
+            }
+            if (code.contains(HARNESS)) found += "$where: product source set must not reference the experimental harness"
+        }
+        val areaHistorical = !product
+
+        if (area == "") {
+            for (match in RELATIVE_SUBPACKAGE.findAll(code)) {
+                val name = match.groupValues[1]
+                if (name == "experimental") {
+                    found += "$where: root file references the experimental package relatively"
+                } else if (product) {
+                    found += "$where: product root file references the historical $name package relatively"
+                }
+            }
+        }
+
         when (area) {
             "core" -> {
                 if (code.contains(FEATURE)) found += "$where: core must not depend on feature packages"
                 if (code.contains(APP)) found += "$where: core must not depend on app packages"
-                found += historicalReferences(where, code, "core")
+                if (areaHistorical) found += historicalReferences(where, code, "core")
             }
             "feature" -> {
                 val self = segments.getOrNull(1)
@@ -126,9 +151,9 @@ internal object BoundaryRules {
                     .findAll(code).map { it.groupValues[1] }.filter { it != self }.toSet()
                 for (other in others) found += "$where: feature/$self must not depend on feature/$other"
                 if (code.contains(APP)) found += "$where: feature must not depend on app packages"
-                found += historicalReferences(where, code, "feature")
+                if (areaHistorical) found += historicalReferences(where, code, "feature")
             }
-            "app" -> found += historicalReferences(where, code, "app")
+            "app" -> if (areaHistorical) found += historicalReferences(where, code, "app")
         }
         return found
     }

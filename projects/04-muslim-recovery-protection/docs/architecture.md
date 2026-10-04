@@ -6,6 +6,15 @@ This document records the code shape implemented during M1 (M1-01 to M1-07; M1 i
 
 The **target product structure** (approved in D14) is in [`recovery-first-product-baseline.md`](recovery-first-product-baseline.md) §4: an on-device recovery core (L0) that depends on no protection layer, plus app interruption (L1) and DNS guidance (L2), each with its own status and gate. None of it is implemented; this document keeps describing the code that exists.
 
+## Current locations after M3-01 W0b
+
+The M1 sections below describe the code **as it was built during M1**; their paths are the historical M1 locations. Since M3-01 W0b the current layout is:
+
+- the historical `vpn/**` and `dns/**` implementation lives in `android/app/src/internal/java/com/muslimrecovery/protection/` (internal flavor only), and the corresponding historical unit tests live in `android/app/src/testInternal/java/com/muslimrecovery/protection/`;
+- `MainActivity` is now the minimal product shell; the M1 harness described below is `ExperimentalHarnessActivity`, **internal-only** (not exported, not a launcher, reached from the shell's internal tools entry);
+- `domain/protection` and `domain/rules` remain shared under `android/app/src/main/`;
+- the **Play flavor contains none of the historical DNS/VPN experiment** (no `vpn`/`dns` classes, no VPN service, none of its permissions); see [`android/historical-code-map.md`](android/historical-code-map.md) and [`android/release-boundary.md`](android/release-boundary.md).
+
 ## Current state (M1-03)
 
 - A single Android module (`android/app`) containing an empty Jetpack Compose app.
@@ -56,7 +65,8 @@ The **target product structure** (approved in D14) is in [`recovery-first-produc
 M1-04 adds the Android `VpnService` lifecycle itself, and nothing else. It exists to prove the
 consent → start → establish → stop/revoke flow works safely under Android's real contracts,
 without claiming filtering is operational (filtering does not exist yet). New code lives under
-`android/app/src/main/java/com/muslimrecovery/protection/vpn/`:
+`android/app/src/main/java/com/muslimrecovery/protection/vpn/` (the historical M1 location; since W0b it is
+`android/app/src/internal/java/com/muslimrecovery/protection/vpn/`):
 
 - `VpnLifecycleController` — a pure Kotlin state machine (no Android dependency) that decides
   start/stop/establish-success/establish-failure/revoke transitions. It is unit tested off-device
@@ -83,7 +93,7 @@ without claiming filtering is operational (filtering does not exist yet). New co
   Deliberately excludes VPN permission and `filteringOperational` — permission is a UI-observable
   fact via `VpnService.prepare()`, not something the service tracks, and filtering has no runtime
   fact to report yet.
-- `MainActivity` gained a minimal M1-04 dev/test harness (Start/Stop buttons, the real
+- `MainActivity` (the M1 harness; since W0b this harness is `ExperimentalHarnessActivity`, internal-only) gained a minimal M1-04 dev/test harness (Start/Stop buttons, the real
   `VpnService.prepare()` consent flow, and a status line driven by `ProtectionStateEvaluator`).
   This is explicitly not product UI/onboarding/design system — see D10.
 
@@ -147,7 +157,7 @@ Components:
   - `VpnRuntimeFacts` (now its own file) carries the experimental `dnsProxyStatus` and builds the
     public `ProtectionSignals` with `filteringOperational = false`, whatever that status is.
     `VpnRuntimeStatus` additionally publishes in-memory aggregate DNS counters (counts only).
-- `MainActivity` harness: adds the experimental DNS proxy status, counters, and buttons that resolve
+- `MainActivity` harness (now `ExperimentalHarnessActivity`, internal-only): adds the experimental DNS proxy status, counters, and buttons that resolve
   the fixed test domains through the system resolver off the main thread. Still not product UI.
 
 Known limitations of M1-05A (deliberately deferred, see D11): standard plaintext DNS only, IPv4

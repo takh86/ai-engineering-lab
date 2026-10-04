@@ -18,12 +18,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 ALLOWED = {
     "permissions": {PKG + ".DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"},
-    "components": {"activity|%s.MainActivity|exported=true|permission=none|filters=no" % PKG},
+    "components": {"activity|%s.MainActivity|exported=true|permission=none|filters=none" % PKG},
     "dependencies": {"androidx.core:core-ktx", "org.jetbrains.kotlin:kotlin-stdlib"},
     "code_entries": {"lib/x86/libok.so"},
 }
 APP = '<application android:allowBackup="false">'
-DENIED = {PKG + ".experimental.", PKG + ".vpn.", PKG + ".dns."}
+DENIED = {PKG + ".experimental.", PKG + ".vpn.", PKG + ".dns.", PKG + ".ExperimentalHarnessActivity", "android.net.VpnService"}
 
 GOOD_MANIFEST = """<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="%s">
   <permission android:name="%s.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"/>
@@ -85,12 +85,12 @@ class CheckerTest(unittest.TestCase):
     def test_unlisted_service_is_rejected(self):
         bad = GOOD_MANIFEST.replace("</application>", '<service android:name=".vpn.LocalProtectionVpnService" android:exported="true"/></application>')
         findings, _, _ = self.run_eval(manifest=bad)
-        self.assertIn("component|service|%s.vpn.LocalProtectionVpnService|exported=true|permission=none|filters=no" % PKG, findings)
+        self.assertIn("component|service|%s.vpn.LocalProtectionVpnService|exported=true|permission=none|filters=none" % PKG, findings)
 
     def test_exported_flag_change_on_allowed_component_is_rejected(self):
         bad = GOOD_MANIFEST.replace('android:exported="true"', 'android:exported="false"')
         findings, _, _ = self.run_eval(manifest=bad)
-        self.assertIn("component|activity|%s.MainActivity|exported=false|permission=none|filters=no" % PKG, findings)
+        self.assertIn("component|activity|%s.MainActivity|exported=false|permission=none|filters=none" % PKG, findings)
 
     def test_relative_component_names_are_qualified(self):
         relative = GOOD_MANIFEST.replace(PKG + ".MainActivity", ".MainActivity")
@@ -114,12 +114,15 @@ class CheckerTest(unittest.TestCase):
         unguarded = GOOD_MANIFEST.replace("</application>", '<service android:name=".vpn.S" android:exported="true"/></application>')
         keys_g, _, _ = self.run_eval(manifest=guarded)
         keys_u, _, _ = self.run_eval(manifest=unguarded)
-        self.assertIn("component|service|%s.vpn.S|exported=true|permission=android.permission.BIND_VPN_SERVICE|filters=no" % PKG, keys_g)
-        self.assertIn("component|service|%s.vpn.S|exported=true|permission=none|filters=no" % PKG, keys_u)
+        self.assertIn("component|service|%s.vpn.S|exported=true|permission=android.permission.BIND_VPN_SERVICE|filters=none" % PKG, keys_g)
+        self.assertIn("component|service|%s.vpn.S|exported=true|permission=none|filters=none" % PKG, keys_u)
         browsable = GOOD_MANIFEST.replace('<activity android:name="%s.MainActivity" android:exported="true"/>' % PKG,
-                                          '<activity android:name="%s.MainActivity" android:exported="true"><intent-filter/></activity>' % PKG)
+                                          '<activity android:name="%s.MainActivity" android:exported="true"><intent-filter>'
+                                          '<action android:name="android.intent.action.VIEW"/><category android:name="android.intent.category.BROWSABLE"/>'
+                                          '<data android:scheme="https"/></intent-filter></activity>' % PKG)
         findings, _, _ = self.run_eval(manifest=browsable)
-        self.assertIn("component|activity|%s.MainActivity|exported=true|permission=none|filters=yes" % PKG, findings)
+        self.assertIn("component|activity|%s.MainActivity|exported=true|permission=none|filters="
+                      "action:android.intent.action.VIEW,category:android.intent.category.BROWSABLE,data:scheme=https" % PKG, findings)
 
     def test_backup_debuggable_cleartext_and_package_changes_are_hard_failures(self):
         for old, new, needle in (
@@ -324,16 +327,48 @@ class CheckerTest(unittest.TestCase):
                           "android.permission.FOREGROUND_SERVICE", "android.permission.POST_NOTIFICATIONS"):
             self.assertNotIn(forbidden, permissions)
 
-    def test_committed_baseline_only_contains_historical_vpn_dns_evidence(self):
-        baseline = crb.load_list(os.path.join(HERE, "w0a-known-historical.txt"))
-        self.assertEqual(8, len(baseline))
-        for entry in baseline:
-            self.assertTrue(
-                entry.startswith(("class|%s.dns." % PKG, "class|%s.vpn." % PKG,
-                                  "component|service|%s.vpn." % PKG, "permission|android.permission.")),
-                entry,
-            )
-        self.assertFalse(any("experimental" in entry for entry in baseline))
+    def test_w0a_baseline_is_gone_in_w0b_and_the_harness_is_denied(self):
+        # W0b structural isolation: the play boundary has ZERO historical exceptions.
+        self.assertFalse(os.path.exists(os.path.join(HERE, "w0a-known-historical.txt")))
+        denied = crb.load_list(os.path.join(HERE, "denied-class-patterns.txt"))
+        self.assertIn(PKG + ".ExperimentalHarnessActivity", denied)
+
+    def test_android_vpn_api_use_is_rejected_even_in_a_renamed_class(self):
+        apk = make_apk(self.dir, ["com/muslimrecovery/protection/app/Tunnel", "android/net/VpnService$Builder"], name="vpn.apk")
+        findings, _, _ = self.run_eval(apk=apk)
+        self.assertIn("class|android.net.VpnService", findings)
+
+    def test_nested_apk_and_zip_payloads_are_reported_as_embedded_code(self):
+        path = os.path.join(self.dir, "payload.apk")
+        with zipfile.ZipFile(path, "w") as archive:
+            archive.writestr("classes.dex", b"dex\n035\x00Landroidx/core/Foo;")
+            archive.writestr("assets/inner.apk", b"x")
+            archive.writestr("assets/blob.zip", b"x")
+        findings, _, _ = self.run_eval(apk=path)
+        self.assertIn("code-entry|assets/inner.apk", findings)
+        self.assertIn("code-entry|assets/blob.zip", findings)
+
+    def test_the_harness_class_is_rejected_in_a_play_artifact(self):
+        apk = make_apk(self.dir, ["com/muslimrecovery/protection/ExperimentalHarnessActivity"], name="harness.apk")
+        findings, _, _ = self.run_eval(apk=apk)
+        self.assertIn("class|%s.ExperimentalHarnessActivity" % PKG, findings)
+
+    def test_bundle_scan_rejects_denied_classes_in_an_aab_and_accepts_a_clean_one(self):
+        bad = os.path.join(self.dir, "bad.aab")
+        with zipfile.ZipFile(bad, "w") as archive:
+            archive.writestr("base/dex/classes.dex", b"dex\n035\x00Lcom/muslimrecovery/protection/vpn/Leak;")
+        clean = os.path.join(self.dir, "clean.aab")
+        with zipfile.ZipFile(clean, "w") as archive:
+            archive.writestr("base/dex/classes.dex", b"dex\n035\x00Landroidx/core/Foo;")
+        findings, _, _ = crb.evaluate(GOOD_MANIFEST, self.good_apk, GOOD_DEPS, ALLOWED, DENIED, None, "0.1.0", None, PKG, bad)
+        self.assertIn("bundle-class|%s.vpn." % PKG, findings)
+        findings, _, _ = crb.evaluate(GOOD_MANIFEST, self.good_apk, GOOD_DEPS, ALLOWED, DENIED, None, "0.1.0", None, PKG, clean)
+        self.assertEqual(set(), findings)
+        empty = os.path.join(self.dir, "empty.aab")
+        with zipfile.ZipFile(empty, "w") as archive:
+            archive.writestr("base/manifest/AndroidManifest.xml", b"x")
+        with self.assertRaises(crb.InputError):
+            crb.evaluate(GOOD_MANIFEST, self.good_apk, GOOD_DEPS, ALLOWED, DENIED, None, "0.1.0", None, PKG, empty)
 
 
 if __name__ == "__main__":

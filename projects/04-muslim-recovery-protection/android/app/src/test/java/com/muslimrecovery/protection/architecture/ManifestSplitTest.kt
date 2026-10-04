@@ -1,0 +1,68 @@
+package com.muslimrecovery.protection.architecture
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import java.io.File
+
+/**
+ * Source-level proof of the W0b manifest split (the built play/internal artifacts are checked separately
+ * in CI by the release-boundary scripts). Reads `src/<flavor>/AndroidManifest.xml` with comments removed.
+ */
+class ManifestSplitTest {
+
+    private val comment = Regex("<!--.*?-->", RegexOption.DOT_MATCHES_ALL)
+
+    private fun manifest(sourceSet: String): String? {
+        val file = File("src/$sourceSet/AndroidManifest.xml")
+        return if (file.isFile) comment.replace(file.readText(), " ") else null
+    }
+
+    private val historicalPermissions = listOf(
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+    )
+
+    @Test
+    fun mainManifestIsReleaseEligibleAndFreeOfTheHistoricalExperiment() {
+        val main = checkNotNull(manifest("main")) { "src/main/AndroidManifest.xml must exist" }
+        assertFalse("main must declare no permission", main.contains("uses-permission"))
+        for (permission in historicalPermissions) assertFalse(permission, main.contains(permission))
+        assertFalse("main must declare no service", main.contains("<service"))
+        assertFalse(main.contains("BIND_VPN_SERVICE"))
+        assertFalse(main.contains("VpnService"))
+        assertFalse(main.contains("ExperimentalHarnessActivity"))
+        assertFalse(main.contains("LocalProtectionVpnService"))
+        assertTrue(main.contains("android:allowBackup=\"false\""))
+        assertEquals("exactly one launcher", 1, Regex("android.intent.category.LAUNCHER").findAll(main).count())
+        assertTrue(main.contains("android:name=\".MainActivity\""))
+    }
+
+    @Test
+    fun internalManifestOwnsThePermissionsTheHarnessAndTheVpnService() {
+        val internal = checkNotNull(manifest("internal")) { "src/internal/AndroidManifest.xml must exist" }
+        for (permission in historicalPermissions) {
+            assertTrue(permission, internal.contains("<uses-permission android:name=\"$permission\""))
+        }
+        assertTrue(internal.contains("android:name=\".vpn.LocalProtectionVpnService\""))
+        assertTrue(internal.contains("android:permission=\"android.permission.BIND_VPN_SERVICE\""))
+        assertTrue(internal.contains("android.net.VpnService.SUPPORTS_ALWAYS_ON"))
+        // The harness is internal-only: never exported, never a second launcher.
+        val harness = Regex("<activity[^>]*ExperimentalHarnessActivity[^>]*>").find(internal)?.value
+        assertTrue("harness activity must be declared", harness != null)
+        assertTrue("harness must not be exported: $harness", harness!!.contains("android:exported=\"false\""))
+        assertFalse("internal must not add a launcher", internal.contains("android.intent.category.LAUNCHER"))
+    }
+
+    @Test
+    fun thePlayFlavorAddsNoManifestComponentsOrPermissions() {
+        val play = manifest("play")
+        assertTrue("a play manifest, if present, must be empty of components and permissions", play == null ||
+            (!play.contains("<activity") && !play.contains("<service") && !play.contains("<receiver") &&
+                !play.contains("<provider") && !play.contains("uses-permission")))
+    }
+}
