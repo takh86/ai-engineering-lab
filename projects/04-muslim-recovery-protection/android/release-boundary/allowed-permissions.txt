@@ -1,0 +1,1 @@
+# Permissions the Play artifact may declare/use (merged manifest). Populated from CI discovery.

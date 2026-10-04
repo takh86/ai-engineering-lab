@@ -1,0 +1,1 @@
+# group:artifact coordinates allowed on playReleaseRuntimeClasspath (versions deliberately not pinned).

@@ -1,0 +1,331 @@
+name: Project 04 Android CI
+
+# M3-01 W0a. Objective build/test/lint gate for the Tabsira Android app (GitHub CI is the only
+# build environment; nothing is claimed as locally verified).
+#
+# This workflow NEVER uploads a playRelease binary. While W0a is in force the play flavor is
+# NON-RELEASABLE engineering evidence only (see docs/android/release-boundary.md).
+# The M1 workflow (project-04-m1-07-verification.yml) is intentionally left untouched (Amendment A2).
+
+on:
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - "projects/04-muslim-recovery-protection/android/**"
+      - ".github/workflows/project-04-android-ci.yml"
+  pull_request:
+    paths:
+      - "projects/04-muslim-recovery-protection/android/**"
+      - ".github/workflows/project-04-android-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: project-04-android-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+  # Discovery run: report mode (not a gate). Switched to enforce once the allow-lists are populated from real artifacts.
+  BOUNDARY_MODE: report
+
+jobs:
+  tools-and-guard:
+    name: Tool self-tests and diff guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository (full history for the diff guard)
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Release-boundary checker self-test (passes by rejecting known-bad fixtures)
+        working-directory: projects/04-muslim-recovery-protection/android/release-boundary
+        run: python3 -m unittest -v
+
+      - name: CI helper self-test
+        working-directory: projects/04-muslim-recovery-protection/android/ci
+        run: python3 -m unittest -v
+
+      - name: Diff guard (frozen and historical paths must be untouched in W0a)
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          base="$(git merge-base origin/main HEAD)"
+          echo "merge-base with origin/main: $base"
+          git diff --name-only "$base" HEAD | tee "$RUNNER_TEMP/changed.txt"
+          P=projects/04-muslim-recovery-protection
+          A=$P/android/app/src
+          pattern="^$P/chrome-extension/"
+          pattern="$pattern|^$A/main/java/com/muslimrecovery/protection/(vpn|dns|domain)/"
+          pattern="$pattern|^$A/main/java/com/muslimrecovery/protection/MainActivity\.kt$"
+          pattern="$pattern|^$A/main/res/values/strings\.xml$"
+          pattern="$pattern|^$A/test/java/com/muslimrecovery/protection/(vpn|dns|domain)/"
+          pattern="$pattern|^$A/test/java/com/muslimrecovery/protection/ScaffoldingSanityTest\.kt$"
+          pattern="$pattern|^\.github/workflows/project-04-m1-07-verification\.yml$"
+          if grep -E "$pattern" "$RUNNER_TEMP/changed.txt"; then
+            echo "::error::W0a must not change frozen or historical paths (listed above)."
+            exit 1
+          fi
+          echo "Diff guard OK: no frozen/historical path changed."
+
+  baseline-main:
+    name: Baseline test counts on main
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: projects/04-muslim-recovery-protection/android
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools"
+
+      - name: Install Android API 36
+        run: sdkmanager "platforms;android-36"
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Run unit tests on main
+        run: ./gradlew testDebugUnitTest --no-daemon
+
+      - name: Summarize baseline test counts
+        run: |
+          set -euo pipefail
+          dir=$(ls -d app/build/test-results/test*DebugUnitTest | head -1)
+          echo "baseline results dir: $dir"
+          python3 ci/test_counts.py summarize "$dir" | tee "$RUNNER_TEMP/baseline-test-counts.json"
+
+      - name: Upload baseline test counts
+        uses: actions/upload-artifact@v4
+        with:
+          name: baseline-test-counts
+          path: ${{ runner.temp }}/baseline-test-counts.json
+          if-no-files-found: error
+          retention-days: 14
+
+  verify:
+    name: Build, test, lint, task graph and release boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: projects/04-muslim-recovery-protection/android
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools"
+
+      - name: Install Android API 36
+        run: sdkmanager "platforms;android-36"
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Record the actual Gradle task graph after flavors (Amendment A2 evidence)
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/evidence"
+          ./gradlew --no-daemon -q :app:tasks --all > "$RUNNER_TEMP/evidence/tasks-all.txt"
+          for task in assembleDebug testDebugUnitTest lintDebug assembleRelease; do
+            ./gradlew --no-daemon "$task" --dry-run > "$RUNNER_TEMP/evidence/dry-run-$task.txt" || echo "dry-run of $task failed" >> "$RUNNER_TEMP/evidence/dry-run-$task.txt"
+          done
+          {
+            echo "## Gradle task graph after flavors"
+            for task in assembleDebug testDebugUnitTest lintDebug assembleRelease; do
+              echo "### \`$task\` --dry-run resolves to:"
+              echo '```'
+              grep -E '^:app:(assemble|test|lint|bundle)[A-Za-z]*(Debug|Release)[A-Za-z]* ' "$RUNNER_TEMP/evidence/dry-run-$task.txt" || true
+              echo '```'
+            done
+            echo "### variant-specific aggregate tasks that exist"
+            echo '```'
+            grep -E '^(assemble|test|lint|bundle)(Play|Internal)[A-Za-z]* ' "$RUNNER_TEMP/evidence/tasks-all.txt" | sort -u || true
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY" "$RUNNER_TEMP/evidence/task-graph-summary.md"
+
+      - name: Build, unit-test and lint both flavors
+        run: >
+          ./gradlew
+          testInternalDebugUnitTest testPlayDebugUnitTest
+          lintInternalDebug lintPlayRelease
+          assembleInternalDebug assemblePlayRelease
+          --no-daemon
+
+      - name: Summarize current test counts per flavor
+        run: |
+          set -euo pipefail
+          python3 ci/test_counts.py summarize app/build/test-results/testInternalDebugUnitTest > "$RUNNER_TEMP/evidence/current-test-counts-internal.json"
+          python3 ci/test_counts.py summarize app/build/test-results/testPlayDebugUnitTest > "$RUNNER_TEMP/evidence/current-test-counts-play.json"
+          python3 - <<'PY'
+          import json, os
+          d = os.environ["RUNNER_TEMP"] + "/evidence/"
+          for flavor in ("internal", "play"):
+              data = json.load(open(d + "current-test-counts-%s.json" % flavor))
+              print("%s: %d classes, %d tests, %d failures, %d errors, %d skipped" % (
+                  flavor, len(data), sum(c["tests"] for c in data.values()),
+                  sum(c["failures"] for c in data.values()), sum(c["errors"] for c in data.values()),
+                  sum(c["skipped"] for c in data.values())))
+          PY
+
+      - name: Resolve the playRelease runtime dependencies
+        run: ./gradlew --no-daemon -q :app:dependencies --configuration playReleaseRuntimeClasspath > "$RUNNER_TEMP/evidence/play-release-dependencies.txt"
+
+      - name: Release-boundary check on the play release artifact
+        run: |
+          set -euo pipefail
+          apkanalyzer="$(find "$ANDROID_HOME" -path '*/bin/apkanalyzer' -type f | head -1)"
+          if [ -z "$apkanalyzer" ]; then
+            sdkmanager "cmdline-tools;latest"
+            apkanalyzer="$(find "$ANDROID_HOME" -path '*/bin/apkanalyzer' -type f | head -1)"
+          fi
+          test -n "$apkanalyzer" || { echo "::error::apkanalyzer not available"; exit 1; }
+          apk="$(ls app/build/outputs/apk/play/release/*.apk | head -1)"
+          echo "play release artifact (engineering evidence only, never uploaded): $apk"
+          "$apkanalyzer" manifest print "$apk" > "$RUNNER_TEMP/evidence/play-release-manifest.xml"
+          version="$("$apkanalyzer" manifest version-name "$apk")"
+          echo "versionName: $version"
+          baseline_args=()
+          if [ -f release-boundary/w0a-known-historical.txt ]; then
+            baseline_args=(--baseline release-boundary/w0a-known-historical.txt)
+          fi
+          python3 release-boundary/check_release_boundary.py \
+            --label play-release \
+            --apk "$apk" \
+            --manifest-xml "$RUNNER_TEMP/evidence/play-release-manifest.xml" \
+            --dependencies-file "$RUNNER_TEMP/evidence/play-release-dependencies.txt" \
+            --r8-mapping app/build/outputs/mapping/playRelease/mapping.txt \
+            --version-name "$version" \
+            --mode "$BOUNDARY_MODE" \
+            "${baseline_args[@]}" \
+            --report-out "$RUNNER_TEMP/evidence/release-boundary-report.txt"
+
+      - name: Upload evidence (text and reports only; no APK or AAB)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-ci-evidence
+          path: |
+            ${{ runner.temp }}/evidence/
+            projects/04-muslim-recovery-protection/android/app/build/reports/
+            projects/04-muslim-recovery-protection/android/app/build/test-results/
+          retention-days: 14
+
+  m1-equivalence:
+    name: M1 command equivalence (assembleDebug testDebugUnitTest lintDebug after flavors)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: projects/04-muslim-recovery-protection/android
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools"
+
+      - name: Install Android API 36
+        run: sdkmanager "platforms;android-36"
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Run the exact M1 workflow command
+        run: ./gradlew clean assembleDebug testDebugUnitTest lintDebug --no-daemon
+
+      - name: Record what the M1 commands produced
+        if: always()
+        run: |
+          {
+            echo "## M1 command equivalence evidence"
+            echo "APKs produced by \`assembleDebug\`:"
+            echo '```'
+            find app/build/outputs/apk -name '*.apk' | sort || true
+            echo '```'
+            if [ -f app/build/outputs/apk/debug/app-debug.apk ]; then
+              echo "M1 upload path app/build/outputs/apk/debug/app-debug.apk: EXISTS"
+            else
+              echo "M1 upload path app/build/outputs/apk/debug/app-debug.apk: MISSING (the M1 workflow upload step would fail as written)"
+            fi
+            echo "Test result directories:"
+            echo '```'
+            ls -d app/build/test-results/*/ 2>/dev/null || true
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+  compare-test-counts:
+    name: Existing tests preserved (vs main baseline)
+    needs: [baseline-main, verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Download baseline test counts
+        uses: actions/download-artifact@v4
+        with:
+          name: baseline-test-counts
+          path: baseline
+
+      - name: Download current evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: android-ci-evidence
+          path: current
+
+      - name: Compare per flavor (every baseline test class must be present, same count, all green)
+        run: |
+          set -euo pipefail
+          find baseline current -name '*test-counts*.json' | sort
+          for flavor in internal play; do
+            echo "== $flavor =="
+            python3 projects/04-muslim-recovery-protection/android/ci/test_counts.py compare \
+              baseline/baseline-test-counts.json \
+              "$(find current -name "current-test-counts-$flavor.json" | head -1)"
+          done
