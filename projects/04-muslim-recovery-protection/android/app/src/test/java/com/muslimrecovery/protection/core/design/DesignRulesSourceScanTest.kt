@@ -11,7 +11,11 @@ class DesignRulesSourceScanTest {
     private fun productSources(): List<File> =
         (File("src").listFiles() ?: emptyArray())
             .filter { it.isDirectory && !it.name.startsWith("test") && !it.name.startsWith("androidTest") }
-            .flatMap { set -> File(set, "java").walkTopDown().filter { it.isFile && it.extension == "kt" }.toList() }
+            .flatMap { set ->
+                listOf("java", "kotlin").flatMap { dir ->
+                    File(set, dir).walkTopDown().filter { it.isFile && it.extension == "kt" }.toList()
+                }
+            }
 
     private fun rel(file: File): String {
         val normalized = file.invariantSeparatorsPath
@@ -54,8 +58,34 @@ class DesignRulesSourceScanTest {
     }
 
     @Test
+    fun rejectsOtherColorFormsDirectionalIconsAndHardCodedDirection() {
+        for (src in listOf("val c = Color.Red", "val c = Color(255, 0, 0)", "val c = Color(red = 1f)",
+            "Color(android.graphics.Color.parseColor(\"#0B3B8F\"))", "val c = 0xFF_0B3B8F")) {
+            assertTrue(src, v("feature/x/A.kt", src).isNotEmpty())
+        }
+        assertTrue(v("feature/x/A.kt", "Icon(Icons.Filled.ArrowBack, null)").isNotEmpty())
+        assertEquals(emptyList<String>(), v("feature/x/A.kt", "Icon(Icons.AutoMirrored.Filled.ArrowBack, null)"))
+        assertTrue(v("feature/x/A.kt", "CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {}").isNotEmpty())
+        assertEquals(emptyList<String>(), v("feature/x/A.kt", "val t = Color.Transparent"))
+    }
+
+    @Test
+    fun rejectsTheFormsTheRedTeamFound() {
+        for (src in listOf("Color(11, 59, 143)", "Color(red = 11, green = 59, blue = 143)", "Color(0.04f, 0.23f, 0.56f)",
+            "Color.hsl(1f, 1f, 1f)", "Color(4279516047)", "Color (0xFF000000)", "val x = \"#0B3B8F\"",
+            "FontFamily.Serif", "Typeface.create(\"x\", 0)", "typealias F = FontFamily", "GoogleFont(\"x\")",
+            "Modifier.padding(top = dimen(2), left = 4.dp)", "Modifier.padding(bottom = calc(2), right = 4.dp)",
+            "import androidx.compose.ui.Alignment.Companion.CenterLeft", "TextAlign.Companion.Left", "TextAlign\n.Right",
+            "val s = dynamicLightColorScheme(ctx)")) {
+            assertTrue(src, v("feature/x/A.kt", src).isNotEmpty())
+        }
+    }
+
+    @Test
     fun commentsAreIgnoredAndTheDesignCoreIsExempt() {
         assertEquals(emptyList<String>(), v("feature/x/A.kt", "// 0xFF0B3B8F and padding(left = 1.dp)\n/* FontFamily( */ val x = 1"))
         assertEquals(emptyList<String>(), v("core/design/theme/BrandPalette.kt", "const val NAVY = 0xFF0B3B8FL"))
+        // components are NOT exempt: they are scanned like features
+        assertTrue(v("core/design/components/X.kt", "val c = Color(0xFF123456)").isNotEmpty())
     }
 }

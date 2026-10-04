@@ -11,13 +11,14 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * The bundled Tajawal Regular loads and covers the glyphs the three languages need. Runs on the managed devices
- * (API 30 and 34); API 24 is not exercised by CI (a static TrueType font has no API-gated feature).
+ * The bundled Tajawal Regular resource loads as a Typeface on the managed devices (API 30 and 34; API 24 is not
+ * exercised by CI, a static TrueType font has no API-gated feature). Glyph COVERAGE of the file itself is proven by the
+ * JVM FontCoverageTest, because Paint.hasGlyph also sees the platform fallback fonts and so cannot prove it.
  */
 @RunWith(AndroidJUnit4::class)
 class FontFamilyTest {
     @Test
-    fun tajawalLoadsAndCoversLatinGermanAndArabic() {
+    fun tajawalLoadsAsATypefaceAndRendersTheScriptsWithoutMissingGlyphs() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val typeface = ResourcesCompat.getFont(context, R.font.tajawal_regular)
         assertNotNull("the bundled font must load", typeface)

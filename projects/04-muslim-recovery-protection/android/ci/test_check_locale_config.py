@@ -36,9 +36,14 @@ class LocaleConfigCheckTest(unittest.TestCase):
         both = {"res/xml/a.xml": config(*EXPECTED), "res/xml/b.xml": config(*EXPECTED)}
         self.assertTrue(any("exactly one" in p for p in c.evaluate(MANIFEST_OK, both, EXPECTED)[0]))
 
-    def test_undecodable_files_are_skipped_not_fatal(self):
-        problems, _, _ = c.evaluate(MANIFEST_OK, {"res/xml/a.xml": config(*EXPECTED), "res/xml/bad.xml": "<<<"}, EXPECTED)
-        self.assertEqual([], problems)
+    def test_a_manifest_reference_that_names_another_resource_is_rejected(self):
+        manifest = MANIFEST_OK.replace("_generated_res_locale_config", "decoy")
+        problems, _, _ = c.evaluate(manifest, {"res/xml/_generated_res_locale_config.xml": config(*EXPECTED)}, EXPECTED)
+        self.assertTrue(any("references @xml/decoy" in p for p in problems))
+
+    def test_an_unparseable_candidate_is_a_failure_not_ignored(self):
+        problems, _, _ = c.evaluate(MANIFEST_OK, {"res/xml/_generated_res_locale_config.xml": config(*EXPECTED), "res/xml/bad.xml": "<<<"}, EXPECTED)
+        self.assertTrue(any("not parseable" in p for p in problems))
 
     def test_candidate_selection_prefers_the_generated_name_and_skips_non_xml_dirs(self):
         listing = "/res/layout/a.xml\n/res/xml/_generated_res_locale_config.xml\n/res/xml/network.xml\n/classes.dex\n"

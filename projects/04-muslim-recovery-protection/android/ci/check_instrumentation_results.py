@@ -15,26 +15,42 @@ import xml.etree.ElementTree as ET
 
 
 def summarize(results_dir):
+    """Per-class counts of DISTINCT test cases, plus suite-level problems (counters, crashed suites, flaky markers)."""
     summary = {}
+    seen = set()
+    suite_problems = []
     for path in sorted(glob.glob(os.path.join(results_dir, "**", "TEST-*.xml"), recursive=True)):
-        suite = ET.parse(path).getroot()
-        for case in suite.iter("testcase"):
-            cls = case.get("classname") or suite.get("name")
-            entry = summary.setdefault(cls, {"tests": 0, "failures": 0, "errors": 0, "skipped": 0})
-            entry["tests"] += 1
-            if case.find("failure") is not None:
-                entry["failures"] += 1
-            if case.find("error") is not None:
-                entry["errors"] += 1
-            if case.find("skipped") is not None:
-                entry["skipped"] += 1
+        root = ET.parse(path).getroot()
+        suites = [root] if root.tag == "testsuite" else list(root.iter("testsuite"))
+        for suite in suites:
+            for counter in ("failures", "errors", "skipped"):
+                if int(suite.get(counter, 0) or 0) > 0:
+                    suite_problems.append("%s: suite %s reports %s=%s" % (path, suite.get("name"), counter, suite.get(counter)))
+            if int(suite.get("tests", 0) or 0) == 0 and not list(suite.iter("testcase")):
+                suite_problems.append("%s: suite %s contains no test cases (crashed or empty)" % (path, suite.get("name")))
+            for case in suite.iter("testcase"):
+                cls = case.get("classname") or suite.get("name")
+                key = (path, cls, case.get("name"))
+                if key in seen:
+                    continue
+                seen.add(key)
+                entry = summary.setdefault(cls, {"tests": 0, "failures": 0, "errors": 0, "skipped": 0})
+                entry["tests"] += 1
+                if case.find("failure") is not None or case.find("rerunFailure") is not None or case.find("flakyFailure") is not None:
+                    entry["failures"] += 1
+                if case.find("error") is not None or case.find("rerunError") is not None or case.find("flakyError") is not None:
+                    entry["errors"] += 1
+                if case.find("skipped") is not None:
+                    entry["skipped"] += 1
+    summary["__suite_problems__"] = suite_problems
     return summary
 
 
 def problems(summary, required, min_tests):
-    found = []
+    summary = dict(summary)
+    found = list(summary.pop("__suite_problems__", []))
     if not summary:
-        return ["no TEST-*.xml results found: nothing was executed"]
+        return found + ["no TEST-*.xml results found: nothing was executed"]
     total = sum(e["tests"] for e in summary.values())
     if total < min_tests:
         found.append("only %d tests executed (< %d)" % (total, min_tests))
@@ -54,10 +70,11 @@ def main(argv):
     parser.add_argument("--min-tests", type=int, default=1)
     args = parser.parse_args(argv[1:])
     summary = summarize(args.results_dir)
-    total = sum(e["tests"] for e in summary.values())
-    for cls, e in sorted(summary.items()):
+    classes = {k: v for k, v in summary.items() if k != "__suite_problems__"}
+    total = sum(e["tests"] for e in classes.values())
+    for cls, e in sorted(classes.items()):
         print("%-90s tests=%d failures=%d errors=%d skipped=%d" % (cls, e["tests"], e["failures"], e["errors"], e["skipped"]))
-    print("TOTAL executed instrumentation tests: %d in %d classes" % (total, len(summary)))
+    print("TOTAL executed instrumentation tests: %d in %d classes (distinct test cases per result file)" % (total, len(classes)))
     found = problems(summary, args.require_class, args.min_tests)
     for item in found:
         print("::error::" + item)

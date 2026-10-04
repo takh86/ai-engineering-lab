@@ -8,3 +8,7 @@ coverage/
 *.log
 .idea/
 .vscode/
+
+# Python bytecode (CI helper self-tests create it locally)
+__pycache__/
+*.pyc

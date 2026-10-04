@@ -6,19 +6,21 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.muslimrecovery.protection.core.data.ThemeMode
 import com.muslimrecovery.protection.core.design.theme.BrandPalette
 import com.muslimrecovery.protection.core.design.theme.ColorTokens
@@ -37,14 +39,26 @@ class ThemeRenderingTest {
     val rule = createComposeRule()
 
     private var mode by mutableStateOf(ThemeMode.LIGHT)
+    private var systemNight by mutableStateOf(false)
     private var captured: ColorScheme? = null
 
     @Before
     fun setUp() {
         rule.setContent {
-            TabsiraTheme(themeMode = mode) {
-                captured = MaterialTheme.colorScheme
-                Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).testTag("bg"))
+            // The system night mode is injected through the configuration that isSystemInDarkTheme() reads, so the
+            // SYSTEM branch is exercised in both directions regardless of the device's own mode.
+            val base = LocalConfiguration.current
+            val config = remember(base, systemNight) {
+                Configuration(base).apply {
+                    uiMode = (uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or
+                        (if (systemNight) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO)
+                }
+            }
+            CompositionLocalProvider(LocalConfiguration provides config) {
+                TabsiraTheme(themeMode = mode) {
+                    captured = MaterialTheme.colorScheme
+                    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).testTag("bg"))
+                }
             }
         }
     }
@@ -74,11 +88,15 @@ class ThemeRenderingTest {
     }
 
     @Test
-    fun systemFollowsTheDeviceNightMode() {
-        val night = InstrumentationRegistry.getInstrumentation().targetContext.resources.configuration.uiMode and
-            Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
-        val expected = if (night) ColorTokens.Dark else ColorTokens.Light
-        assertEquals(Color(expected.background), select(ThemeMode.SYSTEM).background)
+    fun systemFollowsTheSystemNightModeInBothDirectionsAndExplicitModesIgnoreIt() {
+        for (night in listOf(false, true)) {
+            rule.runOnIdle { systemNight = night }
+            val expected = if (night) ColorTokens.Dark else ColorTokens.Light
+            assertEquals("SYSTEM with night=$night", Color(expected.background), select(ThemeMode.SYSTEM).background)
+            // An explicit choice wins over the system setting.
+            assertEquals(Color(ColorTokens.Light.background), select(ThemeMode.LIGHT).background)
+            assertEquals(Color(ColorTokens.Dark.background), select(ThemeMode.DARK).background)
+        }
     }
 
     @Test

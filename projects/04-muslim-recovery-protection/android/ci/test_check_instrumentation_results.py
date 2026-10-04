@@ -25,13 +25,27 @@ class InstrumentationResultsTest(unittest.TestCase):
 
     def test_a_green_run_passes_and_counts_across_files(self):
         s = self.summarize([suite([("A", "t1", "ok"), ("A", "t2", "ok")]), suite([("B", "t", "ok")])])
-        self.assertEqual({"A": 2, "B": 1}, {k: v["tests"] for k, v in s.items()})
+        self.assertEqual({"A": 2, "B": 1}, {k: v["tests"] for k, v in s.items() if k != "__suite_problems__"})
         self.assertEqual([], c.problems(s, ["A", "B"], 3))
 
     def test_nothing_executed_is_a_failure(self):
         self.assertTrue(c.problems({}, [], 1))
         with tempfile.TemporaryDirectory() as d:
-            self.assertEqual({}, c.summarize(d))
+            self.assertEqual({"__suite_problems__": []}, c.summarize(d))
+            self.assertTrue(c.problems(c.summarize(d), [], 1))
+
+    def test_suite_level_counters_crashed_suites_and_flaky_markers_fail(self):
+        ok = suite([("A", "t", "ok")])
+        for bad in ("<testsuite name='crash' tests='0' errors='1'/>",
+                    "<testsuite name='x' tests='2' failures='1' errors='1'><testcase classname='a.B' name='t'/></testsuite>",
+                    "<testsuite name='x' tests='1'><testcase classname='a.B' name='t'><rerunFailure/></testcase></testsuite>",
+                    "<testsuite name='x' tests='1'><testcase classname='a.B' name='t'><flakyFailure/></testcase></testsuite>"):
+            self.assertTrue(c.problems(self.summarize([ok, bad]), [], 1), bad)
+
+    def test_duplicate_test_cases_do_not_inflate_the_executed_count(self):
+        s = self.summarize([suite([("A", "t", "ok")] * 30)])
+        self.assertEqual(1, s["A"]["tests"])
+        self.assertTrue(c.problems(s, [], 20))
 
     def test_failures_errors_and_skips_are_failures(self):
         for outcome in ("fail", "err", "skip"):

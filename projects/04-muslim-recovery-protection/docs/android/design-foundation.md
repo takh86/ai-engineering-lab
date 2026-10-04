@@ -39,7 +39,7 @@ Rules that follow from the measured contrast (computed WCAG 2.x ratios of the co
 - lime and sky are never a text color; lime is never a foreground on light surfaces (1.48:1 on white);
 - the lime primary button always carries a navy label and a 2dp navy border (lime fill alone is below 3:1 on light);
 - lime on royal is 4.48:1: non-text and large text only, never body text;
-- royal on navy is 1.56:1: dark cards do not separate from the background by color, so grouping there uses spacing and headings;
+- royal on navy is 1.56:1: dark cards do not separate from the background by color, so grouping there uses spacing and headings; in Light a white card on the `#F3F6FB` background is only about 1.09:1, so the Light card border is sky (3.27:1 on white; decorative, not a contrast claim);
 - links are underlined (`TextAction`); selection, error, focus and disabled are never color-only.
 
 ## 3. Typography
@@ -106,20 +106,21 @@ all visible UI is Compose.
 |---|---|---|
 | Tokens are brand-only; Light/Dark defined | `TokenMappingTest`; `ThemeRenderingTest.everyMaterialSlotIsABrandColorInBothThemes` | JVM; managed devices |
 | Contrast thresholds on declared pairs; contract values | `ContrastTest` | JVM |
-| No raw brand colors / font families / left-right outside `core/design`; dp allowed | `DesignRulesSourceScanTest` (+ synthetic bad input) | JVM |
+| No color construction, named colors, font families/typefaces, left/right layout, non-mirrored directional icons or hard-coded layout direction outside `core/design/theme|type|layout` (components are scanned too); dp allowed. A regex scan: it catches the forms in its tests, not every conceivable one | `DesignRulesSourceScanTest` (+ synthetic bad input) | JVM |
 | Type scale leading, `sp` only, zero letter spacing | `TypeScaleTest` | JVM |
 | EN/AR/DE parity, placeholders, prefixes, non-translatable placeholder name | `ResourceParityTest`; lint | JVM; CI lint |
 | Language mapping is total | `SupportedLanguageTest` | JVM |
-| ThemeMode persists, `ui_language` is gone | `SettingsStoreTest` | JVM |
+| ThemeMode persists; the store no longer reads or writes `ui_language` (a stale key from an earlier internal build is ignored, not deleted; D0, non-sensitive) | `SettingsStoreTest` | JVM |
 | Real rendering in Light/Dark, SYSTEM follows device | `ThemeRenderingTest` | managed devices |
 | AR RTL mirroring, EN/DE/AR strings, fallback | `LocaleAndRtlTest` | managed devices |
 | Touch targets, role/state semantics, no clipping at 200% | `ComponentSemanticsTest` | managed devices |
-| Bundled font loads and has the glyphs | `FontFamilyTest` | managed devices |
+| The bundled file is the recorded one (SHA-256) and itself covers Latin, German, Arabic letters, harakat and Arabic-Indic digits | `FontCoverageTest` (parses the font's cmap) | JVM |
+| The font resource loads as a Typeface | `FontFamilyTest` (coverage is NOT claimed here: `Paint.hasGlyph` also sees platform fallback fonts) | managed devices |
 | AppCompat locale switch end to end; SYSTEM is empty | `AppLanguageControllerTest` | managed devices |
 | Final Play APK references the generated LocaleConfig; locales exactly en, ar, de | `ci/check_locale_config.py` (via `apkanalyzer`) | CI |
 | No new permission; dependency/component allow-lists exact | release-boundary checker | CI |
 
-Limits, stated plainly: the 200% test overrides `Density.fontScale` (not the system setting); API 24 to 29 are not on a managed device;
+Limits, stated plainly: `ResourceParityTest` does not limit what may be marked `translatable="false"` (review it); the release-boundary component key does not include `android:enabled`; AppCompat locale persistence across process death is not tested; the SYSTEM test injects the night mode through the configuration; the 200% test overrides `Density.fontScale` (not the system setting); API 24 to 29 are not on a managed device;
 none of this establishes accessibility compliance.
 
 ## 8. Manual visual acceptance still required (Owner device + emulator)

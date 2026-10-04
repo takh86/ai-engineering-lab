@@ -54,7 +54,7 @@ fun TabsiraTheme(
             }
         }
     }
-    CompositionLocalProvider(LocalTabsiraColors provides TabsiraColors(tokens)) {
+    CompositionLocalProvider(LocalTabsiraColors provides remember(tokens) { TabsiraColors(tokens) }) {
         MaterialTheme(
             colorScheme = tokens.toColorScheme(),
             typography = remember { tabsiraTypography() },

@@ -14,7 +14,10 @@ internal object ResourceParity {
     data class Entry(val kind: String, val name: String, val translatable: Boolean, val shape: String)
 
     private val comment = Regex("<!--.*?-->", RegexOption.DOT_MATCHES_ALL)
-    private val element = Regex("""<(string|plurals|string-array)\b([^>]*)>(.*?)</\1>""", RegexOption.DOT_MATCHES_ALL)
+    private val element = Regex(
+        """<(string-array|plurals|string)(?=[\s>/])([^>]*?)(?:/>|>(.*?)</\1>)""",
+        RegexOption.DOT_MATCHES_ALL,
+    )
     private val nameAttr = Regex("""\bname\s*=\s*"([^"]+)"""")
     private val translatableFalse = Regex("""\btranslatable\s*=\s*"false"""")
     private val placeholder = Regex("""%(?:\d+\$)?[-#+ 0,(]*\d*(?:\.\d+)?[a-zA-Z]""")
@@ -26,18 +29,24 @@ internal object ResourceParity {
             val kind = m.groupValues[1]
             val attrs = m.groupValues[2]
             val body = m.groupValues[3]
+            val selfClosing = m.value.endsWith("/>") && !m.value.contains("</")
             val name = checkNotNull(nameAttr.find(attrs)?.groupValues?.get(1)) { "$kind without a name: ${m.value.take(60)}" }
+            val items = Regex("<item\\b([^>]*)>(.*?)</item>", RegexOption.DOT_MATCHES_ALL).findAll(body).toList()
             val shape = when (kind) {
-                "string" -> placeholders(body)
-                "plurals" -> "plurals"
-                else -> "items=" + Regex("<item\\b").findAll(body).count()
+                "string" -> if (selfClosing || body.isBlank()) "EMPTY" else placeholders(body)
+                // quantity set + the placeholders of each quantity (quantity names legitimately differ per language, so
+                // only the union of placeholders is compared, plus that an `other` form exists)
+                "plurals" -> "plurals other=" + items.any { Regex("""quantity\s*=\s*"other"""").containsMatchIn(it.groupValues[1]) } +
+                    " ph=" + items.flatMap { placeholders(it.groupValues[2]).split(",") }.filter { it.isNotEmpty() }.toSortedSet().joinToString(",")
+                else -> "items=" + items.size + " ph=" + items.joinToString("|") { placeholders(it.groupValues[2]) }
             }
             Entry(kind, name, !translatableFalse.containsMatchIn(attrs), shape)
         }.toList()
     }
 
+    /** Positional indices are kept (`%1$s`, `%2$d`), so swapping or duplicating an index is a difference. */
     private fun placeholders(text: String): String =
-        placeholder.findAll(text.replace("%%", "")).map { it.value.replace(Regex("^%\\d+\\$"), "%") }.sorted().joinToString(",")
+        placeholder.findAll(text.replace("%%", "")).map { it.value }.sorted().joinToString(",")
 
     /** Problems for one default file and its translations. [translations] maps locale -> file text (null = missing file). */
     fun problems(fileName: String, defaultXml: String, translations: Map<String, String?>): List<String> {
@@ -75,11 +84,11 @@ internal object ResourceParity {
         return problems
     }
 
-    /** `strings_common.xml` -> `common_`; the bare `strings.xml` has no prefix rule. */
+    /** `strings_common.xml` -> `common_`, `strings_home_screen.xml` -> `home_screen_`; the bare `strings.xml` has no prefix rule. */
     fun keyPrefix(fileName: String): String? =
-        Regex("^strings_([a-z0-9]+)\\.xml$").find(fileName)?.groupValues?.get(1)?.let { "${it}_" }
+        Regex("^strings_([a-z0-9_]+)\\.xml$").find(fileName)?.groupValues?.get(1)?.let { "${it}_" }
 
     fun defaultFiles(resDir: File): List<File> =
         File(resDir, "values").listFiles().orEmpty()
-            .filter { it.isFile && Regex("^strings(_[a-z0-9]+)?\\.xml$").matches(it.name) }.sortedBy { it.name }
+            .filter { it.isFile && Regex("^strings(_[a-z0-9_]+)?\\.xml$").matches(it.name) }.sortedBy { it.name }
 }

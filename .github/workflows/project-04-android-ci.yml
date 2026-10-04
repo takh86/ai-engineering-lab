@@ -486,7 +486,7 @@ jobs:
           set -euo pipefail
           pkg=com.muslimrecovery.protection
           python3 ci/check_instrumentation_results.py app/build/outputs/androidTest-results \
-            --min-tests 20 \
+            --min-tests 21 \
             --require-class $pkg.core.design.ThemeRenderingTest \
             --require-class $pkg.core.design.LocaleAndRtlTest \
             --require-class $pkg.core.design.ComponentSemanticsTest \

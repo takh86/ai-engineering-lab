@@ -1,6 +1,6 @@
 <resources>
     <!-- F9: the only XML color is the window background shown before Compose draws its first frame.
-         Values must equal the Kotlin brand constants (asserted by DesignResourcesTest): light = surface
+         Values must equal the Kotlin brand constants (asserted by TokenMappingTest): light = surface
          #F3F6FB, night = navy #0B3B8F. Every other color lives in core/design/theme (Compose). -->
     <color name="tabsira_window_background">#FFF3F6FB</color>
 </resources>

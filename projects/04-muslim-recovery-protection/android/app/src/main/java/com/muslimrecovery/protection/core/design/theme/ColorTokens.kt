@@ -10,7 +10,9 @@ package com.muslimrecovery.protection.core.design.theme
  *
  * State (selected, error, focus, disabled) is never carried by color alone: components add an icon, text,
  * border width or semantics state. Dark cards (royal on navy, 1.56:1) do not separate from the background by
- * contrast, so grouping there relies on spacing and headings; [border] is decorative and exempt from contrast.
+ * contrast, so grouping there relies on spacing and headings. In Light a white card on the surface background is only
+ * about 1.09:1, so the Light [border] is sky (3.27:1 on white) to keep cards visibly grouped; [border] is decorative
+ * and exempt from the contrast thresholds.
  */
 internal data class ColorTokens(
     val background: Long,
@@ -50,7 +52,7 @@ internal data class ColorTokens(
             onPrimary = BrandPalette.NAVY,
             secondary = BrandPalette.ROYAL,
             onSecondary = BrandPalette.WHITE,
-            border = BrandPalette.SURFACE,
+            border = BrandPalette.SKY,
             borderStrong = BrandPalette.ROYAL,
             focus = BrandPalette.NAVY,
             accentGraphic = BrandPalette.SKY,

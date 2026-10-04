@@ -15,7 +15,7 @@ Evidence gathered during F9 T0 (fetched with `curl` on 2026-10-04; hashes comput
 | File | `app/src/main/res/font/tajawal_regular.ttf` (Android resource name `tajawal_regular`) |
 | Source | `google/fonts`, `ofl/tajawal/Tajawal-Regular.ttf` (`https://raw.githubusercontent.com/google/fonts/main/ofl/tajawal/Tajawal-Regular.ttf`) |
 | Upstream project | `https://github.com/googlefonts/tajawal`, commit `2085b8942f234e7afb83dc03c77713d0d5471cc9` (from the `METADATA.pb` in `google/fonts`) |
-| License | SIL Open Font License 1.1, copyright 2018 Boutros International (`OFL.txt` committed at `docs/android/licenses/OFL-Tajawal.txt`) |
+| License | SIL Open Font License 1.1. `OFL.txt` (committed at `docs/android/licenses/OFL-Tajawal.txt`) says "Copyright 2018 Boutros International"; the font's own name table says "(c) 2017 by Boutros International". Both are upstream text, not reconciled here. |
 | SHA-256 (font) | `6882892da3e03527d5db2bbab3b48bde6ef2e878a43f522d1a4eebda90010a19` |
 | SHA-256 (OFL.txt) | `9b584984f9db0ee30347391a76eff9c0a6b03dc450c3c6afe3757a2cb3a4db87` |
 | Format | static TrueType outlines (`glyf` present, no `CFF`, no `fvar`), `OS/2.usWeightClass = 400`, version 1.700 |
@@ -56,3 +56,8 @@ derivative static instance, a higher minSdk, or a different heading font. Each o
 - Headings, titles and buttons use an explicit placeholder: `FontFamily.Default` at Bold weight, defined in one place
   (`core/design/type/Fonts.kt` as `HeadingFontFamily`). Replacing it is a one-line change after the Owner chooses A to E.
 - No Cairo file, no derivative and no substitute heading font is in the repository.
+
+### Open licensing item for the Owner
+The OFL asks that the license and copyright notice accompany redistributed copies. They are committed under `docs/android/`, but
+nothing in the APK carries them (there is no licenses screen or asset). Whether and where to ship the notice (an in-app licenses entry, a
+bundled asset) is an Owner/legal call; no screen was added because Settings/legal screens are outside F9.

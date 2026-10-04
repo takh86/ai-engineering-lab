@@ -41,8 +41,8 @@ class ResourceParityTest {
     fun noUnsupportedLocaleResourcesExist() {
         val res = File("src/main/res")
         val unsupported = res.listFiles().orEmpty()
-            .filter { it.isDirectory && Regex("^values-[a-z]{2}(-r[A-Z]{2})?$").matches(it.name) }
-            .map { it.name }.filter { it !in setOf("values-ar", "values-de") }
+            .filter { it.isDirectory && it.name.startsWith("values-") }
+            .map { it.name }.filter { it !in setOf("values-ar", "values-de", "values-night") && !Regex("^values-v\\d+$").matches(it) }
         assertEquals("only en (default), ar and de are supported", emptyList<String>(), unsupported)
     }
 
@@ -109,6 +109,39 @@ class ResourceParityTest {
         assertEquals(emptyList<String>(), ResourceParity.problems("strings_x.xml", d, mapOf("ar" to okLoc, "de" to okLoc)))
         val shortArray = xml("""<plurals name="x_p"><item quantity="other">n</item></plurals>""", """<string-array name="x_arr"><item>a</item></string-array>""")
         assertTrue(ResourceParity.problems("strings_x.xml", d, mapOf("ar" to shortArray, "de" to okLoc)).any { it.contains("x_arr") })
+    }
+
+    @Test
+    fun aStringArrayBeforeOtherStringsDoesNotHideThem() {
+        val d = xml("""<string-array name="x_arr"><item>a</item></string-array>""", """<string name="x_b">B</string>""", """<string name="x_c">C</string>""")
+        val onlyArray = xml("""<string-array name="x_arr"><item>a</item></string-array>""")
+        val p = ResourceParity.problems("strings_x.xml", d, mapOf("ar" to onlyArray, "de" to onlyArray))
+        assertTrue("x_b must be required", p.any { it.contains("missing translation 'x_b'") })
+        assertTrue("x_c must be required", p.any { it.contains("missing translation 'x_c'") })
+        assertEquals(listOf("x_arr", "x_b", "x_c"), ResourceParity.parse(d).map { it.name })
+    }
+
+    @Test
+    fun positionalIndexChangesPluralsAndEmptyOrSelfClosingEntriesAreSeen() {
+        val d = xml("""<string name="x_a">%1${'$'}s %2${'$'}s</string>""",
+            """<plurals name="x_p"><item quantity="one">%d item</item><item quantity="other">%d items</item></plurals>""",
+            """<string name="x_e">Text</string>""")
+        val bad = xml("""<string name="x_a">%2${'$'}s %2${'$'}s</string>""",
+            """<plurals name="x_p"><item quantity="one">item</item></plurals>""",
+            """<string name="x_e"/>""")
+        val p = ResourceParity.problems("strings_x.xml", d, mapOf("ar" to bad, "de" to bad))
+        assertTrue(p.any { it.contains("x_a") && it.contains("differs") })
+        assertTrue(p.any { it.contains("x_p") && it.contains("differs") })
+        assertTrue(p.any { it.contains("x_e") && it.contains("differs") })
+        assertEquals(listOf("x_e"), ResourceParity.parse(xml("""<string name="x_e"/>""")).map { it.name })
+    }
+
+    @Test
+    fun multiWordFeatureFilesGetTheirPrefixRuleAndAreDiscovered() {
+        assertEquals("home_screen_", ResourceParity.keyPrefix("strings_home_screen.xml"))
+        assertEquals(null, ResourceParity.keyPrefix("strings.xml"))
+        val wrong = xml("""<string name="home_a">A</string>""")
+        assertTrue(ResourceParity.problems("strings_home_screen.xml", wrong, mapOf("ar" to wrong, "de" to wrong)).any { it.contains("must start with 'home_screen_'") })
     }
 
     @Test

@@ -95,3 +95,16 @@ identity, golden tests, `StatusBanner`, feature UX.
 
 Implementation -> CI -> Independent Review -> F9 Red Team -> fix loop -> regression CI -> Tech Lead Feature Gate -> Owner
 review. Not merged. Play artifacts remain NOT authorized for Google Play upload.
+
+## 7. Execution notes (not new decisions)
+
+- **Fonts (E9):** Tajawal Regular proven and bundled; Cairo Bold NOT provable as a static Android-compatible asset. Headings use a
+  placeholder (`HeadingFontFamily`); the Owner must choose one of options A to E in `font-sources-and-licenses.md` (the placeholder is
+  effectively option E until then).
+- **Unplanned guard change (needs Owner review):** `ci/w0b_diff_guard.py` treated the already-merged W0b relocation as unapproved
+  additions, so it blocked every later change. It now has a post-W0b mode: chrome-extension, domain and ScaffoldingSanityTest stay frozen,
+  the relocated historical code and the internal manifest are frozen, nothing may return to product vpn/dns directories, and `strings.xml`
+  may only become the exact E6 text. Paths are parsed NUL-separated so quoted/non-ASCII names cannot slip past (found by the red team).
+- **Known gap (pre-existing, not changed):** the workflow `paths:` filter does not include `chrome-extension/**`, so a PR touching only
+  the frozen extension does not run the diff guard. Recommended: add the path to the triggers (a workflow change for the Owner to approve).
+- **Light card border:** changed to sky so a white card on the `#F3F6FB` background is visibly grouped (review finding).

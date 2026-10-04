@@ -62,6 +62,7 @@ def evaluate(manifest_xml, decoded_files, expected):
         try:
             locales = locale_config_locales(text)
         except ET.ParseError:
+            problems.append("candidate %s is not parseable XML" % path)
             continue
         if locales is not None:
             configs[path] = locales
@@ -69,6 +70,9 @@ def evaluate(manifest_xml, decoded_files, expected):
         problems.append("expected exactly one <locale-config> resource, found %d: %s" % (len(configs), sorted(configs)))
         return problems, None, None
     path, locales = next(iter(configs.items()))
+    named = re.match(r"^@xml/(.+)$", reference or "")
+    if named and path.startswith("res/xml/") and path != "res/xml/%s.xml" % named.group(1):
+        problems.append("manifest references @xml/%s but the locale-config resource is %s" % (named.group(1), path))
     if None in locales or len(set(locales)) != len(locales):
         problems.append("the locale list has missing names or duplicates: %s" % locales)
     if set(locales) != set(expected):
