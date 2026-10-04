@@ -1,106 +1,144 @@
 # F9 DESIGN FOUNDATION GATE REPORT
 
-Status: implementation, independent review, red team and fix loop complete; CI green on the last code head. **Not merged.**
-Awaiting Tech Lead Feature Gate and Owner review. Play artifacts remain NOT authorized for Google Play upload.
-Nothing here claims accessibility compliance or local (non-CI) verification of Android behavior.
+Status: implementation, independent review, red team, fix loop and the Owner's pre-gate closure (C1 to C5) complete. **Not merged.** Awaiting Tech Lead Feature Gate and Owner review.
+Play artifacts remain NOT authorized for Google Play upload. Nothing here claims accessibility compliance or local (non-CI) verification of Android behavior; CI is the objective gate.
 
-Specification: `f9-design-foundation-task-record.md`. Usage: `design-foundation.md`. Fonts: `font-sources-and-licenses.md`.
+Specification: `f9-design-foundation-task-record.md`. Usage guide: `design-foundation.md`. Fonts: `font-sources-and-licenses.md`. Release boundary: `release-boundary.md`.
 
-## 1. Branch, commits, CI
-Branch `ccr-e2ef6a06-p8z2wo`, based on `main` (`207f352`). Last code head with a full CI result: `428c3d0`, **run 21: all 7 jobs green**
-(tool self-tests and diff guards, build/test/lint both flavors, release boundary, LocaleConfig evidence, M1 equivalence, baseline and
-existing-tests-preserved, emulator api30, emulator api34). Later commits touch documentation only.
+## 1. Final head, branch, commits
+- **Branch:** `ccr-e2ef6a06-p8z2wo`, based on `main` (`207f352`). 73 files changed (`git diff --name-status origin/main...HEAD`), `chrome-extension/**` untouched.
+- **Final code head: `55b8f1034a2c4663c6d5ff528b8210e4411ec18c`.** Full CI on exactly this head, all green on the first run after the closure:
+  push run 23 and pull_request run 24 of *Project 04 Android CI* (7 jobs each: tool self-tests and diff guards, build/test/lint both flavors with release boundary and LocaleConfig proof,
+  M1 equivalence, baseline, existing-tests-preserved, API 30 and API 34 managed devices) and the legacy *M1-07 Verification Gate* run 72.
+  The commit that adds this report changes documentation only; the pull_request run on the final PR head is reported in the PR.
 
 | Commit | Content |
 |---|---|
-| `a0c9622` | F9 task record (contract v2 + E1 to E10) and font provenance |
+| `a0c9622` | F9 task record (contract v2 + E1 to E10), font provenance |
 | `c7afdf2` | IR-A: `UiLanguage` retired from `SettingsStore` |
 | `1357c8e` | IR-B/C: AppCompat 1.8.0, generated LocaleConfig, RTL, locale service, AppCompat theme, non-translatable placeholder names |
-| `91dedf0` | IR-D: W0b diff guard to post-W0b mode (unplanned, flagged) |
-| `95b4fc6` | design foundation (tokens, theme, typography, 7 primitives, locale controller) + JVM tests |
+| `91dedf0` | IR-D: W0b diff guard post-W0b mode (Owner-approved, D-F9-GUARD) |
+| `95b4fc6` | design foundation: tokens, theme, typography, 7 primitives, locale controller, JVM tests |
 | `03910d3` | release-boundary: exactly the resolved AppCompat coordinates |
-| `d0e03f8` | managed devices, instrumentation tests, LocaleConfig and results checkers (IR-D) |
-| `735c45a` `a334ca4` | `ColorScheme` constructor fix; instrumentation test defects |
+| `d0e03f8` | managed devices, instrumentation tests, results gate, first LocaleConfig check (IR-D) |
+| `735c45a` `a334ca4` | `ColorScheme` constructor; instrumentation test defects |
 | `9c296de` | independent-review and red-team fixes |
 | `428c3d0` | 200% font-scale test hosted in a scrolling column |
+| `b83380e` | earlier (pre-closure) gate report |
+| `35194e9` | **D-F9-FONT** Cairo Bold static instance (Option B); **D-F9-LICENSE** shipped OFL notices |
+| `dfbb45e` | **C1** component key encodes `enabled`; locale-service metadata verified |
+| `55b8f10` | **C2** linked LocaleConfig reference proof; shipped-notice assertion |
 
-## 2. Changed files
-62 files (`git diff --name-only origin/main...HEAD`). Groups: `core/design/**` (theme, type, layout, components, locale), `core/data`
-(ThemeMode only), `MainActivity`, manifest, `build.gradle.kts`, resources (`font/tajawal_regular.ttf`, `resources.properties`,
-`values*/strings_common.xml`, `design_colors.xml`, `themes.xml`, `strings.xml`, internal `strings.xml`), unit tests, instrumentation tests,
-`ci/*` (guards and checkers), release-boundary allow-lists, workflow, `.gitignore`, four documents. `chrome-extension/**` is untouched.
+Exact files: see the list in `git diff --name-status origin/main...HEAD`. Groups: `core/design/**`, `core/data` (ThemeMode only), `MainActivity`, manifest, `build.gradle.kts`, resources
+(`res/font/{cairo_bold,tajawal_regular}.ttf`, `assets/licenses/OFL-*.txt`, `resources.properties`, `values*/strings_common.xml`, `design_colors.xml`, `themes.xml`, `strings.xml`, internal `strings.xml`),
+unit tests, six instrumentation test classes, `ci/*`, `release-boundary/*`, `tools/fonts/*`, the workflow, `.gitignore`, five documents.
 
-## 3. Font provenance evidence
-- **Tajawal Regular: bundled.** `google/fonts` `ofl/tajawal/Tajawal-Regular.ttf`, SHA-256 `6882892da3e03527d5db2bbab3b48bde6ef2e878a43f522d1a4eebda90010a19`;
-  OFL text SHA-256 `9b584984f9db0ee30347391a76eff9c0a6b03dc450c3c6afe3757a2cb3a4db87`; static TrueType, weight 400, version 1.700; upstream commit
-  `2085b894...` per `METADATA.pb`. `FontCoverageTest` (JVM) checks the committed file against the recorded hash and parses its cmap for Latin,
-  German, Arabic letters, harakat and Arabic-Indic digits. Gaps: fetched from the `main` ref (hash pins it), the name table says "(c) 2017" while OFL.txt says 2018 (unreconciled upstream text), not run on API 24.
-- **Cairo Bold: E9 STOP triggered.** Upstream builds only the variable font; no authoritative static Android-compatible Bold exists. Nothing bundled,
-  nothing generated, minSdk unchanged. Headings use `HeadingFontFamily = FontFamily.Default` (placeholder). Alternatives A to E are in
-  `font-sources-and-licenses.md` and need an Owner choice.
+## 2. AppCompat 1.8.0 dependency evidence
+Only new direct library: `androidx.appcompat:appcompat:1.8.0`. It resolved and built in CI. The release-boundary report listed exactly **14 new coordinates, all AndroidX**, which are the only allow-list additions:
+appcompat, appcompat-resources, cursoradapter, customview, drawerlayout, emoji2-views-helper, fragment, lifecycle-livedata, lifecycle-livedata-core-ktx, loader, resourceinspection-annotation,
+vectordrawable, vectordrawable-animated, viewpager (appcompat plus 13 transitives; none unexpected). `playReleaseRuntimeClasspath` now has 112 allowed coordinates; findings against allow-lists: **0**.
+No font-generation package is on the Android dependency graph (fontTools lives only in `tools/fonts/requirements.txt`).
 
-## 4. AppCompat and dependency resolution
-Only new direct library: `androidx.appcompat:appcompat:1.8.0` (resolved and built in CI; local Gradle is unavailable). CI boundary report listed exactly 14 new
-coordinates and nothing else: appcompat, appcompat-resources, cursoradapter, customview, drawerlayout, emoji2-views-helper, fragment, lifecycle-livedata,
-lifecycle-livedata-core-ktx, loader, resourceinspection-annotation, vectordrawable, vectordrawable-animated, viewpager. All are AndroidX; none unexpected.
+## 3. Component allow-list (release boundary)
+Key format is now `tag|name|exported|enabled|permission|filters`. The play release artifact contains exactly these 4 components (CI discovered list = allow-list, 0 violations):
 
-## 5. Release-boundary allow-list changes
-`allowed-dependencies.txt`: those 14 lines. `allowed-components.txt`: one entry
-`service|androidx.appcompat.app.AppLocalesMetadataHolderService|exported=false|permission=none|filters=none` (disabled, not exported). No permission change.
-Boundary result on the play release artifacts: **0 violations**. Known limit: the component key does not include `android:enabled`.
+| Component | exported | enabled |
+|---|---|---|
+| `MainActivity` (launcher) | true | unset |
+| `androidx.startup.InitializationProvider` | false | unset |
+| `androidx.profileinstaller.ProfileInstallReceiver` (DUMP-guarded) | true | true |
+| `androidx.appcompat.app.AppLocalesMetadataHolderService` | **false** | **false** |
 
-## 6. LocaleConfig artifact evidence (E4)
-CI step `ci/check_locale_config.py` on the final **play release APK** via `apkanalyzer`: manifest `android:localeConfig = @ref/0x7f100000`;
-exactly one `<locale-config>` resource (`res/Ed.xml`, name shortened in release); locales `['en','ar','de']`; 152 candidate resources decoded. Generated by AGP
-(`generate*LocaleConfig` tasks), no hand-written file. Limit: in the release APK the manifest reference is a numeric id, so it is not resolved to that file name
-(the name tie-check applies only to `@xml/<name>` references). SYSTEM = empty application locale list is proven at runtime by `AppLanguageControllerTest`, not by this static check.
+`autoStoreLocales=true` on the locale service is verified as required metadata (hard failure if missing or different, or if the component is absent), on the play and the internal artifact.
+Mutation self-tests (release-boundary suite, 53 tests) prove these are caught: `enabled=false` to `true`, the `enabled` attribute dropped, `autoStoreLocales` false, `autoStoreLocales` missing, service removed.
+A focused JVM manifest test asserts the same state in the source manifest. No permission was added.
 
-## 7. Emulator configurations
-Gradle Managed Devices `api30` and `api34`: Pixel 2, `aosp_atd`, x86_64 images (both available; no deviation), KVM enabled by a plain shell udev step, no new GitHub Action,
-`swiftshader_indirect`. API 30 exercises the AppCompat locale backport, API 34 the platform per-app language.
+## 4. Fonts
+Both fonts are bundled; headings, titles and buttons use Cairo Bold, body text Tajawal Regular; **no `FontFamily.Default` remains** in the design sources (asserted).
 
-## 8. Executed test counts
-- **Instrumentation (managed devices, play debug):** the results gate (`ci/check_instrumentation_results.py`, `--min-tests 21`, seven required classes, zero failure/error/skip, suite counters, distinct cases)
-  passed on both devices in run 21. The suite is 21 test cases: `ThemeRenderingTest` 4, `LocaleAndRtlTest` 6, `ComponentSemanticsTest` 6, `FontFamilyTest` 1,
-  `AppLanguageControllerTest` 1, `ProductShellTest` 1, `PlayHasNoHistoricalExperimentTest` 2. Per-device counts of the final run were enforced by the gate, not read individually.
-- **JVM unit tests (CI, run 20; later commits changed only instrumentation tests and documents):** internal 26 classes / 279 tests, play 15 classes / 124 tests, 0 failures
-  (W0b baseline was 231 and 76). Existing-test preservation job green.
-- **Python self-tests:** `ci` 43, `release-boundary` 47 (local runs; the CI steps passed).
+**Cairo Bold: a generated static instance (Owner Option B, explicit exception to the earlier STOP rule).**
+| Item | Value |
+|---|---|
+| Upstream | `https://github.com/Gue3bara/Cairo`, commit `73d16933c6a0f341c27a69e401da83dcb0d53114` |
+| Input | `fonts/Cairo/variable/Cairo[slnt,wght].ttf`, SHA-256 `667c987182391c91f4e57a2f455b1794fb5e3ee6ca4ef3383e86bb690fa9c964` (identical in `google/fonts`) |
+| Instance | `wght=700`, `slnt=0`, all axes pinned |
+| Tool | fontTools **4.55.3** (`varLib.instancer`), pinned in `tools/fonts/requirements.txt`; script `tools/fonts/generate_cairo_bold.py` refuses other inputs/versions |
+| Deterministic command | `python3 tools/fonts/generate_cairo_bold.py <input.ttf> app/src/main/res/font/cairo_bold.ttf` (two independent generations gave the same hash) |
+| Output | `cairo_bold.ttf`, 164,796 bytes, SHA-256 `5fa21b9d998565e30b9a6173240f88869eeccd8bb4634f08e0f77a4404b52feb` |
+| Form | static TrueType (`glyf`, sfnt 0x00010000), no `fvar/gvar/avar/STAT/HVAR/MVAR/cvar`; `OS/2.usWeightClass=700`, bold bits set; name table and coverage in `font-sources-and-licenses.md` |
+| License | SIL OFL 1.1; the upstream copyright line declares no Reserved Font Name (a factual reading, not a legal opinion) |
 
-## 9. Contrast results
-`ContrastTest` reproduces the contract values: navy/white 10.31, navy/surface 9.52, navy/lime 6.97, royal/white 6.63, white/royal 6.63, white/navy 10.31, lime/navy 6.97,
-lime/royal 4.48, sky/white 3.27, sky/navy 3.15, lime/white 1.48, royal/navy 1.56. All declared text pairs are at least 4.5:1 and non-text pairs at least 3:1 in Light and Dark;
-lime and sky are never text roles. These are computed ratios of the token constants, not a compliance claim. Light card border is sky (white card on `#F3F6FB` is only about 1.09:1).
+**Tajawal Regular:** upstream static font, unmodified. `google/fonts` `ofl/tajawal/Tajawal-Regular.ttf`, SHA-256 `6882892da3e03527d5db2bbab3b48bde6ef2e878a43f522d1a4eebda90010a19`, upstream commit `2085b894...`
+(from `METADATA.pb`), weight 400. Gaps: fetched from the `main` ref (the hash pins the content); name table says "(c) 2017" while OFL.txt says 2018 (unreconciled upstream text).
 
-## 10. EN/AR/DE parity results
-`ResourceParityTest` (JVM): `strings_common.xml` complete in `values-ar` and `values-de` (5 keys), placeholders/plural shapes/arrays/duplicates/prefixes checked, no unsupported locale
-folders, placeholder `app_name` and internal strings non-translatable; each rule is also tested against synthetic bad input. `lint` runs `MissingTranslation` and `ExtraTranslation` as errors (both lint tasks green).
-`LocaleAndRtlTest` proves, on both devices, EN LTR, DE LTR, AR RTL with mirrored marker position and the English fallback for an unshipped locale.
+**Font gate (C3), JVM `FontCoverageTest`:** both files match the recorded SHA-256 (a changed hash fails the test and needs explicit review), are static TrueType, have the expected weight (700 and 400), and cover A-Z a-z 0-9,
+ä ö ü ß Ä Ö Ü, the Arabic letters, harakat and Arabic-Indic digits by parsing their own cmap. `TypeScaleTest` and the instrumented `TypographyFontsTest` prove headings/buttons use Cairo Bold and body uses Tajawal Regular.
+Instrumented `FontFamilyTest` (API 30 and 34): both resources load as typefaces. Not exercised: API 24 to 29.
 
-## 11. Independent Review findings (separate agent) and fixes
-Fixed: string-array regex hid following strings; committed `.pyc`; guard edited broadly (narrowed to the exact E6 `strings.xml`); font coverage test vacuous (now cmap + SHA-256);
-SYSTEM theme test only tested Light; Light card border; `remember(tokens)`; stale comment; min-tests margin. Acknowledged: heading placeholder needs Owner ratification; ThemeMode-in-`MainActivity` and
-process-restart persistence are not tested; some docs claims were corrected.
+**Bundled OFL notices (D-F9-LICENSE):** `app/src/main/assets/licenses/OFL-Cairo.txt` (SHA-256 `a4554e17...62a9`) and `OFL-Tajawal.txt` (SHA-256 `9b584984...db87`). CI listed both in the final play release APK
+(`/assets/licenses/OFL-Tajawal.txt`, `/assets/licenses/OFL-Cairo.txt`) and an instrumented test reads them. No About/Settings screen was added.
 
-## 12. Red-Team findings (separate agent) and fixes
-Fixed: diff guard bypass through quoted/non-ASCII paths (NUL-separated parsing, reproduced and re-tested); instrumentation checker ignored suite counters/crashed suites/flaky markers/duplicates;
-locale checker tie and unparseable candidates; scanner and parity gaps; internal manifest and Kotlin roots now frozen; vpn/dns forbidden in every product source set.
-Not fixed (reported): the workflow `paths:` filter omits `chrome-extension/**` (pre-existing); `translatable="false"` is unrestricted; the component key omits `android:enabled`.
+## 5. Linked LocaleConfig proof (C2)
+CI on the final **play release APK**, using `apkanalyzer` and `aapt2 dump resources`:
+```
+manifest android:localeConfig = @ref/0x7f100000
+resolved resource id          = 0x7f100000
+resource table entry          = xml/_generated_res_locale_config
+resource file                 = res/Ed.xml
+locales                       = ['en', 'ar', 'de'] (expected ['en', 'ar', 'de'])
+resource table entries parsed = 1367
+LocaleConfig linked-reference proof OK
+```
+The manifest reference is resolved through the resource table to its file, and only that file is decoded; a reference to any other resource, a dangling id, a non-XML resource, a config with other locales, or a valid config the
+manifest does not reference cannot pass (mutation self-tests, `ci/test_check_locale_config.py`). SYSTEM as the empty application locale list is proven at runtime by `AppLanguageControllerTest`.
+AGP generated the config (`generate*LocaleConfig` tasks); there is no hand-written file.
 
-## 13. Fixes and regressions
-Fix loop used CI as the gate: appcompat allow-list (run 15), `ColorScheme` constructor (run 16), instrumentation test defects and slot count (run 18), review/red-team fixes (run 20), font-scale test (run 21).
-One real finding from emulator diagnostics: at 200% font scale the primitives wrap (4 to 5 lines, no overflow); content clips only when a screen does not scroll, so screens that can exceed the viewport must use
-`TabsiraScreen(scrollable = true)`. No regression in existing tests; the W0b guard, boundary and M1 jobs stayed green.
+## 6. Contrast matrix (computed WCAG 2.x ratios of the token constants, reproduced by `ContrastTest`; not a compliance claim)
+| Pair | Ratio | Use |
+|---|---|---|
+| navy on white / on `#F3F6FB` | 10.31 / 9.52 | text |
+| navy on lime | 6.97 | primary label |
+| royal on white; white on royal | 6.63 | links, dark cards |
+| white on navy; lime on navy | 10.31; 6.97 | dark text; dark focus/fill |
+| lime on royal | 4.48 | non-text and large text only |
+| sky on white / navy | 3.27 / 3.15 | graphics and the Light card hairline only |
+| lime on white | 1.48 | forbidden foreground; the primary button always has a navy border on Light |
+| royal on navy | 1.56 | dark cards do not separate by contrast; grouping relies on spacing/headings |
 
-## 14. Visual and manual acceptance still required
-EN/AR/DE x Light/Dark; SYSTEM/LIGHT/DARK including a restart where the explicit theme differs from the system theme (E7 first-frame check); font scale 1.0, 1.3, 2.0 and largest display size;
-TalkBack; 3-button navigation bar contrast with an in-app Dark choice on a Light system; identity-sheet comparison; the heading font once decided.
+All declared text pairs are at least 4.5:1 and non-text pairs at least 3:1, Light and Dark. Lime and sky are never text roles. Every Material3 slot of the real scheme is a brand color (instrumented test).
 
-## 15. Remaining risks
-Cairo Bold unresolved (placeholder headings, synthesized body Bold); E3 AppCompat blocking I/O on API <= 32 accepted; E7 wrong-theme first frame unverified; API 24 to 29 not on a managed device and
-locale persistence across process death untested; OFL notice not shipped in the APK; the post-W0b diff guard change needs explicit Owner review; component key omits `android:enabled`; scanners are regex-based.
+## 7. EN/AR/DE parity
+`ResourceParityTest` (JVM, each rule also tested against synthetic bad input): `strings_common.xml` complete in `values-ar` and `values-de` (5 keys), kinds, positional placeholders, plural/array shapes, empty/self-closing entries, duplicates,
+key prefixes (including multi-word feature files), no unsupported locale folders; placeholder `app_name` and internal strings non-translatable. `lint` has `MissingTranslation` and `ExtraTranslation` as errors (green).
+`LocaleAndRtlTest` on both devices: EN LTR, DE LTR, AR RTL with mirrored layout, English fallback for an unshipped locale.
 
-## 16. Capabilities now unlocked for F1, F3 and F5
-Subject to Owner/Tech Lead acceptance of this gate: `TabsiraTheme` and semantic tokens (no color/font literals), `TabsiraScreen`, `PrimaryButton`, `SecondaryButton`, `TextAction`, `TabsiraTextField`,
-`SectionCard`, `SelectableOption`, spacing/shape scales, RTL rules, per-feature `strings_<feature>.xml` in EN/AR/DE with enforced parity, `AppLanguageController` (the persistent language owner is AppCompat), `ThemeMode`
-in `SettingsStore`. Not provided: Settings screen, Gallery, `StatusBanner`, top bar, dialogs, numeral policy, logo/icon/name/discreet identity. F1's persisted onboarding state still waits for F7.
+## 8. Executed test counts (final head `55b8f10`)
+- **API 30 managed device (play debug):** 24 instrumentation tests in 8 classes, 0 failures, 0 errors, **0 skipped**.
+- **API 34 managed device (play debug):** 24 instrumentation tests in 8 classes, 0 failures, 0 errors, **0 skipped**.
+  Per class: `ThemeRenderingTest` 4, `LocaleAndRtlTest` 6, `ComponentSemanticsTest` 6, `FontFamilyTest` 3, `AppLanguageControllerTest` 1, `TypographyFontsTest` 1, `ProductShellTest` 1, `PlayHasNoHistoricalExperimentTest` 2.
+  The results gate (`--min-tests 24`, eight required classes, suite-level counters, distinct test cases) passed on both. Managed devices: Pixel 2, `aosp_atd` x86_64, API 30 (AppCompat locale backport path) and API 34 (platform per-app language path); no deviation; no third-party Action.
+- **JVM unit tests (CI):** internal 26 classes / **281** tests, play 15 classes / **126** tests, 0 failures, 0 errors, 0 skipped (W0b baseline 231 / 76). Existing-test preservation job green.
+- **Python self-tests:** `ci/` 43, `release-boundary/` 53 (all green in CI "tool self-tests" and locally).
+
+## 9. Independent Review (separate agent) and Red Team (separate agent): findings and fixes
+- **Review, fixed:** string-array regex swallowed following strings; committed `.pyc`; broad guard edit (now the exact approved `strings.xml` text only); vacuous font-coverage test (now each font's own cmap + SHA-256); SYSTEM theme test only covered Light (now day and night);
+  Light cards nearly invisible (Light border is sky); `remember(tokens)`; stale comment; test margin. Documentation claims were corrected.
+- **Red team, fixed:** diff guard bypass through quoted/non-ASCII/tab paths (NUL-separated parsing, reproduced and re-tested); instrumentation checker ignored suite counters, crashed suites, flaky markers, duplicates; locale checker tie and unparseable candidates
+  (since replaced by the linked proof); scanner and parity gaps; internal manifest and Kotlin roots frozen; vpn/dns forbidden in every product source set.
+- **Regression tests added:** guard hardening tests, results-checker mutations, parity and scanner bypass cases, FontCoverageTest, linked-reference mutations, enabled/metadata mutations.
+- **Open (not F9 blockers):** workflow `paths:` omits `chrome-extension/**` (D-F9-TRIGGER-GAP, acknowledged, deferred, separate CI-hardening follow-up; F9 did not change workflow path triggers); `translatable="false"` is unrestricted.
+
+## 10. Accepted residual risks
+Theme first frame may show the wrong theme when the explicit choice differs from the system theme (E7, accepted with a visual gate); AppCompat blocking I/O on API <= 32 (E3, accepted standard behavior); API 24 to 29 are not on a managed device and locale persistence across process death is untested;
+the 3-button navigation-bar contrast with an in-app Dark choice is unverified; the Cairo instance is generated, not upstream-published (Owner-approved); font copyright text is unreconciled upstream text; scanners are regex-based; a Cairo or Tajawal hash change requires explicit review by design.
+
+## 11. Manual Owner-device acceptance still outstanding
+EN/AR/DE x Light/Dark; SYSTEM/LIGHT/DARK including a restart where the explicit theme differs from the system theme (E7 first-frame check); font scale 1.0, 1.3, 2.0 and largest display size; TalkBack; 3-button navigation bar contrast;
+Cairo Bold headings and Tajawal body against the identity sheet; the OFL notices in the installed APK.
+
+## 12. Unlocked for F1, F3 and F5 (subject to Owner/Tech Lead acceptance of this gate)
+- **Theme and tokens:** `TabsiraTheme(themeMode)` (hosted by `MainActivity`), `TabsiraDesign.colors`, `MaterialTheme.colorScheme/typography/shapes` mapped to Tabsira tokens; `TabsiraSpacing`; no color, font or left/right literals.
+- **Primitives:** `TabsiraScreen` (use `scrollable = true` when content can exceed the viewport), `PrimaryButton`, `SecondaryButton`, `TextAction`, `TabsiraTextField`, `SectionCard`, `SelectableOption`.
+- **Localization:** per-feature `strings_<feature>.xml` in `values/`, `values-ar/`, `values-de/` with enforced parity and key prefixes; `strings_common.xml` for generic words; `AppLanguageController` / `SupportedLanguage` (the persistent language owner is AppCompat; `UiLanguage` no longer exists); `ThemeMode` in `SettingsStore`.
+- **Fonts:** Cairo Bold for headings/buttons, Tajawal Regular for body, via the theme only.
+- **Not provided:** Settings screen, About/Licences UI, Design Gallery, `StatusBanner`, top bar, dialogs, numeral policy (OD-F9-4 deferred), logo/icon/public name/discreet identity. F1's persisted onboarding state still waits for F7.
