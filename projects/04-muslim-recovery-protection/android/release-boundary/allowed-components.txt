@@ -1,6 +1,7 @@
-# Components the Play artifact may contain: <tag>|<fully-qualified name>|exported=<true|false|unset>
-activity|com.muslimrecovery.protection.MainActivity|exported=true
+# Components the Play artifact may contain:
+# <tag>|<fully-qualified name>|exported=<true|false|unset>|permission=<guarding permission|none>|filters=<yes|no>
+activity|com.muslimrecovery.protection.MainActivity|exported=true|permission=none|filters=yes
 # Library components merged in by AndroidX (profileinstaller/startup). The receiver is exported but
 # protected by android.permission.DUMP in the library manifest.
-provider|androidx.startup.InitializationProvider|exported=false
-receiver|androidx.profileinstaller.ProfileInstallReceiver|exported=true
+provider|androidx.startup.InitializationProvider|exported=false|permission=none|filters=no
+receiver|androidx.profileinstaller.ProfileInstallReceiver|exported=true|permission=android.permission.DUMP|filters=yes

@@ -15,13 +15,18 @@ Source: M3-01 §2, §18 and Amendment A5. One `:app` module; boundaries are pack
 | `experimental/{webguard,dns,api}/` | F11–F13, F16 | Exists only in `src/internal`. |
 | `vpn/`, `dns/`, `domain/` | historical | Not moved, renamed or edited in W0a. `domain/protection/ProtectionState` is the single protection-state source of truth. |
 
-Dependency rules (enforced by `PackageBoundaryTest`):
+Dependency rules (enforced by `PackageBoundaryTest` over every non-test source set under `src/`, `.kt` and `.java`,
+strict by default; comments are ignored, string literals are not):
 
-- `core/**` never imports `feature/**` or `experimental/**`.
-- `feature/<a>` never imports `feature/<b>`, and never imports `experimental/**`, `vpn/**` or `dns/**`.
-- `src/main` (including `app/**`) and `src/play` never import `experimental/**`.
-- `app/**` does not import the historical `vpn/**` or `dns/**`.
-- Only composition wiring in `src/internal` may import `experimental/**`.
+- every file's `package` declaration must match its directory, and no file may sit outside `com/muslimrecovery/protection`;
+- nothing may wildcard-import the project root package;
+- `experimental` may be referenced only by composition wiring under `src/internal/**/app/`; never from `src/main`,
+  `src/play`, `core`, `feature` or any other source set (Amendment A5);
+- `core` never depends on `feature` or `app`;
+- `feature/<a>` never depends on `feature/<b>` or `app`;
+- `core`, `feature` and `app` do not use the historical `vpn` or `dns` packages.
+
+Not encoded (best effort or by design): `feature` using `domain.*`, `core`/`feature` using `protection.*`, and Kotlin type aliases.
 
 Shared files owned by the Integration Agent: `MainActivity.kt`, manifests, `app/build.gradle.kts`, root navigation, `AppContainer`/application
 wiring, build variants, database/bootstrap wiring, `release-boundary/**`, `.github/workflows/**`. Feature agents file an INTEGRATION REQUEST

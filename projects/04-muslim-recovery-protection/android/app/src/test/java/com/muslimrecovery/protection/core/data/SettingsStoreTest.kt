@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.preferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -11,6 +12,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -120,6 +123,23 @@ class SettingsStoreTest {
 
         assertEquals(ThemeMode.SYSTEM, store.themeMode.first())
         assertEquals(UiLanguage.SYSTEM, store.uiLanguage.first())
+    }
+
+    @Test
+    fun transientIoErrorYieldsDefaultsThenRecoversForALongLivedCollector() = runBlocking {
+        var attempts = 0
+        val flaky = object : DataStore<Preferences> {
+            override val data: Flow<Preferences> = flow {
+                if (attempts++ == 0) throw IOException("transient")
+                emit(preferencesOf(stringPreferencesKey("theme_mode") to "DARK"))
+            }
+
+            override suspend fun updateData(transform: suspend (t: Preferences) -> Preferences): Preferences =
+                throw IOException("unwritable")
+        }
+        val store = DataStoreSettingsStore(flaky, retryDelayMillis = 1)
+
+        assertEquals(listOf(ThemeMode.SYSTEM, ThemeMode.DARK), store.themeMode.take(2).toList())
     }
 
     @Test

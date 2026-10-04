@@ -32,10 +32,22 @@ class CompareTest(unittest.TestCase):
             cur["A"][field] = 1
             self.assertEqual(1, len(tc.compare(self.base, cur)))
 
-    def test_summarize_reads_junit_xml(self):
+    def test_swapping_one_test_for_another_is_rejected(self):
+        base = {"A": {"tests": 2, "failures": 0, "errors": 0, "skipped": 0, "cases": ["one", "two"]}}
+        cur = {"A": {"tests": 2, "failures": 0, "errors": 0, "skipped": 0, "cases": ["one", "three"]}}
+        problems = tc.compare(base, cur)
+        self.assertEqual(1, len(problems))
+        self.assertIn("two", problems[0])
+
+    def test_summarize_reads_junit_xml_including_case_names(self):
         with tempfile.TemporaryDirectory() as d:
-            write_suite(d, "x.Y", 5, skipped=1)
-            self.assertEqual({"x.Y": {"tests": 5, "failures": 0, "errors": 0, "skipped": 1}}, tc.summarize(d))
+            with open(os.path.join(d, "TEST-x.Y.xml"), "w") as handle:
+                handle.write('<testsuite name="x.Y" tests="2" skipped="1" failures="0" errors="0">'
+                             '<testcase name="b"/><testcase name="a"/></testsuite>')
+            self.assertEqual(
+                {"x.Y": {"tests": 2, "failures": 0, "errors": 0, "skipped": 1, "cases": ["a", "b"]}},
+                tc.summarize(d),
+            )
 
 
 if __name__ == "__main__":

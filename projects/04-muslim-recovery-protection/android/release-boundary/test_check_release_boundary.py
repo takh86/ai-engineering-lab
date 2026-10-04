@@ -9,6 +9,7 @@ import os
 import tempfile
 import unittest
 import zipfile
+from unittest import mock
 
 import check_release_boundary as crb
 
@@ -17,15 +18,16 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 ALLOWED = {
     "permissions": {PKG + ".DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"},
-    "components": {"activity|%s.MainActivity|exported=true" % PKG},
+    "components": {"activity|%s.MainActivity|exported=true|permission=none|filters=no" % PKG},
     "dependencies": {"androidx.core:core-ktx", "org.jetbrains.kotlin:kotlin-stdlib"},
 }
+APP = '<application android:allowBackup="false">'
 DENIED = {PKG + ".experimental.", PKG + ".vpn.", PKG + ".dns."}
 
 GOOD_MANIFEST = """<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="%s">
   <permission android:name="%s.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"/>
   <uses-permission android:name="%s.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"/>
-  <application>
+  <application android:allowBackup="false">
     <activity android:name="%s.MainActivity" android:exported="true"/>
   </application>
 </manifest>""" % (PKG, PKG, PKG, PKG)
@@ -70,24 +72,24 @@ class CheckerTest(unittest.TestCase):
 
     # --- known-bad: manifest ---
     def test_extra_permission_is_rejected(self):
-        bad = GOOD_MANIFEST.replace("<application>", '<uses-permission android:name="android.permission.INTERNET"/><application>')
+        bad = GOOD_MANIFEST.replace(APP, '<uses-permission android:name="android.permission.INTERNET"/>' + APP)
         findings, _, _ = self.run_eval(manifest=bad)
         self.assertIn("permission|android.permission.INTERNET", findings)
 
     def test_undeclared_extra_permission_definition_is_rejected(self):
-        bad = GOOD_MANIFEST.replace("<application>", '<permission android:name="x.EVIL"/><application>')
+        bad = GOOD_MANIFEST.replace(APP, '<permission android:name="x.EVIL"/>' + APP)
         findings, _, _ = self.run_eval(manifest=bad)
         self.assertIn("declared-permission|x.EVIL", findings)
 
     def test_unlisted_service_is_rejected(self):
         bad = GOOD_MANIFEST.replace("</application>", '<service android:name=".vpn.LocalProtectionVpnService" android:exported="true"/></application>')
         findings, _, _ = self.run_eval(manifest=bad)
-        self.assertIn("component|service|%s.vpn.LocalProtectionVpnService|exported=true" % PKG, findings)
+        self.assertIn("component|service|%s.vpn.LocalProtectionVpnService|exported=true|permission=none|filters=no" % PKG, findings)
 
     def test_exported_flag_change_on_allowed_component_is_rejected(self):
         bad = GOOD_MANIFEST.replace('android:exported="true"', 'android:exported="false"')
         findings, _, _ = self.run_eval(manifest=bad)
-        self.assertIn("component|activity|%s.MainActivity|exported=false" % PKG, findings)
+        self.assertIn("component|activity|%s.MainActivity|exported=false|permission=none|filters=no" % PKG, findings)
 
     def test_relative_component_names_are_qualified(self):
         relative = GOOD_MANIFEST.replace(PKG + ".MainActivity", ".MainActivity")
@@ -97,6 +99,52 @@ class CheckerTest(unittest.TestCase):
     def test_malformed_manifest_is_an_input_error(self):
         with self.assertRaises(crb.InputError):
             self.run_eval(manifest="<manifest")
+
+    def test_sdk_m_permission_and_permission_tree_are_rejected(self):
+        bad = GOOD_MANIFEST.replace(APP, '<uses-permission-sdk-m android:name="android.permission.CAMERA"/>'
+                                    '<permission-tree android:name="x.TREE"/>' + APP)
+        findings, _, _ = self.run_eval(manifest=bad)
+        self.assertIn("permission|android.permission.CAMERA", findings)
+        self.assertIn("declared-permission|x.TREE", findings)
+
+    def test_removed_bind_permission_or_added_intent_filter_changes_the_component_key(self):
+        guarded = GOOD_MANIFEST.replace("</application>", '<service android:name=".vpn.S" android:exported="true" '
+                                        'android:permission="android.permission.BIND_VPN_SERVICE"/></application>')
+        unguarded = GOOD_MANIFEST.replace("</application>", '<service android:name=".vpn.S" android:exported="true"/></application>')
+        keys_g, _, _ = self.run_eval(manifest=guarded)
+        keys_u, _, _ = self.run_eval(manifest=unguarded)
+        self.assertIn("component|service|%s.vpn.S|exported=true|permission=android.permission.BIND_VPN_SERVICE|filters=no" % PKG, keys_g)
+        self.assertIn("component|service|%s.vpn.S|exported=true|permission=none|filters=no" % PKG, keys_u)
+        browsable = GOOD_MANIFEST.replace('<activity android:name="%s.MainActivity" android:exported="true"/>' % PKG,
+                                          '<activity android:name="%s.MainActivity" android:exported="true"><intent-filter/></activity>' % PKG)
+        findings, _, _ = self.run_eval(manifest=browsable)
+        self.assertIn("component|activity|%s.MainActivity|exported=true|permission=none|filters=yes" % PKG, findings)
+
+    def test_backup_debuggable_cleartext_and_package_changes_are_hard_failures(self):
+        for old, new, needle in (
+            ('android:allowBackup="false"', 'android:allowBackup="true"', "application|android:allowBackup"),
+            ('android:allowBackup="false"', 'android:allowBackup="false" android:debuggable="true"', "application|android:debuggable"),
+            ('android:allowBackup="false"', 'android:allowBackup="false" android:usesCleartextTraffic="true"', "application|android:usesCleartextTraffic"),
+            ('<application android:allowBackup="false">', "<application>", "application|android:allowBackup"),
+        ):
+            _, hard, _ = self.run_eval(manifest=GOOD_MANIFEST.replace(old, new))
+            self.assertTrue(any(h.startswith(needle) for h in hard), needle)
+        renamed = GOOD_MANIFEST.replace('package="%s"' % PKG, 'package="com.example.other"')
+        _, hard, _ = self.run_eval(manifest=renamed)
+        self.assertTrue(any(h.startswith("package|") for h in hard))
+
+    def test_embedded_native_jar_or_stray_dex_entries_are_rejected(self):
+        path = os.path.join(self.dir, "embedded.apk")
+        with zipfile.ZipFile(path, "w") as archive:
+            archive.writestr("classes.dex", b"dex\n035\x00Landroidx/core/Foo;")
+            archive.writestr("lib/arm64-v8a/libhidden.so", b"x")
+            archive.writestr("assets/payload.jar", b"x")
+            archive.writestr("assets/extra.dex", b"dex\n035\x00Lcom/muslimrecovery/protection/vpn/Hidden;")
+        findings, _, _ = self.run_eval(apk=path)
+        self.assertIn("code-entry|lib/arm64-v8a/libhidden.so", findings)
+        self.assertIn("code-entry|assets/payload.jar", findings)
+        self.assertIn("code-entry|assets/extra.dex", findings)
+        self.assertIn("class|%s.vpn." % PKG, findings)
 
     # --- known-bad: dex ---
     def test_experimental_vpn_and_dns_classes_are_rejected(self):
@@ -165,13 +213,13 @@ class CheckerTest(unittest.TestCase):
 
     # --- baseline semantics ---
     def test_baseline_tolerates_exactly_the_known_findings(self):
-        bad = GOOD_MANIFEST.replace("<application>", '<uses-permission android:name="android.permission.INTERNET"/><application>')
+        bad = GOOD_MANIFEST.replace(APP, '<uses-permission android:name="android.permission.INTERNET"/>' + APP)
         baseline = {"permission|android.permission.INTERNET"}
         findings, hard, _ = self.run_eval(manifest=bad, baseline=baseline, version="0-nonreleasable")
         self.assertEqual(([], [], []), crb.verdict(findings, hard, baseline))
 
     def test_new_violation_beyond_baseline_is_unexpected(self):
-        bad = GOOD_MANIFEST.replace("<application>", '<uses-permission android:name="android.permission.CAMERA"/><application>')
+        bad = GOOD_MANIFEST.replace(APP, '<uses-permission android:name="android.permission.CAMERA"/>' + APP)
         findings, hard, _ = self.run_eval(manifest=bad, baseline=set(), version="0-nonreleasable")
         unexpected, stale, _ = crb.verdict(findings, hard, set())
         self.assertEqual(["permission|android.permission.CAMERA"], unexpected)
@@ -219,14 +267,36 @@ class CheckerTest(unittest.TestCase):
         self.assertEqual(0, self.run_cli(GOOD_MANIFEST, self.good_apk))
 
     def test_cli_rejects_each_known_bad_fixture(self):
-        bad_manifest = GOOD_MANIFEST.replace("<application>", '<uses-permission android:name="android.permission.INTERNET"/><application>')
+        bad_manifest = GOOD_MANIFEST.replace(APP, '<uses-permission android:name="android.permission.INTERNET"/>' + APP)
         self.assertEqual(1, self.run_cli(bad_manifest, self.good_apk))
         bad_apk = make_apk(self.dir, ["com/muslimrecovery/protection/vpn/X"], name="bad.apk")
         self.assertEqual(1, self.run_cli(GOOD_MANIFEST, bad_apk))
 
     def test_cli_report_mode_never_gates(self):
         bad_apk = make_apk(self.dir, ["com/muslimrecovery/protection/dns/X"], name="bad.apk")
-        self.assertEqual(0, self.run_cli(GOOD_MANIFEST, bad_apk, "--mode", "report"))
+        with mock.patch.dict(os.environ, {"GITHUB_ACTIONS": "false"}):
+            self.assertEqual(0, self.run_cli(GOOD_MANIFEST, bad_apk, "--mode", "report"))
+
+    def test_report_mode_is_refused_on_github_actions_unless_explicitly_allowed(self):
+        bad_apk = make_apk(self.dir, ["com/muslimrecovery/protection/dns/X"], name="bad.apk")
+        with mock.patch.dict(os.environ, {"GITHUB_ACTIONS": "true"}, clear=False):
+            os.environ.pop("BOUNDARY_ALLOW_REPORT_MODE", None)
+            self.assertEqual(2, self.run_cli(GOOD_MANIFEST, bad_apk, "--mode", "report"))
+        with mock.patch.dict(os.environ, {"GITHUB_ACTIONS": "true", "BOUNDARY_ALLOW_REPORT_MODE": "1"}):
+            self.assertEqual(0, self.run_cli(GOOD_MANIFEST, bad_apk, "--mode", "report"))
+
+    def test_empty_deny_list_is_an_input_error(self):
+        rules = self._rules_dir()
+        with open(os.path.join(rules, "denied-class-patterns.txt"), "w") as handle:
+            handle.write("# emptied\n")
+        args = ["--apk", self.good_apk, "--manifest-xml", self._write("m.xml", GOOD_MANIFEST),
+                "--dependencies-file", self._write("d.txt", GOOD_DEPS), "--rules-dir", rules, "--version-name", "0.1.0"]
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(2, crb.main(args))
+
+    def test_empty_dependency_file_is_an_input_error(self):
+        with self.assertRaises(crb.InputError):
+            self.run_eval(deps="")
 
     def test_cli_input_errors_exit_2(self):
         self.assertEqual(2, self.run_cli(GOOD_MANIFEST, os.path.join(self.dir, "missing.apk")))

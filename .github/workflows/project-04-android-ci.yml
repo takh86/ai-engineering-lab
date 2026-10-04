@@ -24,7 +24,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: project-04-android-ci-${{ github.ref }}
+  group: project-04-android-ci-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -57,7 +57,8 @@ jobs:
           git fetch --no-tags origin main
           base="$(git merge-base origin/main HEAD)"
           echo "merge-base with origin/main: $base"
-          git diff --name-only "$base" HEAD | tee "$RUNNER_TEMP/changed.txt"
+          # --no-renames lists BOTH sides of a rename, so moving a frozen file out of its directory is seen.
+          git diff --no-renames --name-only "$base" HEAD | tee "$RUNNER_TEMP/changed.txt"
           P=projects/04-muslim-recovery-protection
           A=$P/android/app/src
           pattern="^$P/chrome-extension/"
@@ -73,6 +74,13 @@ jobs:
           fi
           echo "Diff guard OK: no frozen/historical path changed."
 
+      - name: Surface changes to the release boundary itself (reviewer attention, not a gate)
+        run: |
+          set -euo pipefail
+          if grep -E '^(projects/04-muslim-recovery-protection/android/release-boundary/|projects/04-muslim-recovery-protection/android/app/build\.gradle\.kts$|\.github/workflows/)' "$RUNNER_TEMP/changed.txt" > "$RUNNER_TEMP/boundary-changes.txt"; then
+            while read -r f; do echo "::warning file=$f::Release-boundary-relevant file changed: this needs explicit Owner review (allow-lists, baseline, flavors, workflows)."; done < "$RUNNER_TEMP/boundary-changes.txt"
+          fi
+
   baseline-main:
     name: Baseline test counts on main
     runs-on: ubuntu-latest
@@ -81,10 +89,12 @@ jobs:
       run:
         working-directory: projects/04-muslim-recovery-protection/android
     steps:
-      - name: Checkout main
+      # Pinned to the commit this work branched from (the pre-flavor tree), not to moving main:
+      # the baseline must stay valid after flavors merge, when `testDebugUnitTest` no longer exists.
+      - name: Checkout the pre-W0a baseline commit
         uses: actions/checkout@v5
         with:
-          ref: main
+          ref: 78e1942e26ae5e9924a6df6e6d77156b5d0ece29
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -170,6 +180,19 @@ jobs:
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY" "$RUNNER_TEMP/evidence/task-graph-summary.md"
 
+      - name: Assert flavor invariants from the task graph and build file
+        run: |
+          set -euo pipefail
+          if grep -q 'InternalRelease' "$RUNNER_TEMP/evidence/tasks-all.txt"; then
+            echo "::error::an internalRelease task exists: internal must have no releasable variant"; exit 1
+          fi
+          grep -q 'assemblePlayRelease' "$RUNNER_TEMP/evidence/tasks-all.txt" || { echo "::error::assemblePlayRelease task missing"; exit 1; }
+          grep -q 'assembleInternalDebug' "$RUNNER_TEMP/evidence/tasks-all.txt" || { echo "::error::assembleInternalDebug task missing"; exit 1; }
+          if grep -nE 'isMinifyEnabled *= *true' app/build.gradle.kts; then
+            echo "::error::R8/minification is on: class-name release-boundary scanning is no longer sufficient (D-10)"; exit 1
+          fi
+          echo "Flavor invariants OK: no internalRelease task, play/internal tasks present, R8 off."
+
       - name: Build, unit-test and lint both flavors
         run: >
           ./gradlew
@@ -222,6 +245,7 @@ jobs:
             --dependencies-file "$RUNNER_TEMP/evidence/play-release-dependencies.txt" \
             --r8-mapping app/build/outputs/mapping/playRelease/mapping.txt \
             --version-name "$version" \
+            --expected-package com.muslimrecovery.protection \
             --mode "$BOUNDARY_MODE" \
             "${baseline_args[@]}" \
             --report-out "$RUNNER_TEMP/evidence/release-boundary-report.txt"

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Summarize and compare JUnit XML results (M3-01 W0a: existing tests must be preserved).
 
-  test_counts.py summarize <results-dir>            -> JSON {class: {tests, failures, errors, skipped}}
+  test_counts.py summarize <results-dir>   -> JSON {class: {tests, failures, errors, skipped, cases}}
   test_counts.py compare <baseline.json> <current.json>
-      exit 0 only if every baseline class exists in current with the identical test count and the
-      current class has no failures, errors or skips. New classes in current are allowed.
+      exit 0 only if every baseline class exists in current with the identical test count, every
+      baseline test case name is still present, and the current class has no failures, errors or
+      skips. New classes in current are allowed.
 """
 import glob
 import json
@@ -23,6 +24,7 @@ def summarize(results_dir):
             "failures": int(suite.get("failures", 0)),
             "errors": int(suite.get("errors", 0)),
             "skipped": int(suite.get("skipped", 0)),
+            "cases": sorted(case.get("name") for case in suite.iter("testcase")),
         }
     return summary
 
@@ -36,6 +38,9 @@ def compare(baseline, current):
             continue
         if cur["tests"] != base["tests"]:
             problems.append("%s: test count %d != baseline %d" % (name, cur["tests"], base["tests"]))
+        missing = sorted(set(base.get("cases", [])) - set(cur.get("cases", [])))
+        if missing:
+            problems.append("%s: baseline test cases missing: %s" % (name, ", ".join(missing)))
         if cur["failures"] or cur["errors"] or cur["skipped"]:
             problems.append("%s: failures=%d errors=%d skipped=%d" % (name, cur["failures"], cur["errors"], cur["skipped"]))
     return problems
