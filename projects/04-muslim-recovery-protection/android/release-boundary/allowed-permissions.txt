@@ -1,1 +1,3 @@
-# Permissions the Play artifact may declare/use (merged manifest). Populated from CI discovery.
+# Permissions the Play artifact may declare/use (merged manifest).
+# Only the AndroidX-generated protection permission for dynamically registered receivers.
+com.muslimrecovery.protection.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION

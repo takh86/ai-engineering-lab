@@ -29,8 +29,8 @@ concurrency:
 
 env:
   PYTHONDONTWRITEBYTECODE: "1"
-  # Discovery run: report mode (not a gate). Switched to enforce once the allow-lists are populated from real artifacts.
-  BOUNDARY_MODE: report
+  # W0a: enforce with the known-historical baseline (release-boundary/w0a-known-historical.txt).
+  BOUNDARY_MODE: enforce
 
 jobs:
   tools-and-guard:
@@ -109,18 +109,11 @@ jobs:
       - name: Run unit tests on main
         run: ./gradlew testDebugUnitTest --no-daemon
 
-      - name: Summarize baseline test counts
-        run: |
-          set -euo pipefail
-          dir=$(ls -d app/build/test-results/test*DebugUnitTest | head -1)
-          echo "baseline results dir: $dir"
-          python3 ci/test_counts.py summarize "$dir" | tee "$RUNNER_TEMP/baseline-test-counts.json"
-
-      - name: Upload baseline test counts
+      - name: Upload baseline JUnit XML (summarized later with the branch's script)
         uses: actions/upload-artifact@v4
         with:
-          name: baseline-test-counts
-          path: ${{ runner.temp }}/baseline-test-counts.json
+          name: baseline-test-results
+          path: projects/04-muslim-recovery-protection/android/app/build/test-results/testDebugUnitTest/
           if-no-files-found: error
           retention-days: 14
 
@@ -233,6 +226,10 @@ jobs:
             "${baseline_args[@]}" \
             --report-out "$RUNNER_TEMP/evidence/release-boundary-report.txt"
 
+      - name: Print Gradle task-graph evidence (Amendment A2)
+        if: always()
+        run: cat "$RUNNER_TEMP/evidence/task-graph-summary.md" || true
+
       - name: Upload evidence (text and reports only; no APK or AAB)
         if: always()
         uses: actions/upload-artifact@v4
@@ -275,27 +272,40 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
-      - name: Run the exact M1 workflow command
-        run: ./gradlew clean assembleDebug testDebugUnitTest lintDebug --no-daemon
+      - name: Probe each M1 task name after flavors (dry run; records resolution, never gates)
+        run: |
+          mkdir -p "$RUNNER_TEMP/m1"
+          for task in assembleDebug testDebugUnitTest lintDebug; do
+            if ./gradlew --no-daemon "$task" --dry-run > "$RUNNER_TEMP/m1/$task.txt" 2>&1; then
+              echo "M1 TASK $task: RESOLVES -> $(grep -oE '^:app:[A-Za-z]+' "$RUNNER_TEMP/m1/$task.txt" | grep -E 'assemble|test|lint' | sort -u | tr '\n' ' ')"
+            else
+              echo "M1 TASK $task: DOES NOT RESOLVE -> $(grep -m1 -A1 'What went wrong' "$RUNNER_TEMP/m1/$task.txt" | tail -1)"
+            fi
+          done | tee "$RUNNER_TEMP/m1/probe.txt"
 
-      - name: Record what the M1 commands produced
+      - name: Run the flavor-aware equivalent of the M1 build, test and lint command
+        run: >
+          ./gradlew clean
+          assembleInternalDebug assemblePlayDebug
+          testInternalDebugUnitTest testPlayDebugUnitTest
+          lintInternalDebug lintPlayDebug
+          --no-daemon
+
+      - name: Record the M1 equivalence evidence
         if: always()
         run: |
           {
             echo "## M1 command equivalence evidence"
-            echo "APKs produced by \`assembleDebug\`:"
-            echo '```'
+            cat "$RUNNER_TEMP/m1/probe.txt" || true
+            echo "APKs produced by the flavor-aware equivalent:"
             find app/build/outputs/apk -name '*.apk' | sort || true
-            echo '```'
             if [ -f app/build/outputs/apk/debug/app-debug.apk ]; then
               echo "M1 upload path app/build/outputs/apk/debug/app-debug.apk: EXISTS"
             else
               echo "M1 upload path app/build/outputs/apk/debug/app-debug.apk: MISSING (the M1 workflow upload step would fail as written)"
             fi
             echo "Test result directories:"
-            echo '```'
             ls -d app/build/test-results/*/ 2>/dev/null || true
-            echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
 
   compare-test-counts:
@@ -307,11 +317,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Download baseline test counts
+      - name: Download baseline JUnit XML
         uses: actions/download-artifact@v4
         with:
-          name: baseline-test-counts
-          path: baseline
+          name: baseline-test-results
+          path: baseline-results
 
       - name: Download current evidence
         uses: actions/download-artifact@v4
@@ -322,10 +332,9 @@ jobs:
       - name: Compare per flavor (every baseline test class must be present, same count, all green)
         run: |
           set -euo pipefail
-          find baseline current -name '*test-counts*.json' | sort
+          tool=projects/04-muslim-recovery-protection/android/ci/test_counts.py
+          python3 "$tool" summarize baseline-results > baseline.json
           for flavor in internal play; do
             echo "== $flavor =="
-            python3 projects/04-muslim-recovery-protection/android/ci/test_counts.py compare \
-              baseline/baseline-test-counts.json \
-              "$(find current -name "current-test-counts-$flavor.json" | head -1)"
+            python3 "$tool" compare baseline.json "$(find current -name "current-test-counts-$flavor.json" | head -1)"
           done
