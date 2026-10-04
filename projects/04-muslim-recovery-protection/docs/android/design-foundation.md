@@ -12,7 +12,7 @@ compliance; it lists what is measured and what is still manual.
 | Colors Material has no slot for | `TabsiraDesign.colors` (`borderStrong`, `focus`, `disabledContent`, ...) | `core/design/theme` |
 | Everything else | `MaterialTheme.colorScheme`, `.typography`, `.shapes` (all mapped to Tabsira tokens) | |
 | Spacing | `TabsiraSpacing.xs/s/m/l/xl/xxl`, `minTouchTarget`, `borderHairline/Control`, `focusWidth` | `core/design/layout` |
-| Screen root | `TabsiraScreen { ... }` (edge-to-edge safe, start/end symmetric padding) | `core/design/components` |
+| Screen root | `TabsiraScreen { ... }` (edge-to-edge safe, start/end symmetric padding). **Use `scrollable = true` for any screen whose content can exceed the viewport** (font scale 200%, German text, small phones): the first CI run showed that a non-scrolling column squeezes the last rows and clips their text | `core/design/components` |
 | Actions | `PrimaryButton`, `SecondaryButton`, `TextAction` | |
 | Input | `TabsiraTextField` (label required; error = icon + message + border) | |
 | Grouping | `SectionCard` | |

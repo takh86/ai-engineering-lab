@@ -2,6 +2,8 @@ package com.muslimrecovery.protection.core.design
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -54,7 +56,9 @@ class ComponentSemanticsTest {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
                 TabsiraTheme(mode) {
-                    Column(if (narrow) Modifier.width(220.dp) else Modifier) {
+                    // Hosted in a scrolling column like a real screen (TabsiraScreen(scrollable = true)): at 200% the
+                    // content is taller than the viewport, and a non-scrolling column would squeeze the last rows.
+                    Column((if (narrow) Modifier.width(220.dp) else Modifier).verticalScroll(rememberScrollState())) {
                         PrimaryButton(if (narrow) germanLong else "Primary", onClick = {}, modifier = Modifier.testTag("primary"))
                         PrimaryButton("Off", onClick = {}, enabled = false, modifier = Modifier.testTag("off"))
                         SecondaryButton(if (narrow) germanLong else "Secondary", onClick = {}, modifier = Modifier.testTag("secondary"))
