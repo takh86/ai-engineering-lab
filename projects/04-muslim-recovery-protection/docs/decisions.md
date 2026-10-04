@@ -98,6 +98,9 @@ This is the toolchain selected for this project; it is not claimed to be the ear
 
 ## D10 — M1-04 VPN lifecycle foundation: no route, no DNS server, systemExempted FGS type
 
+> The path shown below is the historical M1 implementation location. Since M3-01 W0b, the preserved implementation lives under the internal
+> source set; the original decision semantics are unchanged.
+
 **Status:** Accepted (M1-04). Implementation consequence of the M1-04 Task Contract the Tech
 Lead authorized, not a new architecture decision made unilaterally by AI.
 
@@ -132,6 +135,9 @@ it. A future milestone that implements and verifies Always-on lifecycle must rev
 `SUPPORTS_ALWAYS_ON` metadata explicitly; it must not be flipped to `true` incidentally.
 
 ## D11 — DNS-only split-tunnel packet processing (M1-05 standard-DNS experiment)
+
+> The path shown below is the historical M1 implementation location. Since M3-01 W0b, the preserved implementation lives under the internal
+> source set; the original decision semantics are unchanged.
 
 **Status:** Accepted (M1-05). Approved by the human Tech Lead in the M1-05 Task Contract; this
 record documents that approval and its implementation consequences, it is not an AI-originated

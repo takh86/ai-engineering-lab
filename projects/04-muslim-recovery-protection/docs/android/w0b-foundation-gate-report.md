@@ -129,3 +129,14 @@ during W0a and extended here (47 + 22 Python tests; 19 boundary + 3 manifest + 2
 4. The AAB's manifest is not decoded; `meta-data`, `uses-feature`, `queries` are not inspected; `android:process`/`enabled` are not part of the component key.
 5. Stale statements remain outside this scope: `docs/architecture.md:59` and `docs/decisions.md:104` (historical M1 records) say the VPN code lives in `src/main`; the project `CLAUDE.md` and `AGENTS.md` still give `assembleDebug testDebugUnitTest` as the build command (ambiguous after flavors since W0a). **Owner decision:** update those instruction files and add a pointer to `historical-code-map.md`.
 6. Release gates from W0a stay open (R8 hardening, native-library / 16 KB alignment, Play declarations). Play artifacts are **not authorized for upload**.
+
+## 15. Closure after Tech Lead review (documentation and instructions only)
+
+The Tech Lead accepted the W0b implementation (PASS) and held the PR merge for a bounded documentation/instruction closure:
+
+- **Instruction files corrected:** the root `AGENTS.md` (structure, build and testing guidance) and the project `CLAUDE.md` now give explicit flavor-aware
+  verification commands and state that `testDebugUnitTest` / `lintDebug` are ambiguous and must not be used as generic commands.
+- **Architecture paths synchronized with W0b:** `docs/architecture.md` has a current-locations note and qualifies the stale M1 paths as historical.
+- **Historical decisions preserved, not rewritten:** `docs/decisions.md` (D10, D11) only gained a one-line relocation note; the substance of D1–D15 is unchanged.
+- **No product-code change in this closure:** no Android production or test logic, manifest, dependency, workflow or browser-extension change. This resolves
+  the "stale instruction files" decision in section 14, item 5.
