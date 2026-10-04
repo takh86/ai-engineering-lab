@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- F3 Help Now. Key prefix = file suffix (helpnow_). ALL COPY IS DRAFT and release-gated on clinical review
+         (OD8, D-15, OD-F3-2). See docs/android/f3-help-now-task-record.md for the per-key review record.
+         No emergency or help-line contact text exists here on purpose (OD-F3-3 is an Owner decision). -->
+    <string name="helpnow_need_heading">What do you need right now?</string>
+    <string name="helpnow_need_hint">Pick any that fit, or skip. There is no wrong answer.</string>
+    <string name="helpnow_need_calm">To calm down</string>
+    <string name="helpnow_need_distraction">Something to occupy my mind</string>
+    <string name="helpnow_need_movement">To move my body</string>
+    <string name="helpnow_need_connection">To be around people</string>
+    <string name="helpnow_need_rest">To rest</string>
+    <string name="helpnow_action_continue">Continue</string>
+    <string name="helpnow_action_skip">Skip</string>
+    <string name="helpnow_action_leave">Leave Help Now</string>
+    <string name="helpnow_step_heading">Take one short step</string>
+    <string name="helpnow_step_slowbreathing_title">Breathe slowly</string>
+    <string name="helpnow_step_slowbreathing_body">Let your shoulders drop. Breathe in gently, then out a little longer.</string>
+    <string name="helpnow_step_waterandstretch_title">Water and a stretch</string>
+    <string name="helpnow_step_waterandstretch_body">Drink some water, stand up and stretch your arms and neck.</string>
+    <string name="helpnow_step_changeplace_title">Change where you are</string>
+    <string name="helpnow_step_changeplace_body">Move to another room, or to a place where other people are.</string>
+    <string name="helpnow_step_namefivethings_title">Look around you</string>
+    <string name="helpnow_step_namefivethings_body">Quietly name five things you can see and two things you can hear.</string>
+    <string name="helpnow_step_shortwalk_title">A short walk</string>
+    <string name="helpnow_step_shortwalk_body">Walk at an easy pace, indoors or outside, until the timer ends.</string>
+    <string name="helpnow_all_tried">You have tried every step. Starting again is fine.</string>
+    <string name="helpnow_duration_heading">How long?</string>
+    <string name="helpnow_duration_option">%1$d seconds</string>
+    <string name="helpnow_timer_description">Time remaining %1$s</string>
+    <string name="helpnow_timer_finished">Time is up. Continue when you are ready.</string>
+    <string name="helpnow_breathe_in">Breathe in slowly</string>
+    <string name="helpnow_breathe_out">Breathe out slowly</string>
+    <string name="helpnow_breathe_static">Breathe in slowly, then out slowly, at your own pace.</string>
+    <string name="helpnow_action_step_done">Done with this step</string>
+    <string name="helpnow_personal_steps_heading">Your own steps</string>
+    <string name="helpnow_personal_reasons_heading">Your reasons</string>
+    <string name="helpnow_reflect_heading">Take a moment</string>
+    <string name="helpnow_reflect_body">Think about what matters to you. You do not need to say anything.</string>
+    <string name="helpnow_reassess_heading">How do you feel now?</string>
+    <string name="helpnow_reassess_lighter">A bit lighter</string>
+    <string name="helpnow_reassess_strong">Still strong</string>
+    <string name="helpnow_strong_body">That is okay. You can take another short step.</string>
+    <string name="helpnow_strong_another">Another step</string>
+    <string name="helpnow_trusted_person_action">Reach out to someone I trust</string>
+    <string name="helpnow_qualified_help">If this stays strong or is hard to carry alone, consider talking with a qualified professional.</string>
+    <string name="helpnow_done_heading">You paused</string>
+    <string name="helpnow_done_body">You took a moment for yourself. You can come back at any time.</string>
+</resources>

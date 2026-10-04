@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- F3 Help Now (AR). DRAFT translation, release-gated on native and clinical review (OD8, D-15, OD-F3-2). -->
+    <string name="helpnow_need_heading">ماذا تحتاج الآن؟</string>
+    <string name="helpnow_need_hint">اختر ما يناسبك أو تخطَّ هذه الخطوة. لا توجد إجابة خاطئة.</string>
+    <string name="helpnow_need_calm">أن أهدأ</string>
+    <string name="helpnow_need_distraction">شيئًا يشغل ذهني</string>
+    <string name="helpnow_need_movement">أن أحرّك جسدي</string>
+    <string name="helpnow_need_connection">أن أكون بين الناس</string>
+    <string name="helpnow_need_rest">أن أرتاح</string>
+    <string name="helpnow_action_continue">متابعة</string>
+    <string name="helpnow_action_skip">تخطَّ</string>
+    <string name="helpnow_action_leave">مغادرة المساعدة الفورية</string>
+    <string name="helpnow_step_heading">خطوة قصيرة واحدة</string>
+    <string name="helpnow_step_slowbreathing_title">تنفَّس ببطء</string>
+    <string name="helpnow_step_slowbreathing_body">أرخِ كتفيك. خذ نفسًا لطيفًا ثم أخرجه لوقت أطول قليلًا.</string>
+    <string name="helpnow_step_waterandstretch_title">ماء وتمدد</string>
+    <string name="helpnow_step_waterandstretch_body">اشرب بعض الماء، وقف ومدّد ذراعيك ورقبتك.</string>
+    <string name="helpnow_step_changeplace_title">غيّر مكانك</string>
+    <string name="helpnow_step_changeplace_body">انتقل إلى غرفة أخرى أو إلى مكان يوجد فيه أشخاص آخرون.</string>
+    <string name="helpnow_step_namefivethings_title">انظر حولك</string>
+    <string name="helpnow_step_namefivethings_body">سمِّ بهدوء خمسة أشياء تراها وشيئين تسمعهما.</string>
+    <string name="helpnow_step_shortwalk_title">مشي قصير</string>
+    <string name="helpnow_step_shortwalk_body">امشِ بخطى هادئة، داخل البيت أو خارجه، حتى ينتهي المؤقت.</string>
+    <string name="helpnow_all_tried">جرّبت كل الخطوات. لا بأس أن تبدأ من جديد.</string>
+    <string name="helpnow_duration_heading">كم من الوقت؟</string>
+    <string name="helpnow_duration_option">%1$d ثانية</string>
+    <string name="helpnow_timer_description">الوقت المتبقي %1$s</string>
+    <string name="helpnow_timer_finished">انتهى الوقت. تابع حين تكون مستعدًا.</string>
+    <string name="helpnow_breathe_in">خذ نفسًا ببطء</string>
+    <string name="helpnow_breathe_out">أخرج النفس ببطء</string>
+    <string name="helpnow_breathe_static">خذ نفسًا ببطء ثم أخرجه ببطء، بالإيقاع الذي يناسبك.</string>
+    <string name="helpnow_action_step_done">أنهيت هذه الخطوة</string>
+    <string name="helpnow_personal_steps_heading">خطواتك الخاصة</string>
+    <string name="helpnow_personal_reasons_heading">أسبابك</string>
+    <string name="helpnow_reflect_heading">خذ لحظة</string>
+    <string name="helpnow_reflect_body">فكّر فيما يهمّك. لا حاجة إلى قول شيء.</string>
+    <string name="helpnow_reassess_heading">كيف تشعر الآن؟</string>
+    <string name="helpnow_reassess_lighter">أخف قليلًا</string>
+    <string name="helpnow_reassess_strong">ما زال قويًا</string>
+    <string name="helpnow_strong_body">لا بأس بذلك. يمكنك أن تخطو خطوة قصيرة أخرى.</string>
+    <string name="helpnow_strong_another">خطوة أخرى</string>
+    <string name="helpnow_trusted_person_action">التواصل مع شخص أثق به</string>
+    <string name="helpnow_qualified_help">إذا بقي الأمر قويًا أو صعبًا عليك وحدك، ففكّر في التحدث مع مختص مؤهل.</string>
+    <string name="helpnow_done_heading">لقد توقفت قليلًا</string>
+    <string name="helpnow_done_body">منحت نفسك لحظة. يمكنك العودة في أي وقت.</string>
+</resources>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- F3 Help Now (DE). DRAFT translation, release-gated on native and clinical review (OD8, D-15, OD-F3-2). -->
+    <string name="helpnow_need_heading">Was brauchst du gerade?</string>
+    <string name="helpnow_need_hint">Wähle aus, was passt, oder überspringe es. Es gibt keine falsche Antwort.</string>
+    <string name="helpnow_need_calm">Mich beruhigen</string>
+    <string name="helpnow_need_distraction">Etwas, das meine Gedanken beschäftigt</string>
+    <string name="helpnow_need_movement">Mich bewegen</string>
+    <string name="helpnow_need_connection">Unter Menschen sein</string>
+    <string name="helpnow_need_rest">Mich ausruhen</string>
+    <string name="helpnow_action_continue">Weiter</string>
+    <string name="helpnow_action_skip">Überspringen</string>
+    <string name="helpnow_action_leave">Soforthilfe verlassen</string>
+    <string name="helpnow_step_heading">Ein kurzer Schritt</string>
+    <string name="helpnow_step_slowbreathing_title">Langsam atmen</string>
+    <string name="helpnow_step_slowbreathing_body">Lass die Schultern sinken. Atme sanft ein und etwas länger wieder aus.</string>
+    <string name="helpnow_step_waterandstretch_title">Wasser und Dehnen</string>
+    <string name="helpnow_step_waterandstretch_body">Trink etwas Wasser, steh auf und dehne Arme und Nacken.</string>
+    <string name="helpnow_step_changeplace_title">Ort wechseln</string>
+    <string name="helpnow_step_changeplace_body">Geh in einen anderen Raum oder dorthin, wo andere Menschen sind.</string>
+    <string name="helpnow_step_namefivethings_title">Schau dich um</string>
+    <string name="helpnow_step_namefivethings_body">Benenne leise fünf Dinge, die du siehst, und zwei Dinge, die du hörst.</string>
+    <string name="helpnow_step_shortwalk_title">Ein kurzer Spaziergang</string>
+    <string name="helpnow_step_shortwalk_body">Geh in ruhigem Tempo, drinnen oder draußen, bis der Timer endet.</string>
+    <string name="helpnow_all_tried">Du hast jeden Schritt ausprobiert. Noch einmal von vorn ist in Ordnung.</string>
+    <string name="helpnow_duration_heading">Wie lange?</string>
+    <string name="helpnow_duration_option">%1$d Sekunden</string>
+    <string name="helpnow_timer_description">Verbleibende Zeit %1$s</string>
+    <string name="helpnow_timer_finished">Die Zeit ist um. Mach weiter, wenn du bereit bist.</string>
+    <string name="helpnow_breathe_in">Langsam einatmen</string>
+    <string name="helpnow_breathe_out">Langsam ausatmen</string>
+    <string name="helpnow_breathe_static">Atme langsam ein und langsam aus, in deinem eigenen Tempo.</string>
+    <string name="helpnow_action_step_done">Schritt beendet</string>
+    <string name="helpnow_personal_steps_heading">Deine eigenen Schritte</string>
+    <string name="helpnow_personal_reasons_heading">Deine Gründe</string>
+    <string name="helpnow_reflect_heading">Nimm dir einen Moment</string>
+    <string name="helpnow_reflect_body">Denk daran, was dir wichtig ist. Du musst nichts sagen.</string>
+    <string name="helpnow_reassess_heading">Wie fühlst du dich jetzt?</string>
+    <string name="helpnow_reassess_lighter">Etwas leichter</string>
+    <string name="helpnow_reassess_strong">Immer noch stark</string>
+    <string name="helpnow_strong_body">Das ist in Ordnung. Du kannst einen weiteren kurzen Schritt machen.</string>
+    <string name="helpnow_strong_another">Noch ein Schritt</string>
+    <string name="helpnow_trusted_person_action">Mich an eine Vertrauensperson wenden</string>
+    <string name="helpnow_qualified_help">Wenn es stark bleibt oder allein schwer zu tragen ist, überlege, mit einer qualifizierten Fachperson zu sprechen.</string>
+    <string name="helpnow_done_heading">Du hast innegehalten</string>
+    <string name="helpnow_done_body">Du hast dir einen Moment für dich genommen. Du kannst jederzeit wiederkommen.</string>
+</resources>
